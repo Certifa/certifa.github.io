@@ -1,37 +1,14 @@
 /* ==========================================
-   FIX: Hero h1 highlight - GROEN gradient
+   ONLY COLOR FIXES - NO LAYOUT CHANGES
    ========================================== */
-.hero h1 .highlight {
-  background: linear-gradient(135deg, #00ff9f 0%, #00d4ff 100%) !important;
-  -webkit-background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-  background-clip: text !important;
-  text-shadow: 0 0 40px rgba(0, 255, 159, 0.3) !important;
-}
 
-/* ==========================================
-   FIX: Backticks - GROEN ipv grijs
-   ========================================== */
+/* Backticks terug naar GROEN */
 .md-typeset code {
-  background-color: rgba(0, 255, 159, 0.08) !important;
-  border: 1px solid rgba(0, 255, 159, 0.15) !important;
-  color: #00ff9f !important;
-  padding: 0.2em 0.5em;
-  border-radius: 4px;
-  font-size: 0.95rem;
-}
-
-/* Code blocks ook groen */
-.md-typeset pre > code {
-  color: #00ff9f !important;
-}
-
-.md-clipboard {
-  color: rgba(0, 255, 159, 0.6) !important;
+  color: #00ff9f;
 }
 
 .md-clipboard:hover {
-  color: #00ff9f !important;
+  color: #00ff9f;
 }
 
 
