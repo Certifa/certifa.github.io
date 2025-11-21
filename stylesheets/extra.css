@@ -59,15 +59,27 @@
 }
 
 /* ==========================================
-   SIDEBAR REMOVAL - Desktop/Tablet/Mobile
+   SIDEBAR REMOVAL - HOMEPAGE ONLY
    ========================================== */
-.md-sidebar--primary {
+
+/* Homepage: sidebar WEG */
+[data-md-page="index"] .md-sidebar--primary {
   display: none !important;
   width: 0 !important;
 }
 
-.md-content {
+[data-md-page="index"] .md-content {
   margin-left: 0 !important;
+}
+
+/* REST: sidebar ZICHTBAAR */
+.md-sidebar--primary {
+  display: block !important;
+  width: 200px !important;
+}
+
+.md-content {
+  margin-left: 200px !important;
 }
 
 /* Backticks groen */
