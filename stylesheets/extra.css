@@ -1,16 +1,3 @@
-/* ==========================================
-   ONLY COLOR FIXES - NO LAYOUT CHANGES
-   ========================================== */
-
-/* Backticks terug naar GROEN */
-.md-typeset code {
-  color: #00ff9f;
-}
-
-.md-clipboard:hover {
-  color: #00ff9f;
-}
-
 
 :root {
   /* Primitive Color Tokens */
