@@ -2,35 +2,47 @@
    SIDEBAR - HOME NO, REST YES
    ========================================== */
 
-/* Hide sidebar everywhere */
+/* Hide sidebar everywhere by default */
 .md-sidebar--primary {
   display: none !important;
   width: 0 !important;
+  margin: 0 !important;
 }
 
 .md-content {
   margin-left: 0 !important;
 }
 
-/* Show sidebar on non-homepage (Writeups, Tools, etc) */
-.md-page:not(:has([data-md-page="index"])) .md-sidebar--primary {
+.md-sidebar--secondary {
+  display: none !important;
+}
+
+/* Show sidebar on non-homepage ONLY */
+body[data-md-page] .md-sidebar--primary {
   display: block !important;
   width: 180px !important;
   overflow: hidden !important;
   scrollbar-width: none !important;
 }
 
-.md-page:not(:has([data-md-page="index"])) .md-sidebar--primary::-webkit-scrollbar {
+body[data-md-page] .md-sidebar--primary::-webkit-scrollbar {
   display: none !important;
 }
 
-.md-page:not(:has([data-md-page="index"])) .md-content {
+body[data-md-page] .md-content {
   margin-left: 180px !important;
 }
 
-.md-sidebar--secondary {
+/* Homepage specifiek: sidebar weg */
+body[data-md-page="index"] .md-sidebar--primary {
   display: none !important;
+  width: 0 !important;
 }
+
+body[data-md-page="index"] .md-content {
+  margin-left: 0 !important;
+}
+
 
 /* ==========================================
    ENDOR LABS INSPIRED - PROFESSIONAL DARK THEME
