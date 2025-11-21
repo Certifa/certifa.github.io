@@ -18,30 +18,34 @@
 }
 
 /* Show sidebar on non-homepage ONLY */
-body[data-md-page] .md-sidebar--primary {
+.md-sidebar--primary {
   display: block !important;
   width: 180px !important;
   overflow: hidden !important;
   scrollbar-width: none !important;
 }
 
-body[data-md-page] .md-sidebar--primary::-webkit-scrollbar {
+.md-sidebar--primary::-webkit-scrollbar {
   display: none !important;
 }
 
-body[data-md-page] .md-content {
+.md-content {
   margin-left: 180px !important;
 }
 
 /* Homepage specifiek: sidebar weg */
-body[data-md-page="index"] .md-sidebar--primary {
+html.md-page.index .md-sidebar--primary {
   display: none !important;
   width: 0 !important;
 }
 
-body[data-md-page="index"] .md-content {
+html.md-page.index .md-content {
   margin-left: 0 !important;
 }
+
+
+
+
 
 
 /* ==========================================
