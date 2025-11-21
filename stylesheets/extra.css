@@ -1,3 +1,18 @@
+/* FORCE DARK MODE - ignore system preferences */
+[data-md-color-scheme] {
+  color-scheme: dark !important;
+}
+
+html {
+  color-scheme: dark !important;
+}
+
+body {
+  background-color: #181a20 !important;
+  color: #ffffff !important;
+}
+
+
 :root {
   /* Primitive Color Tokens */
   --color-white: rgba(255, 255, 255, 1);
@@ -740,41 +755,41 @@ select.form-control {
 /* END PERPLEXITY DESIGN SYSTEM */
 ```css
 /* ==========================================
-   ENDOR LABS INSPIRED - DESIGN SYSTEM COMPLIANT
-   Updated to match Perplexity design system
+   ENDOR LABS INSPIRED - PROFESSIONAL DARK THEME
+   Adapted to Perplexity Design System
    ========================================== */
 
 :root {
-  /* Legacy variable mapping to design system */
+  /* Mapped colors from original design to Perplexity tokens */
   --neon-green: var(--color-primary);
   --neon-green-dim: var(--color-primary-hover);
   --neon-green-glow: rgba(var(--color-teal-500-rgb), 0.15);
   --neon-blue: var(--color-teal-300);
-  --neon-purple: var(--color-bg-5);
-  --neon-orange: var(--color-warning);
+  --neon-purple: var(--color-teal-700);
+  --neon-orange: var(--color-orange-500);
   --black-pure: var(--color-black);
-  --black-bg: var(--color-background);
-  --black-surface: var(--color-surface);
-  --black-elevated: var(--color-surface);
+  --black-bg: var(--color-charcoal-700);
+  --black-surface: var(--color-charcoal-800);
+  --black-elevated: var(--color-charcoal-800);
   --black-card: var(--color-surface);
-  --gradient-dark: linear-gradient(180deg, var(--color-background) 0%, var(--color-surface) 50%, var(--color-background) 100%);
+  --gradient-dark: linear-gradient(180deg, var(--color-charcoal-700) 0%, var(--color-charcoal-800) 50%, var(--color-charcoal-700) 100%);
   --gradient-glow: radial-gradient(circle at 50% 50%, rgba(var(--color-teal-500-rgb), 0.08) 0%, transparent 70%);
-  --shadow-sm: var(--shadow-xs);
-  --shadow-md: var(--shadow-sm);
-  --shadow-lg: var(--shadow-md);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
   --shadow-glow: 0 0 30px rgba(var(--color-teal-500-rgb), 0.2);
 }
 
-/* BASE THEME */
+/* BASE DARK THEME */
 [data-md-color-scheme="slate"] {
   --md-default-bg-color: var(--color-background);
   --md-default-bg-color--light: var(--color-surface);
-  --md-default-bg-color--lighter: var(--color-surface);
+  --md-default-bg-color--lighter: var(--color-charcoal-800);
   --md-default-bg-color--lightest: var(--color-surface);
   --md-default-fg-color: var(--color-text);
   --md-default-fg-color--light: var(--color-text-secondary);
-  --md-default-fg-color--lighter: var(--color-text-secondary);
-  --md-default-fg-color--lightest: var(--color-text-secondary);
+  --md-default-fg-color--lighter: var(--color-gray-300);
+  --md-default-fg-color--lightest: var(--color-gray-400);
   --md-primary-fg-color: var(--color-primary-hover);
   --md-accent-fg-color: var(--color-primary);
   --md-code-bg-color: var(--color-surface);
@@ -782,16 +797,17 @@ select.form-control {
 }
 
 /* ==========================================
-   ANIMATED BACKGROUND GLOW - SUBTLE
+   ANIMATED ENDORLABS GLOW - SUBTIEL
+   Verspreid in hoeken, niet in midden
    ========================================== */
 body {
-  background-color: var(--color-background) !important;
+  background-color: var(--color-charcoal-700) !important;
   background-image: 
-    radial-gradient(120px at 8% 12%, var(--color-bg-5) 0%, transparent 85%),
-    radial-gradient(100px at 92% 8%, var(--color-bg-3) 0%, transparent 85%),
-    radial-gradient(110px at 5% 88%, var(--color-bg-8) 0%, transparent 85%),
-    radial-gradient(130px at 88% 92%, var(--color-bg-5) 0%, transparent 85%),
-    radial-gradient(95px at 85% 50%, var(--color-bg-3) 0%, transparent 85%);
+    radial-gradient(120px at 8% 12%, rgba(var(--color-teal-500-rgb), 0.025) 0%, transparent 85%),
+    radial-gradient(100px at 92% 8%, rgba(var(--color-teal-300-rgb), 0.012) 0%, transparent 85%),
+    radial-gradient(110px at 5% 88%, rgba(var(--color-teal-400), 0.015) 0%, transparent 85%),
+    radial-gradient(130px at 88% 92%, rgba(var(--color-teal-500-rgb), 0.035) 0%, transparent 85%),
+    radial-gradient(95px at 85% 50%, rgba(var(--color-teal-300-rgb), 0.01) 0%, transparent 85%);
   background-attachment: scroll;
   background-size: 100% 100%;
   position: relative;
@@ -801,43 +817,43 @@ body {
 @keyframes ambient-glow {
   0% {
     background-image: 
-      radial-gradient(120px at 8% 12%, var(--color-bg-5) 0%, transparent 85%),
-      radial-gradient(100px at 92% 8%, var(--color-bg-3) 0%, transparent 85%),
-      radial-gradient(110px at 5% 88%, var(--color-bg-8) 0%, transparent 85%),
-      radial-gradient(130px at 88% 92%, var(--color-bg-5) 0%, transparent 85%),
-      radial-gradient(95px at 85% 50%, var(--color-bg-3) 0%, transparent 85%);
+      radial-gradient(120px at 8% 12%, rgba(var(--color-teal-500-rgb), 0.025) 0%, transparent 85%),
+      radial-gradient(100px at 92% 8%, rgba(var(--color-teal-300-rgb), 0.012) 0%, transparent 85%),
+      radial-gradient(110px at 5% 88%, rgba(var(--color-teal-400), 0.015) 0%, transparent 85%),
+      radial-gradient(130px at 88% 92%, rgba(var(--color-teal-500-rgb), 0.035) 0%, transparent 85%),
+      radial-gradient(95px at 85% 50%, rgba(var(--color-teal-300-rgb), 0.01) 0%, transparent 85%);
   }
   25% {
     background-image: 
-      radial-gradient(125px at 10% 10%, var(--color-bg-5) 0%, transparent 85%),
-      radial-gradient(100px at 90% 10%, var(--color-bg-3) 0%, transparent 85%),
-      radial-gradient(110px at 3% 90%, var(--color-bg-8) 0%, transparent 85%),
-      radial-gradient(135px at 90% 90%, var(--color-bg-5) 0%, transparent 85%),
-      radial-gradient(95px at 85% 50%, var(--color-bg-3) 0%, transparent 85%);
+      radial-gradient(125px at 10% 10%, rgba(var(--color-teal-500-rgb), 0.03) 0%, transparent 85%),
+      radial-gradient(100px at 90% 10%, rgba(var(--color-teal-300-rgb), 0.015) 0%, transparent 85%),
+      radial-gradient(110px at 3% 90%, rgba(var(--color-teal-400), 0.012) 0%, transparent 85%),
+      radial-gradient(135px at 90% 90%, rgba(var(--color-teal-500-rgb), 0.04) 0%, transparent 85%),
+      radial-gradient(95px at 85% 50%, rgba(var(--color-teal-300-rgb), 0.008) 0%, transparent 85%);
   }
   50% {
     background-image: 
-      radial-gradient(115px at 12% 15%, var(--color-bg-5) 0%, transparent 85%),
-      radial-gradient(100px at 94% 5%, var(--color-bg-3) 0%, transparent 85%),
-      radial-gradient(110px at 8% 85%, var(--color-bg-8) 0%, transparent 85%),
-      radial-gradient(125px at 87% 95%, var(--color-bg-5) 0%, transparent 85%),
-      radial-gradient(95px at 85% 50%, var(--color-bg-3) 0%, transparent 85%);
+      radial-gradient(115px at 12% 15%, rgba(var(--color-teal-500-rgb), 0.02) 0%, transparent 85%),
+      radial-gradient(100px at 94% 5%, rgba(var(--color-teal-300-rgb), 0.01) 0%, transparent 85%),
+      radial-gradient(110px at 8% 85%, rgba(var(--color-teal-400), 0.02) 0%, transparent 85%),
+      radial-gradient(125px at 87% 95%, rgba(var(--color-teal-500-rgb), 0.03) 0%, transparent 85%),
+      radial-gradient(95px at 85% 50%, rgba(var(--color-teal-300-rgb), 0.012) 0%, transparent 85%);
   }
   75% {
     background-image: 
-      radial-gradient(120px at 5% 10%, var(--color-bg-5) 0%, transparent 85%),
-      radial-gradient(100px at 88% 12%, var(--color-bg-3) 0%, transparent 85%),
-      radial-gradient(110px at 10% 92%, var(--color-bg-8) 0%, transparent 85%),
-      radial-gradient(132px at 92% 88%, var(--color-bg-5) 0%, transparent 85%),
-      radial-gradient(95px at 85% 50%, var(--color-bg-3) 0%, transparent 85%);
+      radial-gradient(120px at 5% 10%, rgba(var(--color-teal-500-rgb), 0.03) 0%, transparent 85%),
+      radial-gradient(100px at 88% 12%, rgba(var(--color-teal-300-rgb), 0.015) 0%, transparent 85%),
+      radial-gradient(110px at 10% 92%, rgba(var(--color-teal-400), 0.018) 0%, transparent 85%),
+      radial-gradient(132px at 92% 88%, rgba(var(--color-teal-500-rgb), 0.038) 0%, transparent 85%),
+      radial-gradient(95px at 85% 50%, rgba(var(--color-teal-300-rgb), 0.01) 0%, transparent 85%);
   }
   100% {
     background-image: 
-      radial-gradient(120px at 8% 12%, var(--color-bg-5) 0%, transparent 85%),
-      radial-gradient(100px at 92% 8%, var(--color-bg-3) 0%, transparent 85%),
-      radial-gradient(110px at 5% 88%, var(--color-bg-8) 0%, transparent 85%),
-      radial-gradient(130px at 88% 92%, var(--color-bg-5) 0%, transparent 85%),
-      radial-gradient(95px at 85% 50%, var(--color-bg-3) 0%, transparent 85%);
+      radial-gradient(120px at 8% 12%, rgba(var(--color-teal-500-rgb), 0.025) 0%, transparent 85%),
+      radial-gradient(100px at 92% 8%, rgba(var(--color-teal-300-rgb), 0.012) 0%, transparent 85%),
+      radial-gradient(110px at 5% 88%, rgba(var(--color-teal-400), 0.015) 0%, transparent 85%),
+      radial-gradient(130px at 88% 92%, rgba(var(--color-teal-500-rgb), 0.035) 0%, transparent 85%),
+      radial-gradient(95px at 85% 50%, rgba(var(--color-teal-300-rgb), 0.01) 0%, transparent 85%);
   }
 }
 
@@ -876,13 +892,14 @@ body {
 .md-content__inner {
   max-width: 85vw !important;
   margin: 0 auto !important;
-  padding: var(--space-32) var(--space-24) var(--space-16) var(--space-24) !important;
+  padding: var(--space-24) var(--space-32) var(--space-20) var(--space-32) !important;
 }
 
-/* Linker sidebar behouden */
+/* Linker sidebar ALTIJD zichtbaar */
 .md-sidebar--primary {
   width: 200px !important;
   background-color: transparent;
+  display: block !important;
 }
 
 /* Rechter sidebar verbergen */
@@ -916,25 +933,26 @@ body {
   max-width: 88vw !important;
   width: 88vw !important;
   margin: 0 auto !important;
-  padding: var(--space-32) 5vw var(--space-16) 5vw !important;
+  padding: var(--space-24) 5vw var(--space-20) 5vw !important;
 }
 
 /* ==========================================
    HEADER & NAVBAR
    ========================================== */
 .md-header {
-  height: 80px !important;
+  height: auto !important;
   background-color: rgba(var(--color-slate-900-rgb), 0.98);
   backdrop-filter: blur(16px) saturate(180%);
   border-bottom: 1px solid var(--color-border);
   box-shadow: var(--shadow-md);
+  padding: var(--space-16) 0 !important;
 }
 
 .md-header__inner {
   display: flex !important;
   justify-content: flex-start !important;
   align-items: center !important;
-  padding: 0 var(--space-16);
+  padding: 0 var(--space-24) !important;
 }
 
 .md-header__title {
@@ -949,6 +967,7 @@ body {
 .md-header__button {
   color: var(--color-text-secondary);
   transition: all var(--duration-normal) var(--ease-standard);
+  font-size: var(--font-size-xl) !important;
 }
 
 .md-header__button:hover {
@@ -961,18 +980,18 @@ body {
   border: 1px solid var(--color-border);
   color: var(--color-text);
   border-radius: var(--radius-base);
+  font-size: var(--font-size-base) !important;
   font-family: var(--font-family-base);
 }
 
 .md-search__input:hover {
   background-color: var(--color-secondary-hover);
-  border-color: var(--color-primary);
+  border-color: rgba(var(--color-teal-500-rgb), 0.2);
 }
 
 .md-search__input:focus {
-  background-color: var(--color-surface);
+  background-color: var(--color-secondary-active);
   border-color: var(--color-primary);
-  outline: var(--focus-outline);
   box-shadow: var(--focus-ring);
 }
 
@@ -980,7 +999,7 @@ body {
    NAVIGATION TABS
    ========================================== */
 .md-tabs {
-  background-color: rgba(var(--color-slate-900-rgb), 0.95);
+  background-color: rgba(var(--color-charcoal-800), 0.95);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--color-border);
 }
@@ -988,30 +1007,31 @@ body {
 .md-tabs__link {
   color: var(--color-text-secondary);
   font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-lg) !important;
   transition: all var(--duration-normal) var(--ease-standard);
 }
 
 .md-tabs__link:hover {
   color: var(--color-primary);
-  background-color: var(--color-secondary);
+  background-color: rgba(var(--color-teal-500-rgb), 0.04);
 }
 
 .md-tabs__link--active {
   color: var(--color-primary);
   border-bottom: 2px solid var(--color-primary);
-  background-color: var(--color-secondary-hover);
+  background-color: rgba(var(--color-teal-500-rgb), 0.06);
 }
 
 /* ==========================================
-   HERO SECTION
+   HERO SECTION - SPECIAL!
    ========================================== */
 .hero {
   position: relative;
   text-align: center;
-  padding: calc(var(--space-32) * 3) var(--space-16) calc(var(--space-32) * 2.5);
+  padding: calc(var(--space-32) * 4) var(--space-32) calc(var(--space-32) * 3.5);
   background: var(--gradient-dark);
-  border-bottom: 1px solid var(--color-border);
-  margin-bottom: calc(var(--space-32) * 2);
+  border-bottom: 2px solid rgba(var(--color-teal-500-rgb), 0.2);
+  margin-bottom: var(--space-32);
   overflow: hidden;
 }
 
@@ -1021,11 +1041,21 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 1200px;
-  height: 1200px;
-  background: var(--gradient-glow);
+  width: 1500px;
+  height: 1500px;
+  background: radial-gradient(circle at 50% 50%, rgba(var(--color-teal-500-rgb), 0.15) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
+  animation: heroGlow 6s ease-in-out infinite;
+}
+
+@keyframes heroGlow {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .hero::after {
@@ -1036,12 +1066,12 @@ body {
   right: 0;
   bottom: 0;
   background-image: 
-    linear-gradient(var(--color-border) 1px, transparent 1px),
-    linear-gradient(90deg, var(--color-border) 1px, transparent 1px);
-  background-size: 50px 50px;
+    linear-gradient(rgba(var(--color-teal-500-rgb), 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--color-teal-500-rgb), 0.05) 1px, transparent 1px);
+  background-size: 60px 60px;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.3;
+  opacity: 0.4;
 }
 
 .hero * {
@@ -1053,9 +1083,8 @@ body {
   font-size: var(--font-size-4xl);
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
-  margin-bottom: var(--space-20);
+  margin-bottom: var(--space-24);
   letter-spacing: var(--letter-spacing-tight);
-  color: var(--color-text);
 }
 
 .hero h1 .highlight {
@@ -1070,13 +1099,13 @@ body {
   font-size: var(--font-size-xl);
   color: var(--color-text-secondary);
   font-weight: var(--font-weight-normal);
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-12);
 }
 
 .hero .tagline {
-  font-size: var(--font-size-base);
-  color: var(--color-text-secondary);
-  margin-bottom: calc(var(--space-32) * 1.5);
+  font-size: var(--font-size-lg);
+  color: var(--color-gray-400);
+  margin-bottom: calc(var(--space-16) * 2);
   font-weight: var(--font-weight-normal);
 }
 
@@ -1095,7 +1124,7 @@ body {
   background-color: transparent;
   border: 2px solid var(--color-primary-hover);
   color: var(--color-primary);
-  padding: var(--space-12) var(--space-24);
+  padding: var(--space-12) var(--space-32);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
   border-radius: var(--radius-base);
@@ -1106,7 +1135,7 @@ body {
 }
 
 .md-button:hover {
-  background-color: var(--color-secondary);
+  background-color: rgba(var(--color-teal-500-rgb), 0.08);
   border-color: var(--color-primary);
   color: var(--color-primary);
   box-shadow: var(--shadow-glow);
@@ -1139,7 +1168,7 @@ html {
 .md-typeset {
   font-size: var(--font-size-lg) !important;
   line-height: var(--line-height-normal);
-  color: var(--color-text);
+  font-family: var(--font-family-base);
 }
 
 .md-typeset h1 {
@@ -1147,19 +1176,17 @@ html {
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--letter-spacing-tight);
   margin-top: 0;
-  margin-bottom: var(--space-20);
-  color: var(--color-text);
+  margin-bottom: var(--space-24);
 }
 
 .md-typeset h2 {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--letter-spacing-tight);
-  margin-top: calc(var(--space-32) * 1.25);
+  margin-top: calc(var(--space-24) + var(--space-8));
   margin-bottom: var(--space-16);
   border-bottom: 1px solid var(--color-border);
   padding-bottom: var(--space-8);
-  color: var(--color-text);
 }
 
 .md-typeset h3 {
@@ -1167,7 +1194,6 @@ html {
   font-weight: var(--font-weight-semibold);
   margin-top: var(--space-32);
   margin-bottom: var(--space-12);
-  color: var(--color-text);
 }
 
 .md-typeset p,
@@ -1183,8 +1209,8 @@ html {
    CODE BLOCKS
    ========================================== */
 .md-typeset code {
-  background-color: var(--color-secondary);
-  border: 1px solid var(--color-border);
+  background-color: rgba(var(--color-teal-500-rgb), 0.08);
+  border: 1px solid rgba(var(--color-teal-500-rgb), 0.15);
   color: var(--color-primary);
   padding: var(--space-2) var(--space-8);
   border-radius: var(--radius-sm);
@@ -1196,7 +1222,7 @@ html {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-20);
+  padding: var(--space-24);
   box-shadow: var(--shadow-md);
   position: relative;
 }
@@ -1228,18 +1254,16 @@ html {
   font-size: var(--font-size-base);
   transition: all var(--duration-normal) var(--ease-standard);
   padding: var(--space-6) var(--space-12);
-  border-radius: var(--radius-sm);
+  font-family: var(--font-family-base);
 }
 
 .md-nav__link:hover {
   color: var(--color-primary);
-  background-color: var(--color-secondary);
 }
 
 .md-nav__link--active {
   color: var(--color-primary);
   font-weight: var(--font-weight-semibold);
-  background-color: var(--color-secondary-hover);
 }
 
 .md-nav__item--nested > .md-nav__link {
@@ -1276,9 +1300,6 @@ html {
   fill: var(--color-primary);
 }
 
-/* ==========================================
-   BACK TO TOP
-   ========================================== */
 .md-top {
   display: none !important;
 }
@@ -1350,16 +1371,16 @@ html {
   }
   
   .md-content__inner {
-    padding: var(--space-20) var(--space-16) !important;
+    padding: var(--space-24) var(--space-16) !important;
   }
 }
 
 /* ==========================================
-   RESPONSIVE - MOBILE PORTRAIT (< 480px)
-   REQUIRED BY DESIGN SYSTEM
+   RESPONSIVE - MOBILE PORTRAIT (480px)
+   New breakpoint as per design system requirements
    ========================================== */
 @media screen and (max-width: 480px) {
-  /* Hide sidebar, full width */
+  /* Sidebar ALTIJD weg op mobile */
   .md-sidebar--primary,
   .md-sidebar--secondary {
     display: none !important;
@@ -1375,31 +1396,31 @@ html {
     padding: var(--space-16) var(--space-12) !important;
   }
   
-  /* Header mobile friendly */
+  /* Header mobile - compact */
   .md-header {
-    height: 70px !important;
+    padding: var(--space-12) 0 !important;
   }
   
   .md-header__inner {
-    padding: 0 var(--space-8) !important;
+    padding: 0 var(--space-12) !important;
   }
   
   .md-header__title {
     font-size: var(--font-size-lg) !important;
   }
   
-  /* Tabs stack on mobile */
+  /* Tabs weg op portrait */
   .md-tabs {
     display: none !important;
   }
   
   /* Search smaller */
   .md-search__input {
-    max-width: 250px;
+    max-width: 200px;
     font-size: var(--font-size-sm);
   }
   
-  /* Typography smaller on mobile */
+  /* Typography smaller */
   .md-typeset {
     font-size: var(--font-size-base) !important;
   }
@@ -1429,63 +1450,42 @@ html {
   
   /* Hero smaller */
   .hero {
-    padding: calc(var(--space-32) * 1.5) var(--space-16) calc(var(--space-32) * 1.5);
+    padding: calc(var(--space-32) + var(--space-16)) var(--space-16) calc(var(--space-32) + var(--space-16));
     margin-bottom: var(--space-32);
   }
   
   .hero h1 {
-    font-size: var(--font-size-3xl);
-    margin-bottom: var(--space-16);
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--space-12);
   }
   
   .hero .subtitle {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-base);
   }
   
   .hero .tagline {
     font-size: var(--font-size-sm);
-    margin-bottom: var(--space-20);
+    margin-bottom: var(--space-24);
   }
   
   .hero-buttons {
     gap: var(--space-8);
-    flex-direction: column;
-    width: 100%;
   }
   
-  .hero-buttons .md-button {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  /* Cards smaller */
+  /* Cards 1 column */
   .writeup-grid {
     grid-template-columns: 1fr !important;
     gap: var(--space-16);
     margin: var(--space-32) 0;
   }
-  
-  /* Code blocks */
-  .md-typeset pre {
-    padding: var(--space-12);
-    border-radius: var(--radius-base);
-  }
-  
-  .md-typeset code {
-    font-size: var(--font-size-xs);
-  }
-  
-  .md-typeset pre > code {
-    font-size: var(--font-size-xs);
-  }
 }
 
 /* ==========================================
-   RESPONSIVE - MOBILE (< 768px)
-   HAMBURGER MENU ACTIVE
+   RESPONSIVE - MOBILE PORTRAIT + LANDSCAPE
+   Hamburger menu fit
    ========================================== */
 @media screen and (max-width: 44.9375em) {
-  /* Hide sidebar, full width */
+  /* Sidebar ALTIJD weg op mobile */
   .md-sidebar--primary,
   .md-sidebar--secondary {
     display: none !important;
@@ -1501,9 +1501,9 @@ html {
     padding: var(--space-16) var(--space-8) !important;
   }
   
-  /* Header mobile friendly */
+  /* Header mobile - compact */
   .md-header {
-    height: 70px !important;
+    padding: var(--space-12) 0 !important;
   }
   
   .md-header__inner {
@@ -1514,18 +1514,18 @@ html {
     font-size: var(--font-size-lg) !important;
   }
   
-  /* Tabs stack on mobile */
+  /* Tabs weg op portrait */
   .md-tabs {
     display: none !important;
   }
   
   /* Search smaller */
   .md-search__input {
-    max-width: 250px;
+    max-width: 200px;
     font-size: var(--font-size-sm);
   }
   
-  /* Typography smaller op mobile */
+  /* Typography smaller */
   .md-typeset {
     font-size: var(--font-size-base) !important;
   }
@@ -1539,7 +1539,7 @@ html {
   }
   
   .md-typeset h3 {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-base);
   }
   
   .md-typeset p,
@@ -1555,33 +1555,79 @@ html {
   
   /* Hero smaller */
   .hero {
-    padding: calc(var(--space-32) * 1.5) var(--space-16) calc(var(--space-32) * 1.5);
+    padding: calc(var(--space-32) + var(--space-16)) var(--space-16) calc(var(--space-32) + var(--space-16));
     margin-bottom: var(--space-32);
   }
   
   .hero h1 {
-    font-size: var(--font-size-3xl);
-    margin-bottom: var(--space-16);
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--space-12);
   }
   
   .hero .subtitle {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-base);
   }
   
   .hero .tagline {
     font-size: var(--font-size-sm);
-    margin-bottom: var(--space-20);
+    margin-bottom: var(--space-24);
   }
   
   .hero-buttons {
     gap: var(--space-8);
   }
   
-  /* Cards smaller */
+  /* Cards 1 column */
   .writeup-grid {
     grid-template-columns: 1fr !important;
     gap: var(--space-16);
     margin: var(--space-32) 0;
+  }
+}
+
+/* ==========================================
+   LANDSCAPE MOBILE (klein scherm, breed)
+   ========================================== */
+@media screen and (max-width: 44.9375em) and (orientation: landscape) {
+  /* Nog compacter voor landscape */
+  .md-header {
+    padding: var(--space-8) 0 !important;
+  }
+  
+  .md-header__title {
+    font-size: var(--font-size-base) !important;
+  }
+  
+  .hero {
+    padding: var(--space-24) var(--space-8) var(--space-24);
+    margin-bottom: var(--space-24);
+  }
+  
+  .hero h1 {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--space-8);
+  }
+  
+  .hero .subtitle {
+    font-size: var(--font-size-sm);
+  }
+  
+  .hero .tagline {
+    font-size: var(--font-size-xs);
+    margin-bottom: var(--space-16);
+  }
+  
+  .hero-buttons {
+    gap: var(--space-6);
+  }
+  
+  .md-button {
+    padding: var(--space-8) var(--space-16);
+    font-size: var(--font-size-xs);
+  }
+  
+  .md-typeset {
+    font-size: var(--font-size-sm) !important;
   }
 }
 ```
