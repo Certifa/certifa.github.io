@@ -1,0 +1,96 @@
+site_name: My Security Lab
+site_url: https://yourusername.github.io
+site_author: Certifa
+site_description: Breaking into systems, documenting the journey
+
+repo_url: https://github.com/Certifa
+repo_name: Certifa
+
+
+
+theme:
+  name: material
+  language: en
+  
+  palette:
+    scheme: slate
+    primary: black
+    accent: teal
+  
+  font:
+    text: Inter
+    code: Fira Code
+  
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.path
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+    - navigation.expand
+    - toc.integrate
+nav:
+  - Home: index.md
+  - Writeups:
+    - writeups/index.md
+    - HackTheBox:
+      - Return: writeups/htb/return/README.md
+      - DarkZero: writeups/htb/darkzero/README.md
+  - Tools: tools/index.md
+  - Cheatsheets: cheatsheets/index.md
+  - Blog: blog/index.md
+  - About: about.md
+
+plugins:
+  - search
+  - tags
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.betterem
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      pygments_style: dracula
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+extra_css:
+  - stylesheets/extra.css
+  - stylesheets/cards.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Certifa
+    - icon: simple/hackthebox
+      link: https://app.hackthebox.com/profile/444744
+  generator: false
+
+copyright: "&copy; 2025 Certifa"
+
