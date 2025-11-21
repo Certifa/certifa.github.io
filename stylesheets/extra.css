@@ -44,6 +44,8 @@
 
 /* Desktop/tablet: linkersidebar 180px, altijd zichtbaar
    Behalve op pagina's waar MkDocs 'navigation' verbergt (zoals index.md) */
+
+/* Sidebar standaard styling */
 .md-sidebar--primary {
   width: 180px !important;
   background-color: transparent;
@@ -55,16 +57,23 @@
   display: none !important;
 }
 
-/* Content schuift op naast de sidebar */
-.md-content {
+.md-sidebar--secondary {
+  display: none !important;
+}
+
+/* Alleen als er daadwerkelijk navigation is (niet op index) */
+body:not([data-md-page="index"]) .md-content {
   margin-left: 180px !important;
   margin-right: 0 !important;
 }
 
-/* Rechter sidebar nooit gebruiken */
-.md-sidebar--secondary {
-  display: none !important;
+/* Op index (home) geen extra margin */
+body[data-md-page="index"] .md-content {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
 }
+
+
 
 /* Smalle schermen: standaard Material‑gedrag – geen sidebar, full width */
 @media screen and (max-width: 37.5em) {  /* 600px */
