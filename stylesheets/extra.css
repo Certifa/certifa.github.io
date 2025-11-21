@@ -1,8 +1,8 @@
 /* ==========================================
-   SIDEBAR FIX - Homepage no space, Rest visible
+   SIDEBAR - HOME NO, REST YES
    ========================================== */
 
-/* Hide sidebar by default */
+/* Hide sidebar everywhere */
 .md-sidebar--primary {
   display: none !important;
   width: 0 !important;
@@ -12,31 +12,25 @@
   margin-left: 0 !important;
 }
 
-/* Show sidebar on non-homepage */
-body:not([data-md-page="index"]) .md-sidebar--primary {
+/* Show sidebar on non-homepage (Writeups, Tools, etc) */
+.md-page:not(:has([data-md-page="index"])) .md-sidebar--primary {
   display: block !important;
   width: 180px !important;
   overflow: hidden !important;
   scrollbar-width: none !important;
 }
 
-body:not([data-md-page="index"]) .md-sidebar--primary::-webkit-scrollbar {
+.md-page:not(:has([data-md-page="index"])) .md-sidebar--primary::-webkit-scrollbar {
   display: none !important;
 }
 
-body:not([data-md-page="index"]) .md-content {
+.md-page:not(:has([data-md-page="index"])) .md-content {
   margin-left: 180px !important;
 }
 
 .md-sidebar--secondary {
   display: none !important;
 }
-
-/* ==========================================
-   REST VAN JE ORIGINEEL BESTAND
-   ========================================== */
-/* [Plak hier je ORIGINEEL bestand ZONDER de sidebar code] */
-
 
 /* ==========================================
    ENDOR LABS INSPIRED - PROFESSIONAL DARK THEME
