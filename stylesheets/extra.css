@@ -1,3 +1,30 @@
+/* Sidebar kleiner + geen scrollbar */
+.md-sidebar--primary {
+  width: 180px !important;
+  overflow: hidden !important;
+}
+
+.md-sidebar--primary::-webkit-scrollbar {
+  display: none !important;
+}
+
+.md-sidebar--primary {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+
+/* Homepage: sidebar WEG */
+[data-md-page="index"] .md-sidebar--primary {
+  display: none !important;
+  width: 0 !important;
+}
+
+[data-md-page="index"] .md-content {
+  margin-left: 0 !important;
+}
+
+
 /* ==========================================
    CODE BLOCKS - verschil tussen `` en ```
    ========================================== */
