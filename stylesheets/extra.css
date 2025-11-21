@@ -67,7 +67,7 @@
 }
 
 /* Smalle schermen: standaard Material‑gedrag – geen sidebar, full width */
-@media screen and (max-width: 44.9375em) {
+@media screen and (max-width: 37.5em) {  /* 600px */
   .md-sidebar--primary,
   .md-sidebar--secondary {
     display: none !important;
@@ -76,8 +76,12 @@
   .md-content {
     margin-left: 0 !important;
   }
-}
 
+  .md-content__inner {
+    max-width: 100% !important;
+    padding: 1rem 0.5rem !important;
+  }
+}
 /* ==========================================
    LAYOUT
    ========================================== */
@@ -87,17 +91,6 @@
 
 .md-main {
   max-width: none !important;
-}
-
-.md-main__inner {
-  max-width: none !important;
-  margin: 0 !important;
-}
-
-.md-content__inner {
-  max-width: 85vw !important;
-  margin: 0 auto !important;
-  padding: 2.5rem 3rem 2rem 3rem !important;
 }
 
 /* ==========================================
