@@ -75,22 +75,6 @@ body[data-md-page="index"] .md-content {
 
 
 
-/* Smalle schermen: standaard Material‑gedrag – geen sidebar, full width */
-@media screen and (max-width: 37.5em) {  /* 600px */
-  .md-sidebar--primary,
-  .md-sidebar--secondary {
-    display: none !important;
-  }
-
-  .md-content {
-    margin-left: 0 !important;
-  }
-
-  .md-content__inner {
-    max-width: 100% !important;
-    padding: 1rem 0.5rem !important;
-  }
-}
 /* ==========================================
    LAYOUT
    ========================================== */
