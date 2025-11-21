@@ -1,6 +1,6 @@
 /* ==========================================
    ENDOR LABS INSPIRED - PROFESSIONAL DARK THEME
-   COMPLETE + SIDEBAR FIX
+   COMPLETE + SIMPLE SIDEBAR
    ========================================== */
 
 :root {
@@ -39,12 +39,14 @@
 }
 
 /* ==========================================
-   SIDEBAR - CORRECT SETUP
+   SIDEBAR - SIMPLE, RELIES ON hide:navigation
    ========================================== */
+
+/* Desktop/tablet: linkersidebar 180px, altijd zichtbaar
+   Behalve op pagina's waar MkDocs 'navigation' verbergt (zoals index.md) */
 .md-sidebar--primary {
   width: 180px !important;
   background-color: transparent;
-  display: block !important;
   overflow: hidden !important;
   scrollbar-width: none !important;
 }
@@ -53,13 +55,27 @@
   display: none !important;
 }
 
+/* Content schuift op naast de sidebar */
 .md-content {
   margin-left: 180px !important;
   margin-right: 0 !important;
 }
 
+/* Rechter sidebar nooit gebruiken */
 .md-sidebar--secondary {
   display: none !important;
+}
+
+/* Smalle schermen: standaard Material‑gedrag – geen sidebar, full width */
+@media screen and (max-width: 44.9375em) {
+  .md-sidebar--primary,
+  .md-sidebar--secondary {
+    display: none !important;
+  }
+
+  .md-content {
+    margin-left: 0 !important;
+  }
 }
 
 /* ==========================================
@@ -207,7 +223,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: 
+  background-image:
     linear-gradient(rgba(0, 255, 159, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 255, 159, 0.03) 1px, transparent 1px);
   background-size: 50px 50px;
@@ -479,11 +495,11 @@ html {
   .md-sidebar--primary {
     width: 180px !important;
   }
-  
+
   .md-content {
     margin-left: 180px !important;
   }
-  
+
   .md-content__inner {
     max-width: 85vw !important;
   }
@@ -496,20 +512,4 @@ html {
   .md-typeset h1 { font-size: 2rem; }
   .md-typeset h2 { font-size: 1.4rem; }
   .md-content__inner { padding: 1.5rem 1rem !important; }
-}
-
-@media screen and (max-width: 44.9375em) {
-  .md-sidebar--primary,
-  .md-sidebar--secondary {
-    display: none !important;
-  }
-  
-  .md-content {
-    margin-left: 0 !important;
-  }
-  
-  .md-content__inner {
-    max-width: 100% !important;
-    padding: 1rem 0.5rem !important;
-  }
 }
