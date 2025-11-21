@@ -1,0 +1,15 @@
+/* Smaller sidebar */
+.md-sidebar {
+  width: 220px !important;
+}
+
+/* Better mobile */
+@media (max-width: 768px) {
+  .md-nav--primary {
+    font-size: 0.9rem;
+  }
+  
+  body {
+    font-size: 15px;
+  }
+}
