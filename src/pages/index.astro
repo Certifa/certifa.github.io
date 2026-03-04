@@ -1,0 +1,84 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import WriteupCard from '../components/WriteupCard.astro';
+
+const allWriteups = await getCollection('writeups');
+const displayWriteups = allWriteups
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
+
+const topTools = [
+  { name: 'nmap',        sub: 'recon' },
+  { name: 'Burp Suite',  sub: 'web' },
+  { name: 'BloodHound',  sub: 'AD' },
+  { name: 'Metasploit',  sub: 'exploit' },
+  { name: 'Hashcat',     sub: 'cracking' },
+  { name: 'Impacket',    sub: 'AD/SMB' },
+  { name: 'Wireshark',   sub: 'network' },
+  { name: 'Python',      sub: 'automation' },
+];
+---
+<BaseLayout title="Certifa" description="Cybersecurity portfolio and writeup hub — offensive security, HTB, Active Directory.">
+  <Hero />
+
+  <!-- Writeups -->
+  <section class="px-6 py-20 max-w-6xl mx-auto">
+    <div class="flex items-end justify-between mb-8 reveal">
+      <div>
+        <span class="section-label">Writeups</span>
+        <h2 class="text-2xl md:text-3xl font-bold text-[#eaedf3] mt-1">Recent</h2>
+      </div>
+      <a href="/writeups" class="btn btn-ghost text-xs hidden sm:inline-flex">All writeups →</a>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {displayWriteups.map((entry, i) => (
+        <div class="reveal" style={`transition-delay:${i*70}ms`}><WriteupCard entry={entry} /></div>
+      ))}
+    </div>
+    <div class="mt-6 text-center sm:hidden reveal">
+      <a href="/writeups" class="btn btn-outline">All writeups →</a>
+    </div>
+  </section>
+
+  <!-- Tools -->
+  <section class="px-6 py-16 border-t border-[rgba(255,255,255,0.04)]">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex items-end justify-between mb-8 reveal">
+        <div>
+          <span class="section-label">Arsenal</span>
+          <h2 class="text-2xl md:text-3xl font-bold text-[#eaedf3] mt-1">Tools</h2>
+        </div>
+        <a href="/skills" class="btn btn-ghost text-xs hidden sm:inline-flex">Full list →</a>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 reveal">
+        {topTools.map(t => (
+          <div class="card px-4 py-3 flex items-center justify-between gap-2 group">
+            <span class="font-sans text-sm text-[#c8cad0] group-hover:text-[#eaedf3] transition-colors">{t.name}</span>
+            <span class="font-mono text-[0.58rem] text-[#4a4e60] tracking-widest">{t.sub}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="px-6 py-16 border-t border-[rgba(255,255,255,0.04)]">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 reveal">
+        {[
+          { value: '45+',    label: 'Machines pwned' },
+          { value: 'Insane', label: 'Highest cleared' },
+          { value: 'HTB',    label: 'Main platform' },
+          { value: 'Parrot', label: 'Attack OS' },
+        ].map((s, i) => (
+          <div class="card px-5 py-5 text-center reveal" style={`transition-delay:${i*60}ms`}>
+            <div class="font-mono font-bold text-[#7b9dd0] text-2xl mb-1">{s.value}</div>
+            <div class="font-sans text-xs text-[#4a4e60] uppercase tracking-widest">{s.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

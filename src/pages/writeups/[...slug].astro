@@ -1,0 +1,21 @@
+---
+import { getCollection } from 'astro:content';
+import WriteupLayout from '../../layouts/WriteupLayout.astro';
+
+export async function getStaticPaths() {
+  const writeups = await getCollection('writeups');
+  return writeups.map((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content, headings } = await entry.render();
+
+// Estimate reading time from raw body word count
+const readingTime = Math.max(1, Math.ceil(entry.body.split(/\s+/).length / 200));
+---
+<WriteupLayout entry={entry} headings={headings} readingTime={readingTime}>
+  <Content />
+</WriteupLayout>

@@ -1,0 +1,112 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import SkillGrid from '../components/SkillGrid.astro';
+
+const platforms = [
+  { name: 'HackTheBox', rank: 'Hacker', machines: '30+', link: 'https://app.hackthebox.com/profile/444744' },
+  { name: 'TryHackMe', rank: 'Active', machines: 'Various', link: undefined },
+];
+
+const certs = [
+  { name: 'CCNA', status: 'in-progress', provider: 'Cisco' },
+  { name: 'CPTS', status: 'planned', provider: 'HackTheBox' },
+  { name: 'OSCP', status: 'goal', provider: 'OffSec' },
+];
+---
+<PageLayout
+  title="Skills"
+  label="arsenal"
+  description="Tools, techniques, and platforms in my offensive security arsenal."
+  subtitle="What I use, what I know, and what I'm learning."
+>
+  <div class="px-6 pb-20 max-w-6xl mx-auto">
+
+    <!-- Skills grid -->
+    <section class="py-10 border-b border-[rgba(255,255,255,0.05)]">
+      <div class="section-label reveal mb-6">technical-skills</div>
+      <SkillGrid />
+    </section>
+
+    <!-- Platforms -->
+    <section class="py-10 border-b border-[rgba(255,255,255,0.05)]">
+      <div class="reveal mb-6">
+        <span class="section-label">platforms</span>
+        <h2 class="text-xl font-bold text-[#eaedf3] font-sans mt-1">Practice Platforms</h2>
+      </div>
+
+      <div class="flex flex-wrap gap-4">
+        {platforms.map((p, i) => (
+          <div class="card p-5 flex items-center gap-5 reveal min-w-52" style={`transition-delay: ${i * 60}ms`}>
+            <div>
+              <div class="font-sans font-semibold text-[#eaedf3] text-sm">{p.name}</div>
+              <div class="font-mono text-xs text-[#555a6e] mt-0.5">{p.rank} · {p.machines} boxes</div>
+            </div>
+            {p.link && (
+              <a
+                href={p.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="font-mono text-xs text-[#7b9dd0] hover:opacity-70 transition-opacity ml-auto"
+              >
+                View ↗
+              </a>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Certifications -->
+    <section class="py-10 border-b border-[rgba(255,255,255,0.05)]">
+      <div class="reveal mb-6">
+        <span class="section-label">certifications</span>
+        <h2 class="text-xl font-bold text-[#eaedf3] font-sans mt-1">Certs Roadmap</h2>
+      </div>
+
+      <div class="flex flex-wrap gap-4">
+        {certs.map((cert, i) => (
+          <div class="card p-5 flex items-center gap-4 reveal" style={`transition-delay: ${i * 60}ms`}>
+            <div>
+              <div class="font-sans font-semibold text-[#eaedf3] text-sm">{cert.name}</div>
+              <div class="font-mono text-xs text-[#555a6e] mt-0.5">{cert.provider}</div>
+            </div>
+            <span class={`badge ml-auto ${
+              cert.status === 'in-progress' ? 'badge-medium'
+              : cert.status === 'planned'     ? 'badge-easy'
+              : 'badge'
+            }`} style={cert.status === 'goal' ? 'background:rgba(139,92,246,0.1);color:#8b5cf6;border:1px solid rgba(139,92,246,0.25);' : ''}>
+              {cert.status}
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- OS / Environment -->
+    <section class="py-10">
+      <div class="reveal mb-6">
+        <span class="section-label">environment</span>
+        <h2 class="text-xl font-bold text-[#eaedf3] font-sans mt-1">Setup</h2>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        {[
+          { name: 'Parrot OS',        sub: 'Primary attack OS' },
+          { name: 'Windows Server',  sub: 'AD lab target' },
+          { name: 'VMware',          sub: 'Virtualization' },
+          { name: 'VS Code',         sub: 'Editor' },
+          { name: 'Obsidian',        sub: 'Notes & planning' },
+          { name: 'ProxmoxVE',       sub: 'Homelab hypervisor' },
+          { name: 'Parrot OS',       sub: 'Secondary distro' },
+          { name: 'tmux',            sub: 'Terminal multiplexer' },
+        ].map((item, i) => (
+          <div class="card px-4 py-3 reveal" style={`transition-delay: ${i * 40}ms`}>
+            <div class="font-mono text-sm text-[#c8cad0]">{item.name}</div>
+            <div class="font-mono text-[0.6rem] text-[#555a6e] mt-1 tracking-wide">{item.sub}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+  </div>
+</PageLayout>

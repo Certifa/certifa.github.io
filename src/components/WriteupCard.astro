@@ -1,0 +1,67 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  entry: CollectionEntry<'writeups'>;
+}
+
+const { entry } = Astro.props;
+const { title, date, tags, difficulty, platform, description, featured } = entry.data;
+
+const formattedDate = new Intl.DateTimeFormat('en-GB', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+}).format(date);
+
+const difficultyClass: Record<string, string> = {
+  easy: 'badge-easy',
+  medium: 'badge-medium',
+  hard: 'badge-hard',
+  insane: 'badge-insane',
+};
+---
+<a
+  href={`/writeups/${entry.slug}`}
+  class="card p-5 flex flex-col gap-3 group no-underline block"
+  data-platform={platform}
+  data-difficulty={difficulty}
+  data-tags={tags.join(',')}
+>
+  <!-- Top row: badges + date -->
+  <div class="flex items-center gap-2 flex-wrap">
+    <span class={`badge ${difficultyClass[difficulty]}`}>{difficulty}</span>
+    <span class="badge" style="background:rgba(0,229,255,0.07);color:#00e5ff;border:1px solid rgba(0,229,255,0.2);">
+      {platform}
+    </span>
+    {featured && (
+      <span class="badge" style="background:rgba(139,92,246,0.1);color:#8b5cf6;border:1px solid rgba(139,92,246,0.25);">
+        featured
+      </span>
+    )}
+    <span class="font-mono text-xs text-[#555a6e] ml-auto">{formattedDate}</span>
+  </div>
+
+  <!-- Title -->
+  <h3 class="font-sans font-semibold text-[#eaedf3] text-lg leading-tight group-hover:text-[#00e5ff] transition-colors">
+    {title}
+  </h3>
+
+  <!-- Description -->
+  <p class="text-[#c8cad0] text-sm leading-relaxed line-clamp-2 flex-1">{description}</p>
+
+  <!-- Tags -->
+  <div class="flex flex-wrap gap-1.5 mt-auto pt-1">
+    {tags.slice(0, 5).map((tag) => (
+      <span class="tag">#{tag}</span>
+    ))}
+    {tags.length > 5 && (
+      <span class="tag">+{tags.length - 5}</span>
+    )}
+  </div>
+
+  <!-- Read arrow -->
+  <div class="font-mono text-xs text-[#555a6e] group-hover:text-[#00e5ff] transition-colors flex items-center gap-1 mt-1">
+    Read writeup <span class="group-hover:translate-x-1 transition-transform inline-block">→</span>
+  </div>
+</a>

@@ -1,0 +1,124 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+
+const projects = [
+  {
+    title: 'HackTheBox Profile',
+    description: '45+ machines completed across Easy → Insane difficulty. Active rank in competitive hacking. Windows, Linux, web exploitation, and Active Directory environments.',
+    tags: ['HTB', 'Pentesting', 'Active Directory', 'Linux'],
+    link: 'https://app.hackthebox.com/profile/444744',
+    linkLabel: 'View Profile ↗',
+    icon: '⬡',
+    featured: true,
+    status: 'active',
+  },
+  {
+    title: 'HTB Tracker',
+    description: 'Personal HackTheBox machine tracker built as a web app. Tracks completed boxes, difficulty breakdown, platforms, and progress stats. Deployed on GitHub Pages.',
+    tags: ['JavaScript', 'HTB', 'Dashboard', 'GitHub Pages'],
+    link: 'https://certifa.github.io/htb-tracker/',
+    linkLabel: 'Open Tracker ↗',
+    icon: '📊',
+    featured: true,
+    status: 'active',
+  },
+  {
+    title: 'Fortress Jet.com',
+    description: 'Completed the HTB Fortress Jet.com — a multi-stage enterprise simulation requiring web exploitation, lateral movement across multiple hosts, and a full privilege escalation chain.',
+    tags: ['HTB Fortress', 'Web', 'Pivoting', 'Privesc', 'Insane'],
+    link: undefined,
+    icon: '🏰',
+    featured: true,
+    status: 'completed',
+  },
+  {
+    title: 'Active Directory Home Lab',
+    description: 'Windows Server 2022 domain controller with 2 workstations. Practice environment for Kerberos attacks, BloodHound enumeration, NTLM relay, and AD misconfigurations.',
+    tags: ['Active Directory', 'Windows Server', 'BloodHound', 'VMware'],
+    link: undefined,
+    icon: '🏛️',
+    featured: false,
+    status: 'ongoing',
+  },
+  {
+    title: 'HTB Recon Automation',
+    description: 'Python scripts for automating initial HTB recon: auto-nmap, service fingerprinting output parsing, gobuster wordlist selection, and results aggregation into a report template.',
+    tags: ['Python', 'Automation', 'nmap', 'Reconnaissance'],
+    link: 'https://github.com/Certifa',
+    linkLabel: 'GitHub ↗',
+    icon: '🐍',
+    featured: false,
+    status: 'active',
+  },
+  {
+    title: 'CCNA Study Lab',
+    description: 'Cisco Packet Tracer and GNS3 labs for CCNA prep. Subnetting practice, OSPF/EIGRP routing, VLANs, and ACLs. Documenting configs alongside HU coursework.',
+    tags: ['CCNA', 'Cisco', 'Networking', 'Routing'],
+    link: undefined,
+    icon: '🌐',
+    featured: false,
+    status: 'ongoing',
+  },
+  {
+    title: 'This Portfolio',
+    description: 'Built with Astro + Tailwind CSS. Dark cyber aesthetic with Three.js particle hero, Astro content collections for writeups, and GitHub Actions CI/CD to Pages.',
+    tags: ['Astro', 'Tailwind', 'Three.js', 'GitHub Actions'],
+    link: 'https://github.com/Certifa/certifa.github.io',
+    linkLabel: 'Source ↗',
+    icon: '💻',
+    featured: false,
+    status: 'active',
+  },
+];
+
+const featured = projects.filter((p) => p.featured);
+const rest = projects.filter((p) => !p.featured);
+---
+<PageLayout
+  title="Projects"
+  label="projects"
+  description="HTB machines, home labs, Python tools, and coursework projects."
+  subtitle="Things I've built, broken, and documented."
+>
+  <div class="px-6 pb-20 max-w-6xl mx-auto">
+
+    <!-- Featured -->
+    <section class="py-10 border-b border-[rgba(255,255,255,0.05)]">
+      <div class="section-label reveal mb-6">featured</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {featured.map((project, i) => (
+          <div class="reveal" style={`transition-delay: ${i * 80}ms`}>
+            <ProjectCard {...project} />
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- All projects -->
+    <section class="py-10">
+      <div class="section-label reveal mb-6">all-projects</div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {rest.map((project, i) => (
+          <div class="reveal" style={`transition-delay: ${i * 60}ms`}>
+            <ProjectCard {...project} />
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <div class="text-center py-10 reveal">
+      <p class="font-mono text-xs text-[#555a6e] mb-4">More on GitHub →</p>
+      <a
+        href="https://github.com/Certifa"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn btn-outline"
+      >
+        github.com/Certifa ↗
+      </a>
+    </div>
+
+  </div>
+</PageLayout>

@@ -1,0 +1,32 @@
+---
+const year = new Date().getFullYear();
+---
+<footer class="border-t border-[rgba(255,255,255,0.05)] py-10 px-6 mt-20">
+  <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-5">
+    <div class="flex flex-col items-center sm:items-start gap-1">
+      <span class="font-mono text-sm text-[#00e5ff] tracking-widest">CERTIFA</span>
+      <span class="font-mono text-xs text-[#555a6e]">
+        © {year} &nbsp;·&nbsp; Cybersecurity Student
+      </span>
+    </div>
+
+    <div class="flex items-center gap-6">
+      <a
+        href="https://github.com/Certifa"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="font-mono text-xs text-[#555a6e] hover:text-[#00e5ff] transition-colors tracking-wider"
+      >
+        GitHub
+      </a>
+      <a
+        href="https://app.hackthebox.com/profile/444744"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="font-mono text-xs text-[#555a6e] hover:text-[#00e5ff] transition-colors tracking-wider"
+      >
+        HackTheBox
+      </a>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,57 @@
+---
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  isWriteup?: boolean;
+}
+
+const {
+  title = 'Certifa',
+  description = 'Cybersecurity portfolio and writeup hub.',
+  image = '/og.png',
+  isWriteup = false,
+} = Astro.props;
+
+const siteTitle = title === 'Certifa' ? title : `${title} | Certifa`;
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{siteTitle}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={siteTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={new URL(image, Astro.site)} />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#0b0f1a" />
+  </head>
+  <body class="bg-[#0b0f1a] text-[#b8bdd0] font-sans min-h-screen">
+    <!-- Gradient mesh background -->
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+      <div style="position:absolute;top:-25%;left:-15%;width:65%;height:65%;background:radial-gradient(circle,rgba(40,70,160,0.1) 0%,transparent 65%);border-radius:50%;filter:blur(100px);"></div>
+      <div style="position:absolute;bottom:-25%;right:-15%;width:55%;height:55%;background:radial-gradient(circle,rgba(90,60,180,0.07) 0%,transparent 65%);border-radius:50%;filter:blur(100px);"></div>
+    </div>
+    <Nav />
+    <main id="main-content" class="relative z-10"><slot /></main>
+    <Footer />
+    <script>
+      const observer = new IntersectionObserver(
+        (entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('revealed'); observer.unobserve(e.target); } }),
+        { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
+      );
+      document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    </script>
+  </body>
+</html>

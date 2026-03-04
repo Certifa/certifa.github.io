@@ -1,0 +1,141 @@
+---
+---
+<canvas id="three-bg" class="absolute inset-0 w-full h-full z-0" aria-hidden="true"></canvas>
+
+<script>
+import * as THREE from 'three';
+
+(function init() {
+  const canvas = document.getElementById('three-bg') as HTMLCanvasElement | null;
+  if (!canvas || !canvas.parentElement) return;
+
+  const hero = canvas.parentElement;
+  const isMobile = window.matchMedia('(max-width: 767px)').matches;
+  const W = window.innerWidth;
+  const H = hero.clientHeight || window.innerHeight;
+
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false, powerPreference: 'low-power' });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  renderer.setSize(W, H);
+  renderer.setClearColor(0x000000, 0);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 100);
+  camera.position.z = 14;
+
+  // ── Soft circular sprite for particles ──
+  const spriteCanvas = document.createElement('canvas');
+  spriteCanvas.width = 32; spriteCanvas.height = 32;
+  const ctx = spriteCanvas.getContext('2d')!;
+  const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 14);
+  grad.addColorStop(0,   'rgba(255,255,255,1)');
+  grad.addColorStop(0.4, 'rgba(255,255,255,0.6)');
+  grad.addColorStop(1,   'rgba(255,255,255,0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 32, 32);
+  const sprite = new THREE.CanvasTexture(spriteCanvas);
+
+  // ── Particles ──
+  const COUNT = isMobile ? 55 : 95;
+  const CONNECT_DIST_SQ = isMobile ? 9 : 12; // 3.0² and 3.46² respectively
+  const MAX_SEGS = 300;
+
+  const pPos = new Float32Array(COUNT * 3);
+  const pVel: { x: number; y: number }[] = [];
+
+  for (let i = 0; i < COUNT; i++) {
+    pPos[i * 3]     = (Math.random() - 0.5) * 24;
+    pPos[i * 3 + 1] = (Math.random() - 0.5) * 16;
+    pPos[i * 3 + 2] = (Math.random() - 0.5) * 6;
+    pVel.push({
+      x: (Math.random() - 0.5) * 0.006,
+      y: (Math.random() - 0.5) * 0.005,
+    });
+  }
+
+  const pGeom = new THREE.BufferGeometry();
+  pGeom.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+  scene.add(new THREE.Points(pGeom, new THREE.PointsMaterial({
+    color: 0x8aaedd,
+    size: 0.18,
+    map: sprite,
+    transparent: true,
+    opacity: 0.75,
+    sizeAttenuation: true,
+    depthWrite: false,
+    alphaTest: 0.01,
+  })));
+
+  // ── Connection lines ──
+  const linePos = new Float32Array(MAX_SEGS * 2 * 3);
+  const lineGeom = new THREE.BufferGeometry();
+  lineGeom.setAttribute('position', new THREE.BufferAttribute(linePos, 3));
+  lineGeom.setDrawRange(0, 0);
+  const lineMesh = new THREE.LineSegments(lineGeom, new THREE.LineBasicMaterial({
+    color: 0x3a5fa0,
+    transparent: true,
+    opacity: 0.22,
+  }));
+  scene.add(lineMesh);
+
+  // ── Mouse parallax ──
+  let mouseX = 0, mouseY = 0, tX = 0, tY = 0;
+  if (!isMobile) {
+    window.addEventListener('mousemove', (e) => {
+      mouseX = (e.clientX / W - 0.5) * 4;
+      mouseY = -(e.clientY / H - 0.5) * 2.5;
+    }, { passive: true });
+  }
+
+  window.addEventListener('resize', () => {
+    const nW = window.innerWidth, nH = hero.clientHeight || window.innerHeight;
+    camera.aspect = nW / nH;
+    camera.updateProjectionMatrix();
+    renderer.setSize(nW, nH);
+  }, { passive: true });
+
+  function animate() {
+    requestAnimationFrame(animate);
+
+    // Smooth camera drift from mouse
+    tX += (mouseX - tX) * 0.035;
+    tY += (mouseY - tY) * 0.035;
+    camera.position.x = tX * 0.25;
+    camera.position.y = tY * 0.2;
+    camera.lookAt(0, 0, 0);
+
+    // Drift particles, wrap edges
+    for (let i = 0; i < COUNT; i++) {
+      pPos[i * 3]     += pVel[i].x;
+      pPos[i * 3 + 1] += pVel[i].y;
+      if (pPos[i * 3]     >  12) pPos[i * 3]     = -12;
+      else if (pPos[i * 3]     < -12) pPos[i * 3]     =  12;
+      if (pPos[i * 3 + 1] >   8) pPos[i * 3 + 1] =  -8;
+      else if (pPos[i * 3 + 1] <  -8) pPos[i * 3 + 1] =   8;
+    }
+    pGeom.attributes.position.needsUpdate = true;
+
+    // Build connection segments (squared distance — no sqrt)
+    let seg = 0;
+    outer: for (let i = 0; i < COUNT; i++) {
+      for (let j = i + 1; j < COUNT; j++) {
+        if (seg >= MAX_SEGS) break outer;
+        const dx = pPos[i * 3]     - pPos[j * 3];
+        const dy = pPos[i * 3 + 1] - pPos[j * 3 + 1];
+        const dz = pPos[i * 3 + 2] - pPos[j * 3 + 2];
+        if (dx * dx + dy * dy + dz * dz < CONNECT_DIST_SQ) {
+          const b = seg * 6;
+          linePos[b]     = pPos[i * 3];     linePos[b + 1] = pPos[i * 3 + 1]; linePos[b + 2] = pPos[i * 3 + 2];
+          linePos[b + 3] = pPos[j * 3];     linePos[b + 4] = pPos[j * 3 + 1]; linePos[b + 5] = pPos[j * 3 + 2];
+          seg++;
+        }
+      }
+    }
+    lineGeom.attributes.position.needsUpdate = true;
+    lineGeom.setDrawRange(0, seg * 2);
+
+    renderer.render(scene, camera);
+  }
+  animate();
+})();
+</script>

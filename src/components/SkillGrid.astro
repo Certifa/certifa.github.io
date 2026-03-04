@@ -1,0 +1,102 @@
+---
+const categories = [
+  {
+    name: 'Reconnaissance',
+    label: 'recon',
+    skills: [
+      { name: 'nmap', level: 5 },
+      { name: 'Gobuster', level: 4 },
+      { name: 'ffuf', level: 4 },
+      { name: 'Shodan', level: 3 },
+      { name: 'theHarvester', level: 3 },
+    ],
+  },
+  {
+    name: 'Exploitation',
+    label: 'exploit',
+    skills: [
+      { name: 'Burp Suite', level: 5 },
+      { name: 'Metasploit', level: 4 },
+      { name: 'msfvenom', level: 4 },
+      { name: 'SQLmap', level: 3 },
+      { name: 'Exploit Dev', level: 3 },
+    ],
+  },
+  {
+    name: 'Active Directory',
+    label: 'active-directory',
+    skills: [
+      { name: 'BloodHound', level: 5 },
+      { name: 'Impacket', level: 4 },
+      { name: 'Evil-WinRM', level: 5 },
+      { name: 'CrackMapExec', level: 4 },
+      { name: 'Rubeus', level: 3 },
+    ],
+  },
+  {
+    name: 'Password & Hash',
+    label: 'cracking',
+    skills: [
+      { name: 'Hashcat', level: 5 },
+      { name: 'John the Ripper', level: 4 },
+      { name: 'Responder', level: 4 },
+      { name: 'Pass-the-Hash', level: 4 },
+    ],
+  },
+  {
+    name: 'Network Analysis',
+    label: 'networking',
+    skills: [
+      { name: 'Wireshark', level: 4 },
+      { name: 'tcpdump', level: 4 },
+      { name: 'Scapy', level: 3 },
+      { name: 'CCNA (WIP)', level: 3 },
+    ],
+  },
+  {
+    name: 'Programming',
+    label: 'code',
+    skills: [
+      { name: 'Python', level: 4 },
+      { name: 'Bash', level: 4 },
+      { name: 'PowerShell', level: 3 },
+      { name: 'Go (learning)', level: 2 },
+    ],
+  },
+];
+---
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  {categories.map((cat) => (
+    <div class="card p-5 reveal">
+      <!-- Category header -->
+      <div class="flex items-center gap-2 mb-4">
+        <span class="font-mono text-[0.6rem] text-[#00e5ff] tracking-widest uppercase opacity-60">
+          [{cat.label}]
+        </span>
+        <span class="font-sans font-semibold text-[#eaedf3] text-sm">{cat.name}</span>
+      </div>
+
+      <!-- Skills list -->
+      <ul class="space-y-2.5 list-none p-0 m-0">
+        {cat.skills.map((skill) => (
+          <li class="flex items-center justify-between gap-3">
+            <span class="font-mono text-sm text-[#c8cad0]">{skill.name}</span>
+            <!-- Proficiency dots -->
+            <div class="flex gap-1 flex-shrink-0" aria-label={`Level ${skill.level} of 5`}>
+              {[1,2,3,4,5].map((dot) => (
+                <span
+                  class={`block w-1.5 h-1.5 rounded-full transition-colors ${
+                    dot <= skill.level
+                      ? 'bg-[#00e5ff]'
+                      : 'bg-[rgba(255,255,255,0.08)]'
+                  }`}
+                ></span>
+              ))}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  ))}
+</div>

@@ -1,0 +1,50 @@
+---
+import ThreeBackground from './ThreeBackground.astro';
+---
+<section id="hero" class="relative min-h-screen flex items-center overflow-hidden bg-[#0b0f1a]">
+  <ThreeBackground />
+
+  <!-- Steel-blue radial atmosphere behind 3D object -->
+  <div class="absolute inset-0 z-[1] pointer-events-none"
+    style="background: radial-gradient(ellipse 60% 80% at 75% 50%, rgba(20,45,100,0.45) 0%, transparent 70%);">
+  </div>
+
+  <!-- Left-side text fade -->
+  <div class="absolute inset-y-0 left-0 w-1/2 z-[1] pointer-events-none"
+    style="background: linear-gradient(to right, rgba(11,15,26,0.9) 0%, transparent 100%);">
+  </div>
+
+  <!-- Bottom fade -->
+  <div class="absolute inset-x-0 bottom-0 h-48 z-[2] pointer-events-none"
+    style="background: linear-gradient(to bottom, transparent, #0b0f1a);">
+  </div>
+
+  <!-- Hero text — left-aligned to leave room for 3D on the right -->
+  <div class="relative z-10 px-8 md:px-16 max-w-6xl mx-auto w-full">
+    <div class="max-w-xl">
+      <p class="font-mono text-[0.7rem] tracking-[0.3em] text-[#4a6080] uppercase mb-6 reveal">
+        Cybersecurity · HTB · Active Directory
+      </p>
+
+      <h1 class="font-mono font-bold leading-none mb-6 select-none reveal"
+        style="font-size: clamp(3rem, 8vw, 6rem); letter-spacing: -0.01em; transition-delay: 60ms">
+        <span class="gradient-text">CERTIFA</span>
+      </h1>
+
+      <p class="font-sans text-[#6a7590] text-base md:text-lg font-light mb-10 max-w-sm leading-relaxed reveal"
+        style="transition-delay: 120ms">
+        Offensive security, Active Directory exploitation, and CTF writeups.
+      </p>
+
+      <div class="flex flex-wrap items-center gap-3 reveal" style="transition-delay: 180ms">
+        <a href="/writeups" class="btn btn-primary">View Writeups</a>
+        <a href="https://app.hackthebox.com/profile/444744" target="_blank" rel="noopener noreferrer" class="btn btn-outline">HTB Profile ↗</a>
+        <a href="https://github.com/Certifa" target="_blank" rel="noopener noreferrer" class="btn btn-ghost">GitHub ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 opacity-20">
+    <div class="w-px h-12" style="background: linear-gradient(to bottom, #7b9dd0, transparent);"></div>
+  </div>
+</section>

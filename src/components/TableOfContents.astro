@@ -1,0 +1,32 @@
+---
+import type { MarkdownHeading } from 'astro';
+
+interface Props {
+  headings: MarkdownHeading[];
+}
+
+const { headings } = Astro.props;
+
+// Only show h2 and h3
+const filtered = headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+
+{filtered.length > 0 && (
+  <nav aria-label="Table of contents">
+    <p class="font-mono text-[0.6rem] tracking-[0.2em] text-[#555a6e] uppercase mb-3">
+      // contents
+    </p>
+    <ul class="list-none p-0 m-0 space-y-0.5">
+      {filtered.map((heading) => (
+        <li>
+          <a
+            href={`#${heading.slug}`}
+            class={`toc-link ${heading.depth === 3 ? 'depth-3' : ''}`}
+          >
+            {heading.text}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}

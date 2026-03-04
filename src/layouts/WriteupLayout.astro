@@ -1,0 +1,147 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import type { MarkdownHeading } from 'astro';
+import BaseLayout from './BaseLayout.astro';
+import TableOfContents from '../components/TableOfContents.astro';
+
+interface Props {
+  entry: CollectionEntry<'writeups'>;
+  headings: MarkdownHeading[];
+  readingTime: number;
+}
+
+const { entry, headings, readingTime } = Astro.props;
+const { title, date, tags, difficulty, platform, description } = entry.data;
+
+const formattedDate = new Intl.DateTimeFormat('en-GB', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+}).format(date);
+
+const difficultyClass: Record<string, string> = {
+  easy: 'badge-easy',
+  medium: 'badge-medium',
+  hard: 'badge-hard',
+  insane: 'badge-insane',
+};
+---
+<BaseLayout title={title} description={description} isWriteup={true}>
+  <div class="pt-20 min-h-screen">
+    <div class="max-w-6xl mx-auto px-6 py-10">
+
+      <!-- Back link -->
+      <a href="/writeups" class="inline-flex items-center gap-2 font-mono text-xs text-[#555a6e] hover:text-[#00e5ff] transition-colors mb-8 group">
+        <span class="group-hover:-translate-x-1 transition-transform">←</span>
+        back to writeups
+      </a>
+
+      <!-- Header -->
+      <header class="mb-10 pb-8 border-b border-[rgba(255,255,255,0.06)]">
+        <div class="flex flex-wrap items-center gap-3 mb-4">
+          <span class={`badge ${difficultyClass[difficulty]}`}>{difficulty}</span>
+          <span class="badge" style="background:rgba(0,229,255,0.08);color:#00e5ff;border:1px solid rgba(0,229,255,0.25);">{platform}</span>
+          <span class="font-mono text-xs text-[#555a6e]">{formattedDate}</span>
+          <span class="font-mono text-xs text-[#555a6e]">~{readingTime} min read</span>
+        </div>
+
+        <h1 class="text-3xl md:text-4xl font-bold text-[#eaedf3] font-sans mb-3 leading-tight">
+          {title}
+        </h1>
+
+        <p class="text-[#c8cad0] text-base leading-relaxed max-w-xl mb-4">{description}</p>
+
+        <div class="flex flex-wrap gap-2">
+          {tags.map((tag) => (
+            <a href={`/writeups?tag=${tag}`} class="tag">#{tag}</a>
+          ))}
+        </div>
+      </header>
+
+      <!-- Content area: prose + TOC sidebar -->
+      <div class="flex gap-12 items-start">
+        <!-- Main prose -->
+        <article class="prose-writeup flex-1 min-w-0">
+          <slot />
+        </article>
+
+        <!-- TOC sidebar (desktop) -->
+        {headings.length > 0 && (
+          <aside class="hidden lg:block w-56 flex-shrink-0 sticky top-24 self-start">
+            <TableOfContents headings={headings} />
+          </aside>
+        )}
+      </div>
+
+      <!-- Mobile TOC (above content) -->
+      {headings.length > 0 && (
+        <div class="lg:hidden mb-8 p-4 rounded-lg border border-[rgba(255,255,255,0.06)] bg-[rgba(14,14,28,0.5)]">
+          <button
+            id="toc-toggle"
+            class="font-mono text-xs text-[#555a6e] hover:text-[#00e5ff] transition-colors flex items-center gap-2 w-full"
+          >
+            <span class="text-[#00e5ff]">▸</span>
+            Table of Contents
+          </button>
+          <div id="toc-mobile" class="hidden mt-3">
+            <TableOfContents headings={headings} />
+          </div>
+        </div>
+      )}
+
+      <!-- Prev / Next nav placeholder -->
+      <nav class="mt-16 pt-8 border-t border-[rgba(255,255,255,0.06)] flex justify-between">
+        <a href="/writeups" class="btn btn-ghost text-sm">← All Writeups</a>
+      </nav>
+    </div>
+  </div>
+
+  <script>
+    // Mobile TOC toggle
+    const tocToggle = document.getElementById('toc-toggle');
+    const tocMobile = document.getElementById('toc-mobile');
+    tocToggle?.addEventListener('click', () => {
+      tocMobile?.classList.toggle('hidden');
+      const icon = tocToggle.querySelector('span');
+      if (icon) icon.textContent = tocMobile?.classList.contains('hidden') ? '▸' : '▾';
+    });
+
+    // Copy buttons on code blocks
+    document.querySelectorAll('.prose-writeup pre').forEach((pre) => {
+      const btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.textContent = 'copy';
+      btn.addEventListener('click', () => {
+        const code = pre.querySelector('code');
+        navigator.clipboard.writeText(code?.textContent ?? '').then(() => {
+          btn.textContent = 'copied!';
+          setTimeout(() => (btn.textContent = 'copy'), 2000);
+        });
+      });
+      (pre as HTMLElement).style.position = 'relative';
+      pre.appendChild(btn);
+    });
+
+    // Active TOC heading via IntersectionObserver
+    const headingEls = document.querySelectorAll('.prose-writeup h2, .prose-writeup h3');
+    const tocLinks = document.querySelectorAll('.toc-link');
+
+    if (tocLinks.length > 0) {
+      const headingObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const id = entry.target.id;
+              tocLinks.forEach((link) => {
+                link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+              });
+            }
+          });
+        },
+        { rootMargin: '-15% 0% -70% 0%', threshold: 0 }
+      );
+
+      headingEls.forEach((h) => headingObserver.observe(h));
+    }
+  </script>
+</BaseLayout>

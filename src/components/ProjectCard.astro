@@ -1,0 +1,64 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  tags: string[];
+  link?: string;
+  linkLabel?: string;
+  icon?: string;
+  featured?: boolean;
+  status?: string;
+}
+
+const {
+  title,
+  description,
+  tags,
+  link,
+  linkLabel = 'View →',
+  icon = '⬡',
+  featured = false,
+  status,
+} = Astro.props;
+---
+<div class="card p-6 flex flex-col gap-4 h-full">
+  <!-- Icon + title -->
+  <div class="flex items-start gap-3">
+    <div class="text-2xl flex-shrink-0 mt-0.5" aria-hidden="true">{icon}</div>
+    <div class="min-w-0">
+      <div class="flex items-center gap-2 flex-wrap mb-1">
+        <h3 class="font-sans font-semibold text-[#eaedf3] text-lg leading-tight">{title}</h3>
+        {featured && (
+          <span class="badge" style="background:rgba(0,229,255,0.07);color:#00e5ff;border:1px solid rgba(0,229,255,0.2);font-size:0.6rem;">
+            featured
+          </span>
+        )}
+        {status && (
+          <span class="font-mono text-[0.6rem] text-[#555a6e] border border-[rgba(255,255,255,0.08)] px-1.5 py-0.5 rounded">
+            {status}
+          </span>
+        )}
+      </div>
+    </div>
+  </div>
+
+  <!-- Description -->
+  <p class="text-[#c8cad0] text-sm leading-relaxed flex-1">{description}</p>
+
+  <!-- Tags -->
+  <div class="flex flex-wrap gap-1.5">
+    {tags.map((tag) => <span class="tag">{tag}</span>)}
+  </div>
+
+  <!-- Link -->
+  {link && (
+    <a
+      href={link}
+      target={link.startsWith('http') ? '_blank' : undefined}
+      rel={link.startsWith('http') ? 'noopener noreferrer' : undefined}
+      class="font-mono text-xs text-[#00e5ff] hover:opacity-80 transition-opacity flex items-center gap-1 mt-auto pt-1"
+    >
+      {linkLabel}
+    </a>
+  )}
+</div>

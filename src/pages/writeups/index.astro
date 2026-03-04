@@ -1,0 +1,186 @@
+---
+import { getCollection } from 'astro:content';
+import PageLayout from '../../layouts/PageLayout.astro';
+import WriteupCard from '../../components/WriteupCard.astro';
+
+const allWriteups = await getCollection('writeups');
+const sorted = allWriteups.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const platforms = [...new Set(sorted.map((w) => w.data.platform))];
+const difficulties = ['easy', 'medium', 'hard', 'insane'];
+const allTags = [...new Set(sorted.flatMap((w) => w.data.tags))].sort();
+---
+<PageLayout
+  title="Writeups"
+  label="writeups"
+  description="HTB, THM, and CTF writeups — pentesting methodology, step-by-step breakdowns, and lessons learned."
+  subtitle={`${sorted.length} writeup${sorted.length !== 1 ? 's' : ''} · HTB, THM, CTF`}
+>
+  <div class="px-6 pb-20 max-w-6xl mx-auto">
+
+    <!-- Filters -->
+    <div class="py-6 border-b border-[rgba(255,255,255,0.05)] mb-8 space-y-4">
+
+      <!-- Search -->
+      <div class="relative max-w-sm">
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-xs text-[#555a6e]">$</span>
+        <input
+          id="search"
+          type="search"
+          placeholder="search writeups..."
+          class="w-full bg-[rgba(14,14,28,0.6)] border border-[rgba(255,255,255,0.08)] rounded-md
+            font-mono text-sm text-[#c8cad0] placeholder-[#555a6e]
+            pl-7 pr-4 py-2.5
+            focus:outline-none focus:border-[rgba(0,229,255,0.4)] focus:ring-0
+            transition-colors"
+        />
+      </div>
+
+      <!-- Filter chips -->
+      <div class="flex flex-wrap gap-2 items-center">
+        <span class="font-mono text-[0.6rem] text-[#555a6e] tracking-widest uppercase mr-1">platform:</span>
+        <button class="filter-btn active font-mono text-xs px-3 py-1 rounded border transition-colors" data-filter="platform" data-value="all">
+          all
+        </button>
+        {platforms.map((p) => (
+          <button class="filter-btn font-mono text-xs px-3 py-1 rounded border transition-colors" data-filter="platform" data-value={p}>
+            {p}
+          </button>
+        ))}
+      </div>
+
+      <div class="flex flex-wrap gap-2 items-center">
+        <span class="font-mono text-[0.6rem] text-[#555a6e] tracking-widest uppercase mr-1">difficulty:</span>
+        <button class="filter-btn active font-mono text-xs px-3 py-1 rounded border transition-colors" data-filter="difficulty" data-value="all">
+          all
+        </button>
+        {difficulties.map((d) => (
+          <button class="filter-btn font-mono text-xs px-3 py-1 rounded border transition-colors" data-filter="difficulty" data-value={d}>
+            {d}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <!-- Results count -->
+    <div class="font-mono text-xs text-[#555a6e] mb-5" id="results-count">
+      {sorted.length} writeup{sorted.length !== 1 ? 's' : ''}
+    </div>
+
+    <!-- Grid -->
+    <div id="writeups-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {sorted.map((entry) => (
+        <div
+          class="writeup-item reveal"
+          data-platform={entry.data.platform}
+          data-difficulty={entry.data.difficulty}
+          data-tags={entry.data.tags.join(',')}
+          data-title={entry.data.title.toLowerCase()}
+          data-desc={entry.data.description.toLowerCase()}
+        >
+          <WriteupCard entry={entry} />
+        </div>
+      ))}
+    </div>
+
+    <!-- Empty state -->
+    <div id="empty-state" class="hidden text-center py-20">
+      <div class="font-mono text-4xl mb-4 opacity-20">∅</div>
+      <p class="font-mono text-sm text-[#555a6e]">No writeups match the current filters.</p>
+      <button id="reset-filters" class="btn btn-ghost text-xs mt-4">Reset filters</button>
+    </div>
+
+  </div>
+</PageLayout>
+
+<style>
+  .filter-btn {
+    background: rgba(255,255,255,0.02);
+    border-color: rgba(255,255,255,0.08);
+    color: #555a6e;
+  }
+  .filter-btn:hover {
+    border-color: rgba(0,229,255,0.3);
+    color: #c8cad0;
+  }
+  .filter-btn.active {
+    background: rgba(0,229,255,0.08);
+    border-color: rgba(0,229,255,0.35);
+    color: #00e5ff;
+  }
+</style>
+
+<script>
+  const searchEl = document.getElementById('search') as HTMLInputElement | null;
+  const items = document.querySelectorAll<HTMLElement>('.writeup-item');
+  const resultsCount = document.getElementById('results-count');
+  const emptyState = document.getElementById('empty-state');
+  const grid = document.getElementById('writeups-grid');
+
+  const state = { platform: 'all', difficulty: 'all', query: '' };
+
+  function applyFilters() {
+    let visible = 0;
+
+    items.forEach((item) => {
+      const platform   = item.dataset.platform ?? '';
+      const difficulty = item.dataset.difficulty ?? '';
+      const title      = item.dataset.title ?? '';
+      const desc       = item.dataset.desc ?? '';
+      const tags       = item.dataset.tags ?? '';
+
+      const matchPlatform   = state.platform   === 'all' || platform   === state.platform;
+      const matchDifficulty = state.difficulty === 'all' || difficulty === state.difficulty;
+      const matchSearch     = !state.query ||
+        title.includes(state.query) ||
+        desc.includes(state.query) ||
+        tags.includes(state.query);
+
+      const show = matchPlatform && matchDifficulty && matchSearch;
+      item.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+
+    if (resultsCount) {
+      resultsCount.textContent = `${visible} writeup${visible !== 1 ? 's' : ''}`;
+    }
+
+    const isEmpty = visible === 0;
+    emptyState?.classList.toggle('hidden', !isEmpty);
+    grid?.classList.toggle('hidden', isEmpty);
+  }
+
+  // Filter buttons
+  document.querySelectorAll<HTMLButtonElement>('.filter-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const filterType = btn.dataset.filter as 'platform' | 'difficulty';
+      const value = btn.dataset.value ?? 'all';
+
+      // Update active state within the same filter group
+      document.querySelectorAll<HTMLButtonElement>(`.filter-btn[data-filter="${filterType}"]`).forEach((b) => {
+        b.classList.toggle('active', b.dataset.value === value);
+      });
+
+      state[filterType] = value;
+      applyFilters();
+    });
+  });
+
+  // Search
+  searchEl?.addEventListener('input', () => {
+    state.query = searchEl.value.toLowerCase().trim();
+    applyFilters();
+  });
+
+  // Reset
+  document.getElementById('reset-filters')?.addEventListener('click', () => {
+    state.platform   = 'all';
+    state.difficulty = 'all';
+    state.query      = '';
+    if (searchEl) searchEl.value = '';
+    document.querySelectorAll<HTMLButtonElement>('.filter-btn').forEach((b) => {
+      b.classList.toggle('active', b.dataset.value === 'all');
+    });
+    applyFilters();
+  });
+</script>
