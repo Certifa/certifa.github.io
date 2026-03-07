@@ -96,6 +96,44 @@ const difficultyClass: Record<string, string> = {
     </div>
   </div>
 
+  <!-- Mermaid: render diagram code blocks client-side -->
+  <script type="module" is:inline>
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'base',
+      themeVariables: {
+        darkMode: true,
+        background: '#06060e',
+        primaryColor: '#0e0e1c',
+        primaryTextColor: '#c8cad0',
+        primaryBorderColor: 'rgba(0,229,255,0.3)',
+        lineColor: '#00e5ff',
+        secondaryColor: '#130a1f',
+        tertiaryColor: '#0a0a1a',
+        edgeLabelBackground: '#06060e',
+        nodeTextColor: '#eaedf3',
+        clusterBkg: '#0e0e1c',
+        titleColor: '#eaedf3',
+      },
+    });
+
+    const diagrams = document.querySelectorAll('pre code.language-mermaid');
+    for (const el of diagrams) {
+      const pre = el.parentElement;
+      const id = 'mermaid-' + Math.random().toString(36).slice(2, 8);
+      try {
+        const { svg } = await mermaid.render(id, el.textContent.trim());
+        const wrapper = document.createElement('div');
+        wrapper.className = 'mermaid-diagram';
+        wrapper.innerHTML = svg;
+        pre.replaceWith(wrapper);
+      } catch (e) {
+        // leave as code block if render fails
+      }
+    }
+  </script>
+
   <script>
     // Mobile TOC toggle
     const tocToggle = document.getElementById('toc-toggle');
@@ -144,4 +182,19 @@ const difficultyClass: Record<string, string> = {
       headingEls.forEach((h) => headingObserver.observe(h));
     }
   </script>
+<style>
+  .mermaid-diagram {
+    background: rgba(14, 14, 28, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+    text-align: center;
+  }
+  .mermaid-diagram svg {
+    max-width: 100%;
+    height: auto;
+  }
+</style>
 </BaseLayout>

