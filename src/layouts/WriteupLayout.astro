@@ -118,12 +118,13 @@ const difficultyClass: Record<string, string> = {
       },
     });
 
-    const diagrams = document.querySelectorAll('pre code.language-mermaid');
-    for (const el of diagrams) {
-      const pre = el.parentElement;
+    const diagrams = document.querySelectorAll('pre[data-language="mermaid"]');
+    for (const pre of diagrams) {
+      const code = pre.querySelector('code');
+      const text = (code ?? pre).textContent.trim();
       const id = 'mermaid-' + Math.random().toString(36).slice(2, 8);
       try {
-        const { svg } = await mermaid.render(id, el.textContent.trim());
+        const { svg } = await mermaid.render(id, text);
         const wrapper = document.createElement('div');
         wrapper.className = 'mermaid-diagram';
         wrapper.innerHTML = svg;
