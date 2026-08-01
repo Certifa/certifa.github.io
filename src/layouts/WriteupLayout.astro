@@ -194,9 +194,18 @@ const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
           entries.forEach((e) => {
             if (e.isIntersecting) {
               const id = (e.target as HTMLElement).id;
+              let current: HTMLAnchorElement | null = null;
               links.forEach((l) => {
-                l.classList.toggle('active', l.getAttribute('href') === `#${id}`);
+                const on = l.getAttribute('href') === `#${id}`;
+                l.classList.toggle('active', on);
+                if (on) current = l;
               });
+              // The list scrolls on long writeups, so keep the highlighted
+              // entry in view. 'nearest' is a no-op when it already is, and
+              // stays instant, so there's no motion to suppress.
+              if (current) {
+                (current as HTMLAnchorElement).scrollIntoView({ block: 'nearest' });
+              }
             }
           });
         },
@@ -317,6 +326,11 @@ const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
     border: 1px solid var(--line);
     border-radius: 10px;
     padding: 18px 18px 16px;
+    /* Long writeups run past the viewport: cap the sidebar and scroll the list
+       inside it, so the last headings stay reachable and the title stays put. */
+    max-height: calc(100vh - 124px);
+    display: flex;
+    flex-direction: column;
   }
   .wu-toc-title {
     font-family: 'JetBrains Mono', monospace;
@@ -334,7 +348,8 @@ const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
   .wu-toc[open] .wu-toc-title { margin-bottom: 12px; }
   .wu-toc-chevron { display: none; }
   @media (max-width: 1000px) {
-    .wu-toc { padding: 4px 16px; }
+    /* Drawer on mobile: it opens inline, so it must not cap or scroll. */
+    .wu-toc { padding: 4px 16px; max-height: none; display: block; }
     .wu-toc-title { cursor: pointer; font-size: 11.5px; padding: 14px 0; pointer-events: auto; }
     .wu-toc[open] .wu-toc-title { margin-bottom: 4px; }
     .wu-toc-chevron {
@@ -345,7 +360,24 @@ const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
     .wu-toc[open] .wu-toc-chevron { transform: rotate(180deg); }
     .wu-toc-list { padding-bottom: 12px; }
   }
-  .wu-toc-list { display: flex; flex-direction: column; gap: 2px; }
+  .wu-toc-list {
+    display: flex; flex-direction: column; gap: 2px;
+    overflow-y: auto;
+    overscroll-behavior: contain; /* don't hand the scroll back to the article */
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-2) transparent;
+  }
+  .wu-toc-list::-webkit-scrollbar { width: 6px; }
+  .wu-toc-list::-webkit-scrollbar-track { background: transparent; }
+  .wu-toc-list::-webkit-scrollbar-thumb {
+    background: var(--line-2);
+    border-radius: 3px;
+  }
+  .wu-toc-list:hover::-webkit-scrollbar-thumb { background: var(--fg-4); }
+  /* After the base rules, so it actually wins: the mobile drawer never scrolls. */
+  @media (max-width: 1000px) {
+    .wu-toc-list { overflow-y: visible; overscroll-behavior: auto; }
+  }
 
   /* Reading-progress bar, pinned just under the fixed nav */
   .wu-progress {
