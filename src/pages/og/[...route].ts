@@ -14,11 +14,50 @@ import { createRequire } from 'node:module';
 
 const entries = await getCollection('writeups');
 
+/**
+ * Shell pages carry their own headline rather than the page name, for the same
+ * reason the writeup cards omit the title: the link preview prints the name
+ * already. Copy is lifted verbatim from each page so the card sounds like it.
+ */
+const SHELL: Record<string, { eyebrow: string; headline: string; refs: string }> = {
+  home: {
+    eyebrow: 'OFFENSIVE SECURITY  ·  UTRECHT',
+    headline: "Hi, I'm Certifa.",
+    refs: 'active directory  ·  linux  ·  web',
+  },
+  writeups: {
+    eyebrow: 'WRITEUPS',
+    headline: 'Notes, after the flag.',
+    refs: `${entries.length} machines  ·  hack the box`,
+  },
+  about: {
+    eyebrow: 'ABOUT',
+    headline: 'A student who breaks things for a grade.',
+    refs: 'active directory  ·  linux  ·  web',
+  },
+  projects: {
+    eyebrow: 'PROJECTS',
+    headline: 'Things built on purpose.',
+    refs: 'labs  ·  tooling  ·  dashboards',
+  },
+  contact: {
+    eyebrow: 'CONTACT',
+    headline: "Let's talk.",
+    refs: 'discord  ·  github  ·  hack the box  ·  email',
+  },
+};
+
 export function getStaticPaths() {
-  return entries.map((e) => ({
-    params: { route: `${e.slug}.png` },
-    props: { slug: e.slug, data: e.data },
-  }));
+  return [
+    ...entries.map((e) => ({
+      params: { route: `${e.slug}.png` },
+      props: { slug: e.slug, data: e.data, shell: null },
+    })),
+    ...Object.entries(SHELL).map(([name, shell]) => ({
+      params: { route: `${name}.png` },
+      props: { slug: name, data: null, shell },
+    })),
+  ];
 }
 
 const W = 1200;
@@ -96,7 +135,7 @@ async function getCanvas() {
 }
 
 export const GET: APIRoute = async ({ props }) => {
-  const { slug, data } = props as { slug: string; data: any };
+  const { slug, data, shell } = props as { slug: string; data: any; shell: any };
   const { CanvasKit, fontMgr } = await getCanvas();
 
   const surface = CanvasKit.MakeSurface(W, H);
@@ -114,9 +153,24 @@ export const GET: APIRoute = async ({ props }) => {
   bg.delete();
 
   const avatarPath = `public/og-avatars/${slug.replace(/^htb-/, '')}.png`;
-  const img = existsSync(avatarPath)
+  const img = !shell && existsSync(avatarPath)
     ? CanvasKit.MakeImageFromEncoded(await readFile(avatarPath))
     : null;
+
+  // Shell pages have no box art, so the accent supplies the same upper-right
+  // weight: one soft azure bloom, well under the level that would fight text.
+  if (shell) {
+    const glow = new CanvasKit.Paint();
+    glow.setShader(
+      CanvasKit.Shader.MakeRadialGradient(
+        [W - 170, 120], 640,
+        [CanvasKit.Color(...ACCENT, 0.16), CanvasKit.Color(...ACCENT, 0)],
+        [0, 1], CanvasKit.TileMode.Clamp,
+      ),
+    );
+    canvas.drawRect(CanvasKit.XYWHRect(0, 0, W, H), glow);
+    glow.delete();
+  }
   const src = img && CanvasKit.XYWHRect(0, 0, img.width(), img.height());
 
   // Ambient field, masked so it only exists to the right of the type.
@@ -188,7 +242,10 @@ export const GET: APIRoute = async ({ props }) => {
   };
 
   // Eyebrow: orients the reader without repeating the link's own title.
-  const eyebrow = para('HACK THE BOX  ·  WRITEUP', FG_3, 22, 'JetBrains Mono', 'Normal', { tracking: 4 });
+  const eyebrow = para(
+    shell ? shell.eyebrow : 'HACK THE BOX  ·  WRITEUP',
+    FG_3, 22, 'JetBrains Mono', 'Normal', { tracking: 4 },
+  );
   canvas.drawParagraph(eyebrow, PAD, PAD);
 
   // Footer: hairline rule over reference data and the signature.
@@ -199,7 +256,10 @@ export const GET: APIRoute = async ({ props }) => {
   canvas.drawRect(CanvasKit.XYWHRect(PAD, ruleY, W - PAD * 2, 2), rule);
   rule.delete();
 
-  const refs = para(reference(data.tags ?? []), FG_3, 24, 'JetBrains Mono', 'Normal');
+  const refs = para(
+    shell ? shell.refs : reference(data.tags ?? []),
+    FG_3, 24, 'JetBrains Mono', 'Normal',
+  );
   canvas.drawParagraph(refs, PAD, footTop);
   const site = para('certifa.net', FG_2, 24, 'JetBrains Mono', 'Normal', {
     align: CanvasKit.TextAlign.Right,
@@ -221,6 +281,25 @@ export const GET: APIRoute = async ({ props }) => {
     );
     ip.delete();
     textX = PAD + AVATAR + GAP;
+  }
+
+  // Shell cards stop here: headline set to wrap, no meter, no OS line.
+  if (shell) {
+    const headline = para(shell.headline, FG, 62, 'Bricolage Grotesque', 'Bold', { width: 880 });
+    canvas.drawParagraph(headline, PAD, mid - headline.getHeight() / 2);
+    headline.delete();
+
+    eyebrow.delete();
+    refs.delete();
+    site.delete();
+
+    const shot = surface.makeImageSnapshot();
+    const bytes = shot.encodeToBytes();
+    shot.delete();
+    surface.delete();
+    return new Response(Buffer.from(bytes), {
+      headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=31536000, immutable' },
+    });
   }
 
   // The eyebrow already names the platform, so the meta line carries the OS.
