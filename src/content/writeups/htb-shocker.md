@@ -8,9 +8,9 @@ description: "A CGI shell script backed by a vulnerable Bash lets a crafted HTTP
 featured: true
 ---
 
-![Shocker](/images/writeups/shocker/image4.png)
-
 ## Overview
+
+![Shocker](/images/writeups/shocker/logo.png)
 
 | Field          | Details |
 | -------------- | ------- |
