@@ -28,20 +28,6 @@ featured: true
 - `/api/mcp/connect` takes `command` and `args` and runs them unauthenticated (CVE-2026-23744) → reverse shell as `ben`
 - `ben` is in the `docker` group but the group is inactive in the exploited session → `newgrp docker` → mount `/` into a container and `chroot` → root
 
-## Attack Chain
-
-```mermaid
-graph TD
-    A[nmap] --> B[kobold.htb]
-    B --> C[ffuf - mcp.kobold.htb]
-    C --> D[MCPJam Inspector v1.4.2]
-    D --> E[CVE-2026-23744 - /api/mcp/connect RCE]
-    E --> F[Shell as ben]
-    F --> G[newgrp docker]
-    G --> H[docker run chroot /mnt sh]
-    H --> I[root]
-```
-
 ## Tools Used
 
 `nmapfullscan`, `nmap`, `ffuf`, `curl`, `netcat`, `python3` (pty), `docker`
@@ -286,16 +272,6 @@ id
 ![Root shell via the docker group](/images/writeups/kobold/root.png)
 
 `root.txt` is in `/root`.
-
----
-
-## Rabbit Holes
-
-- **Kobold Letters**: the box name matches a 2024 CSS email-injection technique (content hidden until forwarded). No mail services in the scan; name coincidence only.
-- **Malicious MCP server**: stood up a Python MCP server expecting MCPJam to connect outbound and yield a callback. Unnecessary; the connect endpoint executes commands directly.
-- **OAuth token theft**: the Chat tab's OAuth redirect mismatch looked like a token-interception opportunity. The RCE needs no auth, so it was never relevant.
-- **Arcane**: root-owned Docker manager on 46655, ruled out by endpoint probing.
-- **PrivateBin**: discovered, untested.
 
 ---
 

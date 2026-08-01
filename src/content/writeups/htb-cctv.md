@@ -29,21 +29,6 @@ featured: true
 - `ss -tlnp` shows two services bound to loopback: motionEye on `8765` and the Motion control API on `7999`. SSH local port forward reaches motionEye, whose admin password sits in plaintext in `/etc/motioneye/motion.conf`
 - CVE-2025-60787: the Image File Name field is passed to Motion's config without sanitisation. Motion runs as root, so the filename executes as root
 
-## Attack Chain
-
-```mermaid
-graph TD
-    A[nmap] --> B[ZoneMinder v1.37.63 - admin:admin]
-    B --> C[CVE-2024-51482 - blind SQLi on tid]
-    C --> D[Dump zm.Users - crack mark bcrypt]
-    D --> E[SSH as mark]
-    E --> F[ss -tlnp - motionEye 8765 localhost only]
-    F --> G[SSH local port forward]
-    G --> H[Plaintext admin password in motion.conf]
-    H --> I[CVE-2025-60787 - Image File Name injection]
-    I --> J[root]
-```
-
 ## Tools Used
 
 `nmap`, `curl`, `sqlmap`, `ssh`, `netcat`, browser devtools
@@ -316,14 +301,6 @@ The shell lands in `/etc/motioneye`, the daemon's working directory.
 cat /home/sa_mark/user.txt
 cat /root/root.txt
 ```
-
----
-
-## Rabbit Holes
-
-- **CVE-2023-26035** (ZoneMinder unauthenticated RCE). Patched at 1.37.33; the target runs 1.37.63. Checking the version against the patch boundary before writing an exploit saved the detour.
-- **`sa_mark` and `/opt/video/backups/server.log`.** A service account issuing commands to something, with no reachable authentication path from `mark`. Never used.
-- **Motion control API on `127.0.0.1:7999`.** Reachable through a second forward, not needed once the motionEye path landed.
 
 ---
 
