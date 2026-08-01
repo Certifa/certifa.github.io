@@ -1,6 +1,7 @@
 ---
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
+import { ogCard } from '../utils/og';
 import '../styles/global.css';
 
 interface Props {
@@ -20,17 +21,17 @@ const {
 // Shell pages get their own generated card from /og/. Writeups pass theirs in
 // explicitly; anything unlisted (404 and friends) keeps the static fallback.
 const OG_BY_PATH: Record<string, string> = {
-  '/': '/og/home.png',
-  '/writeups': '/og/writeups.png',
-  '/about': '/og/about.png',
-  '/projects': '/og/projects.png',
-  '/contact': '/og/contact.png',
+  '/': ogCard('home'),
+  '/writeups': ogCard('writeups'),
+  '/about': ogCard('about'),
+  '/projects': ogCard('projects'),
+  '/contact': ogCard('contact'),
 };
 const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
 const ogImage =
   image ??
   OG_BY_PATH[currentPath] ??
-  (currentPath.startsWith('/tags') ? '/og/writeups.png' : '/og-v2.png');
+  (currentPath.startsWith('/tags') ? ogCard('writeups') : '/og-v2.png');
 
 const siteTitle = title === 'Certifa' ? title : `${title} · Certifa`;
 ---

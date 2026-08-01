@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
+import { OG_VERSION } from '../../utils/og';
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
@@ -50,11 +51,11 @@ const SHELL: Record<string, { eyebrow: string; headline: string; refs: string }>
 export function getStaticPaths() {
   return [
     ...entries.map((e) => ({
-      params: { route: `${e.slug}.png` },
+      params: { route: `${OG_VERSION}/${e.slug}.png` },
       props: { slug: e.slug, data: e.data, shell: null },
     })),
     ...Object.entries(SHELL).map(([name, shell]) => ({
-      params: { route: `${name}.png` },
+      params: { route: `${OG_VERSION}/${name}.png` },
       props: { slug: name, data: null, shell },
     })),
   ];

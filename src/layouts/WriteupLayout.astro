@@ -3,6 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import type { MarkdownHeading } from 'astro';
 import BaseLayout from './BaseLayout.astro';
 import { tagSlug } from '../utils/tags';
+import { ogCard } from '../utils/og';
 
 interface Props {
   entry: CollectionEntry<'writeups'>;
@@ -22,7 +23,7 @@ const fmt = new Intl.DateTimeFormat('en-GB', {
 
 const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
 ---
-<BaseLayout title={title} description={description} image={`/og/${entry.slug}.png`} isWriteup={true}>
+<BaseLayout title={title} description={description} image={ogCard(entry.slug)} isWriteup={true}>
   <div class="wu-progress" id="wuProgress" aria-hidden="true"></div>
   <article class="wu-page">
     <div class="wrap">
