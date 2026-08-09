@@ -1,6 +1,7 @@
 ---
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
+import { ogCard } from '../utils/og';
 import '../styles/global.css';
 
 interface Props {
@@ -19,7 +20,17 @@ const {
   image,
 } = Astro.props;
 
-const ogImage = image ? new URL(image, Astro.site).href : null;
+// Shell pages have their own generated card; writeups pass theirs in.
+const SHELL_CARDS: Record<string, string> = {
+  '/': ogCard('home'),
+  '/writeups': ogCard('writeups'),
+  '/about': ogCard('about'),
+  '/projects': ogCard('projects'),
+  '/contact': ogCard('contact'),
+};
+const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const resolved = image ?? SHELL_CARDS[currentPath];
+const ogImage = resolved ? new URL(resolved, Astro.site).href : null;
 
 const siteTitle = title === 'Certifa' ? title : `${title} · Certifa`;
 ---

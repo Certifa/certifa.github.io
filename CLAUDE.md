@@ -90,6 +90,7 @@ certifa.github.io/
 │   ├── components/
 │   │   ├── Nav.astro             ← Fixed blur nav, real routes, active state, availability chip, mobile drawer
 │   │   ├── Footer.astro          ← Shared footer, year derived at build
+│   │   ├── BrandMark.astro       ← The Certifa mark. Used by Nav and Footer; mirrors favicon.svg
 │   │   ├── ContactForm.astro     ← Editor-motif form. `variant="filled"` (home) | `"outlined"` (contact). Validation, honeypot and Worker call defined once
 │   │   ├── CardMotif.astro       ← Code-motif card visual, variant chosen from a writeup's tags
 │   │   └── WriteupFeature.astro  ← Homepage's alternating two-column writeup row
@@ -105,38 +106,54 @@ certifa.github.io/
 │   │   └── writeups/
 │   │       ├── index.astro       ← Listing with search + filter chips
 │   │       └── [...slug].astro   ← Dynamic route; computes reading time
+│   ├── pages/og/[...route].ts    ← Renders every share card at build. See below
+│   ├── utils/og.ts               ← OG_VERSION + ogCard(). Bump on design change
 │   ├── styles/
 │   │   └── global.css            ← Theme tokens, base, chips/pills/tags, writeup prose, TOC, locked notice
-│   └── assets/og-fonts/          ← TTFs the banner script needs at render time. Do not delete
+│   └── assets/og-fonts/          ← TTFs the card route needs at render time. Do not delete
 ├── scripts/
-│   └── make-banners.mjs          ← Writeup header banners. Run by hand, see below
+│   └── make-icons.mjs            ← Raster favicons, rendered from favicon.svg. Run by hand
 ├── .github/workflows/deploy.yml  ← Build with Astro + deploy to Pages (on push to main)
 ├── public/
-│   ├── images/writeups/<box>/    ← Writeup screenshots + the generated logo.png banner
-│   ├── og-avatars/<box>.png      ← Square HTB box art, input to the banner script
-│   ├── favicon.svg
+│   ├── images/writeups/<box>/    ← Writeup screenshots
+│   ├── og-avatars/<box>.png      ← Square HTB box art, input to the share cards
+│   ├── favicon.svg               ← Source of truth for the mark
+│   ├── favicon-32.png            ← Generated, see scripts/make-icons.mjs
+│   ├── apple-touch-icon.png      ← Generated
 │   └── CNAME                     ← certifa.net
 ├── astro.config.mjs
 ├── tailwind.config.cjs           ← Colour + font tokens
 └── package.json
 ```
 
-### Writeup banners
+### Share cards
 
-Every finished writeup opens with a generated banner under `## Overview`:
+`src/pages/og/[...route].ts` renders every card at build with CanvasKit, into `/og/<OG_VERSION>/<name>.png`. There are no card image files in the repo: they are build output.
 
-```markdown
-![Shocker](/images/writeups/shocker/logo.png)
-```
+One card design serves everything: `HACK THE BOX · WRITEUP` kicker, avatar beside a Space Grotesk title, a four-segment difficulty scale, tags along the bottom rule, `certifa.net` opposite, and the box art blurred into the background wash. Shell pages use the same frame with their own copy, defined in the `SHELL` map at the top of the route.
 
-`scripts/make-banners.mjs` renders one per box at 1600×300 from that box's square HTB avatar in `public/og-avatars/<box>.png`, using CanvasKit and the TTFs vendored in `src/assets/og-fonts/`. Its colours and type mirror the site tokens: `#0f0f12` plate, `#4ade80` left edge, Space Grotesk Bold title, JetBrains Mono `<OS> · <Difficulty>` meta. **Keep the constants at the top of the script in step with `:root`.**
+| Page | Card |
+|---|---|
+| writeup | `/og/v3/htb-<box>.png` |
+| home, writeups, about, projects, contact | `/og/v3/<name>.png` |
 
-Adding a box:
-1. Drop a square PNG at `public/og-avatars/<box>.png` (box = slug minus the `htb-` prefix).
-2. `node scripts/make-banners.mjs`
-3. Reference the result in the markdown.
+The **same card is also the writeup masthead**, at `max-w-2xl`. That width is not arbitrary: the card's title is 88px within a 1200px card, so 672px renders it at 49px, matching the site's `text-5xl` page-title size. Because the card carries the title, the `h1` is `sr-only` on those pages so the box name is not set twice in the same typeface. **Do not put banner images back into the markdown**; they used to sit under `## Overview` and no longer belong there.
 
-No avatar means the box is skipped, which is how locked writeups stay bannerless. `canvaskit-wasm` is a **devDependency**: the banner step is manual and never runs during `astro build`.
+Adding a box: drop a square PNG at `public/og-avatars/<box>.png` (box = slug minus the `htb-` prefix). That is the whole step. The route picks it up on the next build, and a box with no avatar still gets a text-only card rather than failing.
+
+**`OG_VERSION` in `src/utils/og.ts` must be bumped whenever the card design changes.** Discord, Slack and LinkedIn cache preview images by URL for months, so changed artwork at an unchanged path keeps serving the stale copy. Bumping moves every card to a fresh path. It cannot rewrite embeds a platform has already rendered; those keep their old image until the link is posted somewhere new. Currently `v3`.
+
+`canvaskit-wasm` is a **devDependency**, which is fine: `npm ci` installs devDependencies, so the Actions build can render the cards.
+
+### Brand mark and icons
+
+The mark is a hexagon node with an attack path climbing out of it, replacing the shield the exports specify in the nav and footer of Page_14 / Page_19 / Page_22 / Page_27. That departure was Mike's call.
+
+- `src/components/BrandMark.astro` is the one copy for nav and footer. It inherits `currentColor`, so the nav's hover-to-accent and the footer's muted grey both keep working. Do not paste the paths inline.
+- `public/favicon.svg` is the source of truth for the raster icons.
+- `scripts/make-icons.mjs` renders `favicon-32.png` and `apple-touch-icon.png` from it with sharp. Rerun after editing the mark.
+
+`favicon.svg` and `BrandMark.astro` hold the same geometry at different scales (32 and 24 viewBox). Change one, change the other.
 
 ## Commands
 
@@ -243,7 +260,7 @@ Adding a new attack shape means adding a variant here, not a bespoke visual on t
 
 Keep deriving. If this page needs something none of the six contain, raise it with Mike rather than improvising a new treatment.
 
-Each writeup's banner currently lives **inside the markdown** under `## Overview`, so it renders below the header rather than as part of it. Hoisting it into the layout means editing the image line out of every writeup; not done, and worth agreeing first.
+The masthead is the generated share card, not a markdown image. See "Share cards" above.
 
 ### Writeup listing (writeups/index.astro)
 - Search over title, description, and tags, combining with the active chip
