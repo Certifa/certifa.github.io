@@ -189,6 +189,17 @@ The nav is `fixed`, so `global.css` gives `main` a `4rem` top padding to clear i
 
 Scroll reveals (`[data-reveal]`), card hover lift, cursor-follow spotlight on the arsenal bento, a scan line on the tooling card, the `ascii` and `dot-grid-wave` WebGL fields, image `group-hover:scale-105`, and the 404's split-numeral hover. All present because an export specifies them.
 
+### Keeping copy readable over the fields — do not undo
+
+The WebGL fields sit *behind* page copy. The exports set them at full strength, which is unreadable in practice: on mobile the columns collapse and text lands directly on a moving background. Four measures fix it, and they work together:
+
+1. `[data-aifx] { opacity: 0.18 }` under 768px, in `global.css`.
+2. `opacity-70` on the hero and projects fields at desktop widths.
+3. `.hero-copy::before` in `index.astro`: a soft radial scrim, inset well past the text so it fades as a vignette, heavier and recentred on mobile. It also supplies the `position: relative` that makes the column's `z-10` work at all, which keeps the scrim above the field and below the text.
+4. Hero body copy at `zinc-300`, small mono labels at `zinc-400`. The `--fg-3` muted token is too dim to sit over a field.
+
+Raising any of these back toward the export values reintroduces the problem. The fields also `display: none` under `prefers-reduced-motion`.
+
 ## Writeup Content System
 
 ### Frontmatter schema
@@ -211,13 +222,28 @@ featured: true | false
 Adding a new attack shape means adding a variant here, not a bespoke visual on the page.
 
 ### Writeup page features (WriteupLayout)
-- TOC from H2/H3 headings (sticky sidebar desktop, collapsible drawer mobile)
+- TOC from H2/H3 headings (sticky sidebar from `lg`, collapsible drawer below, list scrolls independently)
 - Copy button on every code block
+- Reading-progress bar pinned under the nav
 - Reading-time estimate (computed in `[...slug].astro`)
-- Difficulty badge, platform, date, and tags in the header. Tags are plain text, not links
+- Difficulty pill, platform, date, and tags in the header. Tags are plain text, not links
+- Related writeups by shared tags, plus chronological prev/next
+- Hover anchor links on headings, hidden below 900px
 - Wide tables wrapped for horizontal scroll; Mermaid rendered client-side
 
-This template is **not** covered by the six exports. It uses the token system but its layout predates them. Redesign it with Mike rather than reshaping it ad hoc.
+**No export covers this page**, so every element is derived from a pattern the six already establish, never invented:
+
+| Element | Derived from |
+|---|---|
+| Header band: accent-slash kicker, display title, lead paragraph, `border-b` | Page_22 projects header |
+| Meta strip micro-labels (`text-[10px] font-mono uppercase tracking-widest`) | Page_8 list header |
+| TOC panel chrome (`bg-surface/40 backdrop-blur-sm`, dashed-divider feel) | Page_14 fact sidebar |
+| Related + prev/next cards | Page_8 writeup cards |
+| Closing "All writeups" button | Page_22 outlined CTA |
+
+Keep deriving. If this page needs something none of the six contain, raise it with Mike rather than improvising a new treatment.
+
+Each writeup's banner currently lives **inside the markdown** under `## Overview`, so it renders below the header rather than as part of it. Hoisting it into the layout means editing the image line out of every writeup; not done, and worth agreeing first.
 
 ### Writeup listing (writeups/index.astro)
 - Search over title, description, and tags, combining with the active chip
