@@ -1,6 +1,8 @@
 ---
 // Shared site nav. Structure follows the export navs on Page_14 / Page_22 /
 // Page_27, which all use real routes; Page_1's anchor-only nav was the outlier.
+import BrandMark from './BrandMark.astro';
+
 const links = [
   { href: '/', label: 'Home' },
   { href: '/about', label: 'About' },
@@ -18,9 +20,7 @@ const isActive = (href: string) =>
   <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
     <div class="flex items-center gap-8">
       <a href="/" class="flex items-center gap-2 text-fg hover:text-accent transition-colors">
-        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-        </svg>
+        <BrandMark class="w-5 h-5" />
         <span class="font-bold tracking-tight">Certifa</span>
       </a>
 
