@@ -20,90 +20,118 @@ const fmt = new Intl.DateTimeFormat('en-GB', {
 }).format(date);
 
 const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
+
+// Shared chrome, lifted from the Page_8 card and the Page_14 sidebar so this
+// template reads as part of the same system the exports established.
+const CARD = 'rounded-xl border border-border bg-surface hover:border-borderHover hover:bg-white/[0.02] transition-all duration-300';
+const MICRO = 'font-mono text-[10px] uppercase tracking-widest text-zinc-500';
 ---
 <BaseLayout title={title} description={description}>
   <div class="wu-progress" id="wuProgress" aria-hidden="true"></div>
-  <article class="wu-page">
-    <div class="wrap">
-      <a class="wu-back" href="/writeups/">
-        <span class="ar">←</span>
-        back to writeups
-      </a>
 
-      <header class="wu-head">
-        <div class="wu-head-meta">
+  <article class="wu-page pb-24">
+    <!-- Header band -->
+    <header class="border-b border-border">
+      <div class="max-w-6xl mx-auto px-6 pt-10 pb-10">
+        <a href="/writeups/" class="inline-flex items-center gap-2 font-mono text-xs text-zinc-500 hover:text-accent transition-colors mb-10 group">
+          <span class="transition-transform group-hover:-translate-x-0.5" aria-hidden="true">←</span>
+          back to writeups
+        </a>
+
+        <div class="font-mono text-xs tracking-wider text-zinc-500 uppercase mb-4 flex items-center gap-2">
+          <span class="text-accent">/</span> WRITEUP
+        </div>
+
+        <h1 class="font-display text-4xl md:text-5xl font-bold text-white tracking-tight leading-[1.1] mb-5 max-w-3xl">
+          {title}
+        </h1>
+
+        <p class="text-lg text-zinc-400 max-w-2xl leading-relaxed">{description}</p>
+
+        <div class="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
           <span class={`diff-pill diff-${difficulty}`}>{difficulty}</span>
-          <span class="wu-plat">{platform}</span>
-          <span class="wu-dot">·</span>
-          <span class="wu-date">{fmt}</span>
-          <span class="wu-dot">·</span>
-          <span class="wu-read">~{readingTime} min read</span>
-        </div>
-        <h1 class="wu-title">{title}</h1>
-        <p class="wu-desc">{description}</p>
-        <div class="wu-tags">
-          {tags.map((t) => <span class="tag">{t}</span>)}
-        </div>
-      </header>
-
-      <div class="wu-grid">
-        <div class="prose-writeup">
-          <slot />
+          <span class={MICRO}>{platform}</span>
+          <span class="text-zinc-700" aria-hidden="true">·</span>
+          <span class={MICRO}>{fmt}</span>
+          <span class="text-zinc-700" aria-hidden="true">·</span>
+          <span class={MICRO}>~{readingTime} min read</span>
         </div>
 
-        {tocHeadings.length > 0 && (
-          <aside class="wu-toc-wrap">
-            <details class="wu-toc" id="wuToc" open>
-              <summary class="wu-toc-title">
-                On this page
-                <span class="wu-toc-chevron" aria-hidden="true">▾</span>
-              </summary>
-              <nav class="wu-toc-list">
-                {tocHeadings.map((h) => (
-                  <a href={`#${h.slug}`} class={`toc-link depth-${h.depth}`}>{h.text}</a>
-                ))}
-              </nav>
-            </details>
-          </aside>
-        )}
+        <div class="mt-5 flex flex-wrap gap-2">
+          {tags.map((t) => (
+            <span class="px-2 py-1 text-[10px] font-mono text-muted border border-border rounded">{t}</span>
+          ))}
+        </div>
       </div>
+    </header>
 
-      <footer class="wu-end">
+    <!-- Body -->
+    <div class="max-w-6xl mx-auto px-6 pt-12 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_260px] gap-8 lg:gap-14 items-start">
+      {tocHeadings.length > 0 && (
+        <aside class="lg:order-2 lg:sticky lg:top-24 w-full">
+          <details class="wu-toc rounded-xl border border-border bg-surface/40 backdrop-blur-sm px-5 py-4" id="wuToc" open>
+            <summary class="wu-toc-title flex items-center justify-between gap-3 cursor-pointer list-none">
+              <span class={MICRO}>On this page</span>
+              <span class="wu-toc-chevron text-zinc-500 text-xs" aria-hidden="true">▾</span>
+            </summary>
+            <nav class="wu-toc-list mt-4 flex flex-col">
+              {tocHeadings.map((h) => (
+                <a href={`#${h.slug}`} class={`toc-link depth-${h.depth}`}>{h.text}</a>
+              ))}
+            </nav>
+          </details>
+        </aside>
+      )}
+
+      <div class="lg:order-1 min-w-0">
+        <div class="prose-writeup"><slot /></div>
+      </div>
+    </div>
+
+    <!-- End of writeup -->
+    <footer class="max-w-6xl mx-auto px-6 mt-20">
+      <div class="border-t border-border pt-10">
         {related.length > 0 && (
-          <div class="wu-related">
-            <div class="wu-related-label">Related writeups</div>
-            <div class="wu-related-grid">
+          <section class="mb-12">
+            <h2 class={`${MICRO} mb-5`}>Related writeups</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {related.map((r) => (
-                <a class="wu-related-card" href={`/writeups/${r.slug}/`}>
-                  <span class={`diff-pill diff-${r.data.difficulty}`}>{r.data.difficulty}</span>
-                  <span class="wu-related-name">{r.data.title}</span>
-                  <span class="wu-related-tags">{r.data.tags.slice(0, 3).join(' · ')}</span>
+                <a href={`/writeups/${r.slug}/`} class={`${CARD} group p-5 flex flex-col gap-3`}>
+                  <span class={`diff-pill diff-${r.data.difficulty} self-start`}>{r.data.difficulty}</span>
+                  <span class="font-display text-lg font-medium text-fg group-hover:text-accent transition-colors">{r.data.title}</span>
+                  <span class="font-mono text-[11px] text-zinc-500 leading-relaxed">{r.data.tags.slice(0, 3).join(' · ')}</span>
                 </a>
               ))}
             </div>
-          </div>
+          </section>
         )}
 
-        <nav class="wu-prevnext" aria-label="More writeups">
+        <nav class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10" aria-label="More writeups">
           {older ? (
-            <a class="wu-pn older" href={`/writeups/${older.slug}/`}>
-              <span class="wu-pn-dir"><span class="ar">←</span> Older</span>
-              <span class="wu-pn-name">{older.data.title}</span>
+            <a href={`/writeups/${older.slug}/`} class={`${CARD} group p-5 flex flex-col gap-2`}>
+              <span class={`${MICRO} flex items-center gap-2`}>
+                <span class="transition-transform group-hover:-translate-x-0.5" aria-hidden="true">←</span> Older
+              </span>
+              <span class="font-display text-base font-medium text-fg group-hover:text-accent transition-colors">{older.data.title}</span>
             </a>
-          ) : <span class="wu-pn-empty"></span>}
+          ) : <span></span>}
           {newer ? (
-            <a class="wu-pn newer" href={`/writeups/${newer.slug}/`}>
-              <span class="wu-pn-dir">Newer <span class="ar">→</span></span>
-              <span class="wu-pn-name">{newer.data.title}</span>
+            <a href={`/writeups/${newer.slug}/`} class={`${CARD} group p-5 flex flex-col gap-2 sm:text-right sm:items-end`}>
+              <span class={`${MICRO} flex items-center gap-2`}>
+                Newer <span class="transition-transform group-hover:translate-x-0.5" aria-hidden="true">→</span>
+              </span>
+              <span class="font-display text-base font-medium text-fg group-hover:text-accent transition-colors">{newer.data.title}</span>
             </a>
-          ) : <span class="wu-pn-empty"></span>}
+          ) : <span></span>}
         </nav>
 
-        <a class="wu-all" href="/writeups/">
-          <span class="ar">←</span> All writeups
-        </a>
-      </footer>
-    </div>
+        <div class="flex justify-center">
+          <a href="/writeups/" class="px-6 py-2.5 text-sm font-medium text-zinc-400 border border-border rounded-lg hover:border-accent hover:text-accent transition-colors">
+            All writeups
+          </a>
+        </div>
+      </div>
+    </footer>
   </article>
 
   <!-- Mermaid: render diagram code blocks client-side (loaded only when a diagram exists) -->
@@ -239,152 +267,26 @@ const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
     });
   </script>
 </BaseLayout>
-
 <style>
-  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
-  @media (max-width: 768px) { .wrap { padding: 0 20px; } }
-
-  .wu-page { padding: 100px 0 120px; }
-  @media (max-width: 768px) { .wu-page { padding: 88px 0 64px; } }
-
-  .wu-back {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px; color: var(--fg-3);
-    letter-spacing: 0.05em;
-    text-decoration: none;
-    margin-bottom: 40px;
-    transition: color .15s ease;
-  }
-  .wu-back:hover { color: var(--accent); }
-  .wu-back .ar { transition: transform .18s ease; }
-  .wu-back:hover .ar { transform: translateX(-3px); }
-
-  .wu-head {
-    margin-bottom: 56px;
-    padding-bottom: 32px;
-    border-bottom: 1px solid var(--line);
-  }
-  .wu-head-meta {
-    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-    margin-bottom: 24px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px; color: var(--fg-3);
-  }
-  .wu-plat { color: var(--fg-2); letter-spacing: 0.06em; }
-  .wu-dot  { color: var(--fg-4); }
-  .wu-date { color: var(--fg-3); }
-  .wu-read { color: var(--fg-3); }
-
-  .wu-title {
-    font-family: var(--font-display);
-    font-size: clamp(40px, 6vw, 72px);
-    font-weight: 600;
-    letter-spacing: -0.035em;
-    line-height: 1;
-    color: var(--fg);
-    margin-bottom: 18px;
-  }
-  .wu-desc {
-    font-size: 18px; color: var(--fg-2);
-    max-width: 720px; line-height: 1.55;
-    margin-bottom: 20px;
-  }
-  .wu-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-
-  @media (max-width: 768px) {
-    .wu-head { margin-bottom: 40px; padding-bottom: 24px; }
-    .wu-head-meta { margin-bottom: 16px; row-gap: 6px; }
-    .wu-dot { display: none; }
-    .wu-title {
-      font-size: clamp(30px, 8.5vw, 40px);
-      line-height: 1.08;
-      margin-bottom: 14px;
-    }
-    .wu-desc { font-size: 16.5px; }
-    .wu-back { margin-bottom: 28px; }
-  }
-
-  .wu-grid {
-    display: grid;
-    grid-template-columns: 1fr 220px;
-    gap: 64px;
-    align-items: start;
-  }
-  @media (max-width: 1000px) {
-    .wu-grid { grid-template-columns: 1fr; gap: 32px; }
-  }
-
-  .wu-toc-wrap { position: sticky; top: 100px; align-self: start; }
-  @media (max-width: 1000px) {
-    .wu-toc-wrap { position: static; order: -1; margin-bottom: 12px; }
-  }
-  .wu-toc {
-    background: var(--bg-2);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 18px 18px 16px;
-    /* Long writeups run past the viewport: cap the sidebar and scroll the list
-       inside it, so the last headings stay reachable and the title stays put. */
-    max-height: calc(100vh - 124px);
-    display: flex;
-    flex-direction: column;
-  }
-  .wu-toc-title {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    color: var(--fg-3);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    display: flex; align-items: center; justify-content: space-between;
-    list-style: none;
-    cursor: default;
-    user-select: none;
-    pointer-events: none; /* desktop sidebar is not toggleable */
-  }
-  .wu-toc-title::-webkit-details-marker { display: none; }
-  .wu-toc[open] .wu-toc-title { margin-bottom: 12px; }
-  .wu-toc-chevron { display: none; }
-  @media (max-width: 1000px) {
-    /* Drawer on mobile: it opens inline, so it must not cap or scroll. */
-    .wu-toc { padding: 4px 16px; max-height: none; display: block; }
-    .wu-toc-title { cursor: pointer; font-size: 11.5px; padding: 14px 0; pointer-events: auto; }
-    .wu-toc[open] .wu-toc-title { margin-bottom: 4px; }
-    .wu-toc-chevron {
-      display: inline-block;
-      font-size: 13px;
-      transition: transform .18s ease;
-    }
-    .wu-toc[open] .wu-toc-chevron { transform: rotate(180deg); }
-    .wu-toc-list { padding-bottom: 12px; }
-  }
-  .wu-toc-list {
-    display: flex; flex-direction: column; gap: 2px;
-    overflow-y: auto;
-    overscroll-behavior: contain; /* don't hand the scroll back to the article */
-    scrollbar-width: thin;
-    scrollbar-color: var(--line-2) transparent;
-  }
-  .wu-toc-list::-webkit-scrollbar { width: 6px; }
-  .wu-toc-list::-webkit-scrollbar-track { background: transparent; }
-  .wu-toc-list::-webkit-scrollbar-thumb {
-    background: var(--line-2);
-    border-radius: 3px;
-  }
-  .wu-toc-list:hover::-webkit-scrollbar-thumb { background: var(--fg-4); }
-  /* After the base rules, so it actually wins: the mobile drawer never scrolls. */
-  @media (max-width: 1000px) {
-    .wu-toc-list { overflow-y: visible; overscroll-behavior: auto; }
-  }
-
-  /* Reading-progress bar, pinned just under the fixed nav */
+  /* Reading progress, pinned under the fixed nav. */
   .wu-progress {
-    position: fixed; top: 60px; left: 0; right: 0;
+    position: fixed; top: 64px; left: 0; right: 0;
     height: 2px;
     background: var(--accent);
     transform: scaleX(0); transform-origin: left;
     z-index: 99;
     will-change: transform;
+  }
+
+  /* TOC panel. Sticky sidebar from lg up, collapsible drawer below it, with
+     the open state driven by the matchMedia sync in the script above. */
+  .wu-toc summary::-webkit-details-marker { display: none; }
+  .wu-toc-chevron { transition: transform .2s ease; }
+  .wu-toc[open] .wu-toc-chevron { transform: rotate(180deg); }
+  @media (min-width: 1024px) {
+    .wu-toc-chevron { display: none; }
+    .wu-toc-title { cursor: default; }
+    .wu-toc-list { max-height: calc(100vh - 12rem); overflow-y: auto; }
   }
 
   /* Hover anchor links on headings (created client-side) */
@@ -400,80 +302,12 @@ const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
     :global(.prose-writeup h2:hover .wu-anchor),
     :global(.prose-writeup h3:hover .wu-anchor) { opacity: 1; }
   }
-
-  /* End-of-writeup: related + prev/next + all-writeups */
-  .wu-end {
-    margin-top: 72px;
-    padding-top: 32px;
-    border-top: 1px solid var(--line);
-  }
-  .wu-related { margin-bottom: 40px; }
-  .wu-related-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--fg-3); margin-bottom: 16px;
-  }
-  .wu-related-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-  @media (max-width: 760px) { .wu-related-grid { grid-template-columns: 1fr; } }
-  .wu-related-card {
-    display: flex; flex-direction: column; gap: 10px;
-    background: var(--bg-2); border: 1px solid var(--line);
-    border-radius: 10px; padding: 16px 18px;
-    text-decoration: none; color: inherit;
-    transition: border-color .2s ease, background .2s ease, transform .2s ease;
-  }
-  @media (hover: hover) {
-    .wu-related-card:hover { border-color: var(--line-2); background: var(--bg-3); transform: translateY(-2px); }
-  }
-  .wu-related-card .diff-pill { align-self: flex-start; }
-  .wu-related-name {
-    font-family: var(--font-display);
-    font-size: 18px; font-weight: 500; letter-spacing: -0.015em; color: var(--fg);
-  }
-  .wu-related-tags {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px; color: var(--fg-3); letter-spacing: 0.03em;
+  @media (max-width: 900px) {
+    /* No room for a hanging marker next to the text */
+    :global(.wu-anchor) { display: none; }
   }
 
-  .wu-prevnext { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
-  @media (max-width: 560px) { .wu-prevnext { grid-template-columns: 1fr; } }
-  .wu-pn {
-    display: flex; flex-direction: column; gap: 6px;
-    background: var(--bg-2); border: 1px solid var(--line);
-    border-radius: 10px; padding: 16px 18px;
-    text-decoration: none; color: inherit;
-    transition: border-color .2s ease, background .2s ease;
-  }
-  .wu-pn.newer { text-align: right; align-items: flex-end; }
-  @media (hover: hover) {
-    .wu-pn:hover { border-color: var(--line-2); background: var(--bg-3); }
-    .wu-pn:hover .ar { color: var(--accent); }
-  }
-  .wu-pn-dir {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--fg-3);
-    display: inline-flex; align-items: center; gap: 6px;
-  }
-  .wu-pn .ar { transition: color .2s ease, transform .2s ease; }
-  .wu-pn-name { font-size: 15px; color: var(--fg); font-weight: 500; letter-spacing: -0.01em; }
-  .wu-pn-empty { display: none; }
-  @media (min-width: 561px) { .wu-pn-empty { display: block; } }
-
-  .wu-all {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px; letter-spacing: 0.05em; color: var(--fg-3);
-    text-decoration: none;
-    transition: color .15s ease;
-  }
-  .wu-all .ar { transition: transform .18s ease; }
-  @media (hover: hover) {
-    .wu-all:hover { color: var(--accent); }
-    .wu-all:hover .ar { transform: translateX(-3px); }
-  }
-
-  .mermaid-diagram {
+  :global(.mermaid-diagram) {
     background: var(--bg-2);
     border: 1px solid var(--line);
     border-radius: 8px;
@@ -482,5 +316,5 @@ const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
     overflow-x: auto;
     text-align: center;
   }
-  .mermaid-diagram svg { max-width: 100%; height: auto; }
+  :global(.mermaid-diagram svg) { max-width: 100%; height: auto; }
 </style>
