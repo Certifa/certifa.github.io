@@ -10,8 +10,6 @@ featured: true
 
 ## Overview
 
-![CCTV](/images/writeups/cctv/logo.png)
-
 | Field | Details |
 |---|---|
 | **Machine** | CCTV |

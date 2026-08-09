@@ -10,8 +10,6 @@ featured: false
 
 ## Overview
 
-![Expressway](/images/writeups/expressway/logo.png)
-
 | Field | Details |
 |---|---|
 | **Machine** | Expressway |

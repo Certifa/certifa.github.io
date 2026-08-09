@@ -10,8 +10,6 @@ featured: false
 
 ## Overview
 
-![Cicada](/images/writeups/cicada/logo.png)
-
 | Field | Details |
 |---|---|
 | **Machine** | Cicada |

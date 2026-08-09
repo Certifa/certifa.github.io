@@ -10,8 +10,6 @@ featured: false
 
 ## Overview
 
-![Gavel](/images/writeups/gavel/logo.png)
-
 | Field | Details |
 |---|---|
 | **Machine** | Gavel |

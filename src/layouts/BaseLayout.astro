@@ -8,13 +8,18 @@ interface Props {
   description?: string;
   /** Loads the AIDesigner WebGL runtime, for pages carrying a [data-aifx] field. */
   effects?: boolean;
+  /** Share card, site-root-relative. Writeups pass their generated /og/<box>.png. */
+  image?: string;
 }
 
 const {
   title = 'Certifa',
   description = 'Offensive security student. HackTheBox writeups across Active Directory, Linux, and web.',
   effects = false,
+  image,
 } = Astro.props;
+
+const ogImage = image ? new URL(image, Astro.site).href : null;
 
 const siteTitle = title === 'Certifa' ? title : `${title} · Certifa`;
 ---
@@ -31,7 +36,16 @@ const siteTitle = title === 'Certifa' ? title : `${title} · Certifa`;
     <meta property="og:type" content="website" />
     <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
     <meta property="og:site_name" content="Certifa" />
-    <meta name="twitter:card" content="summary" />
+    {ogImage && (
+      <>
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content={title} />
+        <meta name="twitter:image" content={ogImage} />
+      </>
+    )}
+    <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
     <meta name="twitter:title" content={siteTitle} />
     <meta name="twitter:description" content={description} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />

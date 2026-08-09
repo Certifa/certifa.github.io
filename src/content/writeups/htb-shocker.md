@@ -10,8 +10,6 @@ featured: true
 
 ## Overview
 
-![Shocker](/images/writeups/shocker/logo.png)
-
 | Field          | Details |
 | -------------- | ------- |
 | **Machine**    | Shocker |

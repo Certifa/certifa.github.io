@@ -10,8 +10,6 @@ featured: true
 
 ## Overview
 
-![Return](/images/writeups/return/logo.png)
-
 | Field | Details |
 |---|---|
 | **Machine** | Return |

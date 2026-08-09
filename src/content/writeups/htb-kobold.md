@@ -10,8 +10,6 @@ featured: true
 
 ## Overview
 
-![Kobold](/images/writeups/kobold/logo.png)
-
 | Field | Details |
 |---|---|
 | **Machine** | Kobold |

@@ -10,8 +10,6 @@ featured: true
 
 ## Overview
 
-![DarkZero](/images/writeups/darkzero/logo.png)
-
 | Field | Details |
 |---|---|
 | **Machine** | DarkZero |
