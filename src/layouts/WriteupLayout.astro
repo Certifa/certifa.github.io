@@ -2,8 +2,6 @@
 import type { CollectionEntry } from 'astro:content';
 import type { MarkdownHeading } from 'astro';
 import BaseLayout from './BaseLayout.astro';
-import { tagSlug } from '../utils/tags';
-import { ogCard } from '../utils/og';
 
 interface Props {
   entry: CollectionEntry<'writeups'>;
@@ -23,7 +21,7 @@ const fmt = new Intl.DateTimeFormat('en-GB', {
 
 const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
 ---
-<BaseLayout title={title} description={description} image={ogCard(entry.slug)} isWriteup={true}>
+<BaseLayout title={title} description={description}>
   <div class="wu-progress" id="wuProgress" aria-hidden="true"></div>
   <article class="wu-page">
     <div class="wrap">
@@ -44,7 +42,7 @@ const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
         <h1 class="wu-title">{title}</h1>
         <p class="wu-desc">{description}</p>
         <div class="wu-tags">
-          {tags.map((t) => <a class="tag" href={`/tags/${tagSlug(t)}/`}>{t}</a>)}
+          {tags.map((t) => <span class="tag">{t}</span>)}
         </div>
       </header>
 
@@ -118,17 +116,17 @@ const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
         theme: 'base',
         themeVariables: {
           darkMode: true,
-          background: '#0a0a0a',
-          primaryColor: '#161616',
-          primaryTextColor: '#ededed',
-          primaryBorderColor: 'rgba(61, 140, 255, 0.35)',
-          lineColor: 'rgba(61, 140, 255, 0.85)',
-          secondaryColor: '#111111',
-          tertiaryColor: '#1f1f1f',
-          edgeLabelBackground: '#0a0a0a',
-          nodeTextColor: '#ededed',
-          clusterBkg: '#111111',
-          titleColor: '#ededed',
+          background: '#09090b',
+          primaryColor: '#161619',
+          primaryTextColor: '#e4e4e7',
+          primaryBorderColor: 'rgba(74, 222, 128, 0.35)',
+          lineColor: 'rgba(74, 222, 128, 0.85)',
+          secondaryColor: '#0f0f12',
+          tertiaryColor: '#1f1f23',
+          edgeLabelBackground: '#09090b',
+          nodeTextColor: '#e4e4e7',
+          clusterBkg: '#0f0f12',
+          titleColor: '#e4e4e7',
         },
       });
       for (const pre of diagrams) {

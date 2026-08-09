@@ -5,21 +5,31 @@
 /* =========================================================
    THEME TOKENS
    ========================================================= */
+/* Mirrors tailwind.config.cjs. These custom properties exist so the markdown
+   prose system (which Tailwind never sees) stays on the same palette. */
 :root {
-  --bg:        #0a0a0a;
-  --bg-2:      #111111;
-  --bg-3:      #161616;
-  --line:      #1f1f1f;
-  --line-2:    #2a2a2a;
-  --fg:        #ededed;
-  --fg-2:      #a0a0a0;
-  --fg-3:      #6b6b6b;
-  --fg-4:      #4a4a4a;
-  --accent:    oklch(0.74 0.15 248);   /* electric azure */
-  --accent-2:  oklch(0.62 0.15 248);
-  --warn:      oklch(0.78 0.13 40);
-  /* Bricolage Grotesque for display headings; Geist stays for body/UI. */
-  --font-display: 'Bricolage Grotesque', 'Geist', sans-serif;
+  --bg:        #09090b;
+  --bg-2:      #0f0f12;   /* surface */
+  --bg-3:      #161619;   /* raised surface */
+  --line:      #1f1f23;
+  --line-2:    #3f3f46;
+  --fg:        #e4e4e7;
+  --fg-2:      #a1a1aa;   /* body copy */
+  --fg-3:      #71717a;   /* muted */
+  --fg-4:      #52525b;   /* dim */
+  --accent:    #4ade80;
+  --accent-2:  #22c55e;   /* one step down */
+  --warn:      #f59e0b;   /* form errors only */
+
+  /* Difficulty scale. Chosen at the 400 step so each stays legible on --bg. */
+  --diff-easy:   #4ade80;
+  --diff-medium: #fbbf24;
+  --diff-hard:   #f87171;
+  --diff-insane: #c084fc;
+
+  --font-display: 'Space Grotesk', Inter, sans-serif;
+  --font-body:    'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
 }
 
 /* =========================================================
@@ -30,7 +40,7 @@ html { scroll-behavior: smooth; }
 body {
   background: var(--bg);
   color: var(--fg);
-  font-family: 'Geist', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body);
   font-size: 16px;
   line-height: 1.55;
   letter-spacing: -0.005em;
@@ -38,13 +48,17 @@ body {
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
 }
-::selection { background: var(--accent); color: var(--bg); }
+::selection { background: rgba(74, 222, 128, 0.2); color: var(--accent); }
 ::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--fg-4); }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--line-2); }
 
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+
+/* The nav is fixed in every export, so main clears its 4rem height. Pages that
+   want more breathing room (the homepage) add their own padding on top. */
+main { padding-top: 4rem; }
 
 /* subtle noise overlay */
 body::before {
@@ -61,6 +75,14 @@ body::before {
 .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
 .accent-text { color: var(--accent); }
 
+/* Syntax tokens for the code-motif card visuals (see CardMotif.astro).
+   Values are taken from the Page_8 export. */
+.card-visual-code span.kw      { color: #818cf8; }
+.card-visual-code span.str     { color: #34d399; }
+.card-visual-code span.num     { color: #f472b6; }
+.card-visual-code span.comment { color: #52525b; }
+.card-visual-code span.var     { color: #fbbf24; }
+
 .wrap {
   max-width: 1200px;
   margin: 0 auto;
@@ -76,8 +98,8 @@ body::before {
 [data-reveal] {
   opacity: 0; transform: translateY(14px);
   transition:
-    opacity 0.7s cubic-bezier(.2,.7,.2,1),
-    transform 0.7s cubic-bezier(.2,.7,.2,1);
+    opacity 0.7s cubic-bezier(.16,1,.3,1),
+    transform 0.7s cubic-bezier(.16,1,.3,1);
 }
 [data-reveal].revealed { opacity: 1; transform: translateY(0); }
 [data-reveal-delay="1"] { transition-delay: 0.06s; }
@@ -160,10 +182,34 @@ body::before {
   content: ''; width: 5px; height: 5px; border-radius: 50%;
   background: currentColor;
 }
-.diff-easy   { color: oklch(0.85 0.15 145); border-color: color-mix(in srgb, oklch(0.85 0.15 145) 40%, transparent); }
-.diff-medium { color: oklch(0.82 0.14 75);  border-color: color-mix(in srgb, oklch(0.82 0.14 75) 40%, transparent); }
-.diff-hard   { color: oklch(0.72 0.17 30);  border-color: color-mix(in srgb, oklch(0.72 0.17 30) 40%, transparent); }
-.diff-insane { color: oklch(0.78 0.14 320); border-color: color-mix(in srgb, oklch(0.78 0.14 320) 40%, transparent); }
+/* Difficulty is the only badge that carries colour, because there the colour
+   encodes real data. Semantic ramp, matching the convention players already
+   read at a glance: green, amber, red, violet. Weight climbs with severity so
+   the ramp still reads if colour is lost. */
+.diff-easy {
+  color: var(--diff-easy);
+  border-color: color-mix(in srgb, var(--diff-easy) 30%, transparent);
+  background: color-mix(in srgb, var(--diff-easy) 10%, transparent);
+  font-weight: 400;
+}
+.diff-medium {
+  color: var(--diff-medium);
+  border-color: color-mix(in srgb, var(--diff-medium) 30%, transparent);
+  background: color-mix(in srgb, var(--diff-medium) 10%, transparent);
+  font-weight: 500;
+}
+.diff-hard {
+  color: var(--diff-hard);
+  border-color: color-mix(in srgb, var(--diff-hard) 35%, transparent);
+  background: color-mix(in srgb, var(--diff-hard) 12%, transparent);
+  font-weight: 500;
+}
+.diff-insane {
+  color: var(--diff-insane);
+  border-color: color-mix(in srgb, var(--diff-insane) 40%, transparent);
+  background: color-mix(in srgb, var(--diff-insane) 14%, transparent);
+  font-weight: 600;
+}
 
 /* Neutral badge — one treatment shared by "featured" and status labels.
    Difficulty is the only badge that carries color, since there the color
@@ -216,7 +262,7 @@ body::before {
   margin-bottom: 24px;
 }
 .page-title .italic {
-  font-family: 'Instrument Serif', serif;
+  font-family: var(--font-display);
   font-style: italic; font-weight: 400;
   color: var(--accent);
 }
@@ -248,7 +294,7 @@ body::before {
    ========================================================= */
 .prose-writeup {
   color: var(--fg);
-  font-family: 'Geist', system-ui, sans-serif;
+  font-family: var(--font-body);
   font-size: 17px; line-height: 1.8;
   max-width: 760px;
   min-width: 0; /* grid item: keep wide content from blowing out the viewport */

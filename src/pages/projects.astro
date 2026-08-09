@@ -1,224 +1,111 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 
-type Status = 'active' | 'completed' | 'ongoing';
-
 interface Project {
   name: string;
-  status: Status;
+  category: 'Active Directory' | 'Web' | 'Infrastructure';
   desc: string;
-  tags: string[];
   link?: string;
-  label?: string;
-  featured?: boolean;
 }
 
 const projects: Project[] = [
   {
     name: 'HackTheBox Profile',
-    featured: true,
-    status: 'active',
+    category: 'Active Directory',
     desc: '50+ machines across Easy → Insane. Master rank, peak Pro Hacker. The main proving ground for Active Directory, Linux/Windows privesc, and web exploitation.',
-    tags: ['HTB', 'Pentesting', 'Active Directory'],
     link: 'https://profile.hackthebox.com/profile/019c2f48-7b5d-73a8-b798-3ee811960672',
-    label: 'View profile',
   },
   {
     name: 'HTB Tracker',
-    featured: true,
-    status: 'active',
+    category: 'Web',
     desc: 'Personal web dashboard tracking completed HTB machines: difficulty breakdown, platform stats, progress telemetry. Vanilla JS + GitHub Pages.',
-    tags: ['JavaScript', 'Dashboard', 'GitHub Pages'],
     link: 'https://certifa.github.io/htb-tracker/',
-    label: 'Open tracker',
   },
   {
-    name: 'AD Home Lab',
-    featured: false,
-    status: 'ongoing',
-    desc: 'Windows Server 2022 DC + two workstations. A practice environment for Kerberos abuse, BloodHound enumeration, NTLM relay, and AD misconfig chains.',
-    tags: ['Hyper-V', 'Server 2022', 'AD DS'],
+    name: 'Active Directory Homelab',
+    category: 'Active Directory',
+    desc: 'Windows Server 2022 DC with two workstations. Used to rebuild chains locally: Kerberos abuse, BloodHound enumeration, NTLM relay, and AD misconfig chains.',
   },
   {
     name: 'HTB Recon Automation',
-    featured: false,
-    status: 'active',
+    category: 'Infrastructure',
     desc: 'Python orchestrator: nmap fingerprinting → parsed services → ffuf/gobuster with tuned wordlists → single report template. Saves an hour on every box.',
-    tags: ['Python', 'nmap', 'ffuf'],
     link: 'https://github.com/Certifa',
-    label: 'GitHub',
   },
   {
     name: 'This Portfolio',
-    featured: false,
-    status: 'active',
+    category: 'Web',
     desc: 'Built with Astro + Tailwind CSS. Content collections drive the writeups; GitHub Actions deploys to Pages.',
-    tags: ['Astro', 'Tailwind', 'GitHub Actions'],
     link: 'https://github.com/Certifa/certifa.github.io',
-    label: 'Source',
   },
 ];
 
-const featured = projects.filter((p) => p.featured);
-const rest = projects.filter((p) => !p.featured);
+const CARD =
+  'group relative flex flex-col p-6 border border-border bg-surface/40 hover:bg-surface hover:border-accent/40 rounded-xl transition-all duration-300 h-full';
 ---
-<BaseLayout title="Projects" description="Labs, tooling, and dashboards by Certifa.">
-  <section class="page-head">
-    <div class="wrap">
-      <div class="page-kicker" data-reveal>/ projects</div>
-      <h1 class="page-title" data-reveal data-reveal-delay="1">Things built <span class="italic">on purpose.</span></h1>
-      <p class="page-sub" data-reveal data-reveal-delay="2">Labs, tooling, and the occasional dashboard. Half of it exists so I can practice on my own terms.</p>
-    </div>
-  </section>
 
-  <section class="proj-wrap">
-    <div class="wrap">
-      <div class="proj-featured">
-        {featured.map((p) => (
-          <article class="proj-row" data-reveal>
-            <span class="p-num">featured</span>
-            <div>
-              <div class="proj-head">
-                <h3 class="proj-name">{p.name}</h3>
-                <span class={`status-pill st-${p.status}`}>{p.status}</span>
+<BaseLayout
+  title="Projects"
+  description="Personal labs, automation, and tooling that support my offensive workflow."
+  effects
+>
+  <div class="pt-16 pb-24 relative isolate">
+    <div
+      class="absolute inset-x-0 top-0 h-[500px] -z-10 pointer-events-none"
+      style="mask-image: linear-gradient(to bottom, black 0%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 100%);"
+    >
+      <div
+        data-aifx="ascii"
+        data-aifx-colors="#09090b,#0d1410,#142419,#1e3b26"
+        data-aifx-bg="#09090b"
+        data-aifx-speed="0.2"
+        data-aifx-scale="1.2"
+        data-aifx-glow="0.2"
+        class="w-full h-full"
+        aria-hidden="true"
+      ></div>
+    </div>
+
+    <div class="max-w-5xl mx-auto px-6">
+      <header class="mb-16">
+        <div class="font-mono text-xs tracking-wider text-zinc-500 uppercase mb-4 flex items-center gap-2">
+          <span class="text-accent">/</span> PROJECTS
+        </div>
+        <h1 class="font-display text-4xl md:text-5xl font-bold text-fg tracking-tight mb-6">
+          Projects
+        </h1>
+        <p class="text-lg text-zinc-400 max-w-2xl leading-relaxed">
+          Personal labs, automation, and tooling that support my offensive workflow.
+        </p>
+      </header>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {projects.map((p) => {
+          const Tag = p.link ? 'a' : 'div';
+          return (
+            <Tag
+              class={CARD}
+              {...(p.link ? { href: p.link, rel: 'noopener' } : {})}
+            >
+              <div class="flex justify-between items-start mb-4 gap-4">
+                <h3 class="text-lg font-semibold text-fg group-hover:text-accent transition-colors">{p.name}</h3>
+                <span class="px-2.5 py-1 text-[10px] font-mono text-accent border border-accent/30 bg-accent/5 rounded-md shrink-0">{p.category}</span>
               </div>
-              <p class="proj-desc">{p.desc}</p>
-            </div>
-            <div class="proj-right">
-              <div class="proj-tags">
-                {p.tags.map((t) => <span class="tag">{t}</span>)}
-              </div>
-              {p.link && (
-                <a class="proj-link" href={p.link} target="_blank" rel="noopener">
-                  {p.label || 'View'} <span class="arrow">↗</span>
-                </a>
-              )}
-            </div>
-          </article>
-        ))}
+              <p class="text-zinc-400 text-sm leading-relaxed mt-auto">{p.desc}</p>
+            </Tag>
+          );
+        })}
       </div>
 
-      <div class="proj-grid">
-        {rest.map((p) => (
-          <article class="proj-card" data-reveal>
-            <div class="pc-head">
-              <h3 class="pc-name">{p.name}</h3>
-              <span class={`status-pill st-${p.status}`}>{p.status}</span>
-            </div>
-            <p class="pc-desc">{p.desc}</p>
-            <div class="pc-tags">
-              {p.tags.map((t) => <span class="tag">{t}</span>)}
-            </div>
-            {p.link && (
-              <a class="proj-link small" href={p.link} target="_blank" rel="noopener">
-                {p.label || 'View'} <span class="arrow">↗</span>
-              </a>
-            )}
-          </article>
-        ))}
+      <div class="mt-16 flex justify-center">
+        <a
+          href="https://github.com/Certifa"
+          rel="me noopener"
+          class="px-6 py-2.5 text-sm font-medium text-zinc-400 border border-border rounded-lg hover:border-accent hover:text-accent transition-colors"
+        >
+          More projects coming soon
+        </a>
       </div>
     </div>
-  </section>
+  </div>
 </BaseLayout>
-
-<style>
-  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
-  @media (max-width: 768px) { .wrap { padding: 0 20px; } }
-
-  .proj-wrap { padding: 72px 0 120px; }
-  .proj-featured {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 16px;
-    margin-bottom: 56px;
-  }
-  .proj-row {
-    background: var(--bg-2);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 40px;
-    display: grid;
-    grid-template-columns: 1.4fr 1fr;
-    gap: 40px;
-    position: relative;
-    transition: border-color .22s ease, background .22s ease;
-  }
-  @media (hover: hover) {
-    .proj-row:hover { border-color: var(--line-2); background: var(--bg-3); }
-  }
-  @media (max-width: 900px) {
-    .proj-row { grid-template-columns: 1fr; padding: 24px; gap: 16px; }
-  }
-  .p-num {
-    position: absolute; top: 22px; right: 28px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px; color: var(--fg-3);
-    letter-spacing: 0.1em;
-  }
-  .proj-head {
-    display: flex; align-items: center; gap: 12px;
-    margin-bottom: 18px; flex-wrap: wrap;
-  }
-  .proj-name {
-    font-family: var(--font-display);
-    font-size: 36px; font-weight: 500;
-    letter-spacing: -0.03em; line-height: 1;
-    color: var(--fg);
-  }
-  @media (max-width: 900px) {
-    /* In flow as a kicker above the title, instead of overlapping it */
-    .p-num { position: static; }
-    .proj-name { font-size: 30px; }
-  }
-  .proj-desc {
-    color: var(--fg-2); font-size: 15px;
-    line-height: 1.65; max-width: 540px;
-  }
-  .proj-right {
-    display: flex; flex-direction: column; gap: 20px;
-    justify-content: space-between;
-  }
-  .proj-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-
-  .proj-link {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-size: 14px; color: var(--fg);
-    text-decoration: none; font-weight: 500;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--line-2);
-    align-self: flex-start;
-    transition: border-color .2s ease, color .2s ease;
-  }
-  .proj-link.small { font-size: 13px; margin-top: 6px; }
-  .proj-link .arrow { transition: transform .2s ease; }
-  @media (hover: hover) {
-    .proj-link:hover { border-color: var(--accent); color: var(--accent); }
-    .proj-link:hover .arrow { transform: translate(3px, -3px); }
-  }
-
-  .proj-grid {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
-  }
-  @media (max-width: 1000px) { .proj-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 640px)  { .proj-grid { grid-template-columns: 1fr; } }
-
-  .proj-card {
-    background: var(--bg-2);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 28px 24px;
-    transition: border-color .2s ease, background .2s ease, transform .2s ease;
-    display: flex; flex-direction: column; gap: 14px;
-  }
-  @media (hover: hover) {
-    .proj-card:hover { border-color: var(--line-2); background: var(--bg-3); transform: translateY(-2px); }
-  }
-  .pc-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .pc-name {
-    font-family: var(--font-display);
-    font-size: 20px; font-weight: 500;
-    letter-spacing: -0.015em; color: var(--fg);
-  }
-  .pc-desc { color: var(--fg-2); font-size: 13.5px; line-height: 1.6; }
-  .pc-tags { display: flex; flex-wrap: wrap; gap: 5px; }
-</style>

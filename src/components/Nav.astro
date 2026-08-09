@@ -1,195 +1,97 @@
 ---
-const navLinks = [
-  { href: '/',          label: 'Home'     },
-  { href: '/about/',    label: 'About'    },
-  { href: '/writeups/', label: 'Writeups' },
-  { href: '/projects/', label: 'Projects' },
-  { href: '/contact/',  label: 'Contact'  },
+// Shared site nav. Structure follows the export navs on Page_14 / Page_22 /
+// Page_27, which all use real routes; Page_1's anchor-only nav was the outlier.
+const links = [
+  { href: '/', label: 'Home' },
+  { href: '/about', label: 'About' },
+  { href: '/writeups', label: 'Writeups' },
+  { href: '/projects', label: 'Projects' },
+  { href: '/contact', label: 'Contact' },
 ];
 
-const pathname = Astro.url.pathname;
+const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
 const isActive = (href: string) =>
-  href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href);
+  href === '/' ? path === '/' : path === href || path.startsWith(`${href}/`);
 ---
-<nav class="topbar" id="nav">
-  <div class="nav-inner">
-    <a class="brand" href="/" id="brandBtn">
-      <span class="brand-mark" id="brandMark">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M19 6.5 A8 8 0 1 0 19 17.5"/>
-          <path d="M12 8.5 L12 15.5"/>
-          <circle class="eye" cx="16.5" cy="12" r="0.9" fill="currentColor" stroke="none" style="transform-origin:16.5px 12px"/>
+
+<nav class="fixed top-0 left-0 right-0 z-50 bg-bg/80 backdrop-blur-md border-b border-border">
+  <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-8">
+      <a href="/" class="flex items-center gap-2 text-fg hover:text-accent transition-colors">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
         </svg>
-      </span>
-      Certifa
-    </a>
+        <span class="font-bold tracking-tight">Certifa</span>
+      </a>
 
-    <div class="nav-tabs" id="navTabs">
-      {navLinks.map(({ href, label }) => (
-        <a class={`nav-tab ${isActive(href) ? 'active' : ''}`} href={href}>{label}</a>
-      ))}
+      <div class="hidden md:flex items-center gap-6 text-sm font-medium">
+        {links.map(({ href, label }) => (
+          <a
+            href={href}
+            aria-current={isActive(href) ? 'page' : undefined}
+            class:list={[
+              'transition-colors',
+              isActive(href) ? 'text-fg' : 'text-zinc-400 hover:text-fg',
+            ]}
+          >{label}</a>
+        ))}
+      </div>
     </div>
 
-    <div class="nav-right">
-      <span class="pill"><span class="dot"></span>Available</span>
-      <a class="nav-cta" href="https://github.com/Certifa" target="_blank" rel="noopener">GitHub ↗</a>
-    </div>
+    <div class="flex items-center gap-3">
+      <div class="hidden md:flex items-center gap-2 text-xs font-mono text-zinc-400 bg-surface border border-border px-3 py-1.5 rounded-full">
+        <span class="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+        Available
+      </div>
 
-    <button class="nav-burger" id="navBurger" aria-label="Toggle menu" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
+      <a
+        href="https://github.com/Certifa"
+        rel="me noopener"
+        class="hidden sm:flex text-sm font-medium text-zinc-300 border border-border hover:border-borderHover px-4 py-1.5 rounded-md transition-colors items-center gap-2"
+      >
+        GitHub
+        <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+
+      <button
+        id="navToggle"
+        type="button"
+        class="md:hidden w-11 h-11 -mr-2 flex items-center justify-center text-zinc-400 hover:text-fg transition-colors"
+        aria-label="Open menu"
+        aria-expanded="false"
+        aria-controls="navDrawer"
+      >
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16"/>
+        </svg>
+      </button>
+    </div>
   </div>
 
-  <div class="nav-mobile" id="navMobile" aria-hidden="true">
-    {navLinks.map(({ href, label }) => (
-      <a class={`nav-mobile-link ${isActive(href) ? 'active' : ''}`} href={href}>{label}</a>
-    ))}
-    <a class="nav-mobile-link external" href="https://github.com/Certifa" target="_blank" rel="noopener">GitHub ↗</a>
+  <div id="navDrawer" class="md:hidden hidden border-t border-border bg-bg">
+    <div class="px-6 py-3 flex flex-col">
+      {links.map(({ href, label }) => (
+        <a
+          href={href}
+          aria-current={isActive(href) ? 'page' : undefined}
+          class:list={[
+            'py-3 text-sm font-medium transition-colors',
+            isActive(href) ? 'text-accent' : 'text-zinc-400 hover:text-fg',
+          ]}
+        >{label}</a>
+      ))}
+      <a href="https://github.com/Certifa" rel="me noopener" class="py-3 text-sm font-medium text-zinc-400 hover:text-fg transition-colors">GitHub</a>
+    </div>
   </div>
 </nav>
 
-<style>
-  .topbar {
-    position: fixed; top: 0; left: 0; right: 0;
-    z-index: 100;
-    height: 60px;
-    background: rgba(10, 10, 10, 0.72);
-    backdrop-filter: saturate(140%) blur(16px);
-    -webkit-backdrop-filter: saturate(140%) blur(16px);
-    border-bottom: 1px solid var(--line);
-  }
-  .nav-inner {
-    max-width: 1200px; margin: 0 auto;
-    padding: 0 32px; height: 100%;
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 24px;
-  }
-  @media (max-width: 768px) { .nav-inner { padding: 0 20px; } }
-
-  .brand {
-    display: flex; align-items: center; gap: 10px;
-    font-size: 14px; font-weight: 600;
-    color: var(--fg); text-decoration: none;
-    letter-spacing: -0.01em;
-    font-family: inherit;
-  }
-  .brand-mark {
-    width: 22px; height: 22px;
-    display: inline-flex; align-items: center; justify-content: center;
-    color: var(--fg);
-    transition: color .25s ease;
-  }
-  .brand-mark svg { width: 100%; height: 100%; }
-  .brand:hover .brand-mark { color: var(--accent); }
-  .brand-mark.winking .eye { animation: eyeWink 0.5s ease; }
-  @keyframes eyeWink {
-    0%, 100% { transform: scaleY(1); }
-    50% { transform: scaleY(0.1); }
-  }
-
-  .nav-tabs { display: flex; gap: 2px; }
-  .nav-tab {
-    color: var(--fg-2);
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 7px 14px;
-    border-radius: 6px;
-    background: transparent;
-    border: 0;
-    font-family: inherit;
-    letter-spacing: -0.01em;
-    transition: color .15s ease, background .15s ease;
-  }
-  .nav-tab:hover,
-  .nav-tab.active {
-    color: var(--fg);
-    background: var(--bg-3);
-  }
-
-  .nav-right { display: flex; align-items: center; gap: 12px; }
-  .nav-cta {
-    font-size: 13px; font-weight: 500;
-    padding: 7px 14px; border-radius: 6px;
-    background: var(--fg); color: var(--bg);
-    text-decoration: none;
-    transition: opacity .15s ease;
-  }
-  .nav-cta:hover { opacity: 0.85; }
-
-  .nav-burger {
-    display: none;
-    flex-direction: column; justify-content: center; gap: 5px;
-    width: 38px; height: 38px;
-    background: transparent;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    cursor: pointer;
-    align-items: center;
-  }
-  .nav-burger span {
-    display: block;
-    width: 16px; height: 1.5px;
-    background: var(--fg-2);
-    transition: all .2s ease;
-  }
-  .nav-burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
-  .nav-burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
-  .nav-burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
-
-  .nav-mobile {
-    display: none;
-    position: absolute;
-    top: 60px; left: 0; right: 0;
-    background: rgba(10, 10, 10, 0.96);
-    backdrop-filter: saturate(140%) blur(16px);
-    -webkit-backdrop-filter: saturate(140%) blur(16px);
-    border-bottom: 1px solid var(--line);
-    flex-direction: column;
-    padding: 12px 20px 18px;
-    gap: 4px;
-  }
-  .nav-mobile.open { display: flex; }
-  .nav-mobile-link {
-    display: block;
-    padding: 12px 14px;
-    font-size: 15px; color: var(--fg-2);
-    text-decoration: none;
-    border-radius: 8px;
-    border: 1px solid transparent;
-    transition: color .15s ease, background .15s ease, border-color .15s ease;
-  }
-  .nav-mobile-link:hover { color: var(--fg); background: var(--bg-3); }
-  .nav-mobile-link.active { color: var(--fg); background: var(--bg-3); border-color: var(--line); }
-  .nav-mobile-link.external {
-    margin-top: 6px;
-    border-top: 1px solid var(--line);
-    border-radius: 0;
-    padding-top: 16px;
-    color: var(--accent);
-  }
-
-  @media (max-width: 860px) {
-    .nav-tabs, .nav-right { display: none; }
-    .nav-burger { display: flex; }
-  }
-</style>
-
 <script>
-  const burger = document.getElementById('navBurger');
-  const mobile = document.getElementById('navMobile');
-  burger?.addEventListener('click', () => {
-    const open = mobile?.classList.toggle('open');
-    burger.setAttribute('aria-expanded', String(!!open));
-    mobile?.setAttribute('aria-hidden', String(!open));
-  });
+  const toggle = document.getElementById('navToggle');
+  const drawer = document.getElementById('navDrawer');
 
-  // Brand wink on hover
-  const brand = document.getElementById('brandBtn');
-  const mark  = document.getElementById('brandMark');
-  brand?.addEventListener('mouseenter', () => {
-    mark?.classList.remove('winking');
-    void (mark as HTMLElement)?.offsetWidth;
-    mark?.classList.add('winking');
+  toggle?.addEventListener('click', () => {
+    const open = drawer?.classList.toggle('hidden') === false;
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
   });
 </script>

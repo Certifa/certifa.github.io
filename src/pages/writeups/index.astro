@@ -1,34 +1,56 @@
 ---
+import { existsSync } from 'node:fs';
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import CardMotif from '../../components/CardMotif.astro';
 
-const all = await getCollection('writeups');
-const sorted = all.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+// Box art when the writeup has it, code motif when it doesn't (locked boxes
+// carry no avatar). Resolved at build, so a missing file can never 404.
+const avatarFor = (slug: string) => {
+  const box = slug.replace(/^htb-/, '');
+  return existsSync(`public/og-avatars/${box}.png`) ? `/og-avatars/${box}.png` : null;
+};
 
-const fmt = (d: Date) =>
-  new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(d);
+const writeups = (await getCollection('writeups')).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
 
+// Difficulty + featured filters, as the site had before: a chip only appears
+// when its count is non-zero.
 const counts = {
-  all:      sorted.length,
-  easy:     sorted.filter(w => w.data.difficulty === 'easy').length,
-  medium:   sorted.filter(w => w.data.difficulty === 'medium').length,
-  hard:     sorted.filter(w => w.data.difficulty === 'hard').length,
-  insane:   sorted.filter(w => w.data.difficulty === 'insane').length,
-  featured: sorted.filter(w => w.data.featured).length,
+  all: writeups.length,
+  easy: writeups.filter((w) => w.data.difficulty === 'easy').length,
+  medium: writeups.filter((w) => w.data.difficulty === 'medium').length,
+  hard: writeups.filter((w) => w.data.difficulty === 'hard').length,
+  insane: writeups.filter((w) => w.data.difficulty === 'insane').length,
+  featured: writeups.filter((w) => w.data.featured).length,
 };
 ---
-<BaseLayout title="Writeups" description="HackTheBox writeups by Certifa. Retired machines explained start to finish.">
-  <section class="page-head">
-    <div class="wrap">
-      <div class="page-kicker" data-reveal>/ writeups</div>
-      <h1 class="page-title" data-reveal data-reveal-delay="1">Notes, after <span class="italic">the flag.</span></h1>
-      <p class="page-sub" data-reveal data-reveal-delay="2">Retired HackTheBox machines, documented start to finish: foothold to root, with the reasoning in between.</p>
-    </div>
-  </section>
 
-  <section class="wu-list">
-    <div class="wrap">
-      <div class="wu-toolbar" data-reveal>
+<BaseLayout
+  title="Writeups"
+  description="In-depth writeups covering Active Directory, web applications, infrastructure, and beyond. From initial foothold to full compromise."
+>
+  <main class="flex-1 max-w-[1600px] w-full mx-auto px-6 py-12 lg:py-24 grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-16 lg:gap-24 relative isolate">
+    <div class="absolute top-0 left-0 w-full h-[500px] bg-accent/5 blur-[120px] rounded-full pointer-events-none -z-10" aria-hidden="true"></div>
+
+    <!-- Left: sticky header -->
+    <div class="flex flex-col gap-12 lg:sticky lg:top-32 self-start h-fit">
+      <div class="space-y-6">
+        <p class="text-xs font-mono text-muted uppercase tracking-widest">
+          Writeups Archive<span class="text-accent animate-pulse">_</span>
+        </p>
+        <h1 class="text-5xl lg:text-6xl xl:text-7xl font-display font-medium leading-[1.1] tracking-tight">
+          Break systems.<br />
+          Document <span class="text-accent">the flag.</span>
+        </h1>
+        <p class="text-muted font-mono text-sm leading-relaxed max-w-md pt-2">
+          In-depth writeups covering Active Directory, web applications, infrastructure, and beyond.<br />
+          From initial foothold to full compromise.
+        </p>
+      </div>
+
+      <div class="space-y-8">
         <input
           id="wuSearch"
           class="wu-search"
@@ -37,63 +59,115 @@ const counts = {
           aria-label="Search writeups"
           autocomplete="off"
         />
-        <div class="wu-controls">
-          <button class="chip active" data-filter="all">All · {counts.all}</button>
-          {counts.easy   > 0 && <button class="chip" data-filter="easy">Easy · {counts.easy}</button>}
-          {counts.medium > 0 && <button class="chip" data-filter="medium">Medium · {counts.medium}</button>}
-          {counts.hard   > 0 && <button class="chip" data-filter="hard">Hard · {counts.hard}</button>}
-          {counts.insane > 0 && <button class="chip" data-filter="insane">Insane · {counts.insane}</button>}
-          {counts.featured > 0 && <button class="chip" data-filter="featured">Featured · {counts.featured}</button>}
+
+        <div class="flex flex-wrap gap-2">
+          <button type="button" class="chip active" data-filter="all">All · {counts.all}</button>
+          {counts.easy > 0 && <button type="button" class="chip" data-filter="easy">Easy · {counts.easy}</button>}
+          {counts.medium > 0 && <button type="button" class="chip" data-filter="medium">Medium · {counts.medium}</button>}
+          {counts.hard > 0 && <button type="button" class="chip" data-filter="hard">Hard · {counts.hard}</button>}
+          {counts.insane > 0 && <button type="button" class="chip" data-filter="insane">Insane · {counts.insane}</button>}
+          {counts.featured > 0 && <button type="button" class="chip" data-filter="featured">Featured · {counts.featured}</button>}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: list -->
+    <div class="flex flex-col gap-8 w-full max-w-4xl">
+      <div class="hidden md:flex justify-between items-center pb-4 border-b border-border px-8">
+        <span class="text-[10px] font-mono text-muted uppercase tracking-widest">Writeup</span>
+        <div class="flex gap-24 pr-4">
+          <span class="text-[10px] font-mono text-muted uppercase tracking-widest">Difficulty</span>
+          <span class="text-[10px] font-mono text-muted uppercase tracking-widest">Tags</span>
         </div>
       </div>
 
-      <p class="wu-empty" id="wuEmpty" hidden>No writeups match that. <button type="button" id="wuReset">Clear filters</button></p>
-
-      <div class="wu-items" id="wuItems">
-        {sorted.map((w, i) => (
+      <div class="flex flex-col gap-10" id="writeupList">
+        {writeups.map((entry) => (
           <a
-            class="wu-row"
-            href={`/writeups/${w.slug}/`}
-            data-difficulty={w.data.difficulty}
-            data-featured={w.data.featured ? 'true' : 'false'}
-            data-search={`${w.data.title} ${w.data.description} ${w.data.tags.join(' ')}`.toLowerCase()}
+            href={`/writeups/${entry.slug}/`}
+            data-difficulty={entry.data.difficulty}
+            data-featured={entry.data.featured ? 'true' : 'false'}
+            data-search={`${entry.data.title} ${entry.data.description} ${entry.data.tags.join(' ')}`.toLowerCase()}
+            class="wu-card group flex flex-col md:flex-row gap-8 p-8 rounded-xl border border-border bg-surface hover:border-borderHover hover:bg-white/[0.02] transition-all duration-300"
           >
-            <div class="wu-num">{String(i + 1).padStart(2, '0')}</div>
-            <div class="wu-main">
-              <div class="wu-header-row">
-                <span class="wu-name">{w.data.title}</span>
-                <span class={`diff-pill diff-${w.data.difficulty}`}>{w.data.difficulty}</span>
-                {w.data.featured && <span class="feat-pill">featured</span>}
+            {avatarFor(entry.slug) ? (
+              <div class="w-full md:w-64 h-32 shrink-0 relative rounded-lg overflow-hidden bg-bg border border-border flex items-center justify-center">
+                <div
+                  class="absolute inset-0 opacity-40"
+                  style="background-image: radial-gradient(circle at center, rgba(74,222,128,0.12) 0%, transparent 70%);"
+                  aria-hidden="true"
+                ></div>
+                <img
+                  src={avatarFor(entry.slug)}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  class="relative h-24 w-24 object-contain group-hover:scale-105 transition-transform duration-500 ease-out"
+                />
               </div>
-              <div class="wu-desc">{w.data.description}</div>
-              <div class="wu-tags">
-                {w.data.tags.map((t) => <span class="tag">{t}</span>)}
+            ) : (
+              <CardMotif slug={entry.slug} tags={entry.data.tags} class="w-full md:w-64 h-32" />
+            )}
+
+            <div class="flex-1 flex flex-col min-w-0 justify-between py-1">
+              <div>
+                <div class="flex items-start justify-between gap-4 mb-3">
+                  <h3 class="text-xl font-display font-medium text-fg group-hover:text-white transition-colors truncate">
+                    {entry.data.title}
+                  </h3>
+                  <span class={`diff-pill diff-${entry.data.difficulty} shrink-0 mt-1`}>{entry.data.difficulty}</span>
+                </div>
+                <p class="text-sm text-muted leading-relaxed line-clamp-2">{entry.data.description}</p>
               </div>
-            </div>
-            <div class="wu-meta">
-              <div class="wu-date">{fmt(w.data.date)}</div>
-              <div class="wu-plat">{w.data.platform}</div>
+
+              <div class="flex flex-wrap gap-2 mt-6">
+                {entry.data.tags.slice(0, 4).map((tag) => (
+                  <span class="px-2 py-1 text-[10px] font-mono text-muted border border-border rounded">{tag}</span>
+                ))}
+              </div>
             </div>
           </a>
         ))}
       </div>
+
+      <p class="wu-empty" id="wuEmpty" hidden>
+        No writeups match that. <button type="button" id="wuReset">Clear filters</button>
+      </p>
+
+      <div class="mt-8 flex items-center justify-between text-xs font-mono text-muted px-4">
+        <span id="listCount">&mdash; {counts.all} writeups</span>
+        <span>Page 1 of 1</span>
+        <span>End of archive &mdash;</span>
+      </div>
+
+      <div class="mt-8 p-8 border border-border rounded-xl bg-surface hover:border-borderHover hover:bg-white/[0.02] transition-all duration-300 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden group">
+        <div class="absolute -right-16 -top-16 w-64 h-64 bg-accent/5 blur-[80px] rounded-full pointer-events-none transition-opacity duration-300 opacity-50 group-hover:opacity-100" aria-hidden="true"></div>
+        <div class="flex items-center gap-6 z-10">
+          <div class="w-12 h-12 rounded border border-border bg-bg flex items-center justify-center text-accent font-mono text-xl shrink-0 transition-colors group-hover:border-accent/30">
+            &gt;_
+          </div>
+          <div>
+            <h4 class="text-lg font-display text-fg mb-1">New writeups coming soon.</h4>
+            <p class="text-sm font-mono text-muted">
+              I'm always breaking, building, and documenting.<br />Check back or follow along on my socials.
+            </p>
+          </div>
+        </div>
+        <a href="/projects" class="px-6 py-3 border border-border rounded font-mono text-xs uppercase tracking-widest text-fg hover:border-accent hover:text-accent transition-colors whitespace-nowrap shrink-0 z-10 bg-surface">
+          View Lab
+        </a>
+      </div>
     </div>
-  </section>
+  </main>
 </BaseLayout>
 
 <style>
-  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
-  @media (max-width: 768px) { .wrap { padding: 0 20px; } }
-
-  .wu-list { padding: 72px 0 120px; }
-  .wu-toolbar {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 16px; flex-wrap: wrap; margin-bottom: 32px;
-  }
+  /* Search field and empty state, carried over from the previous list page. */
   .wu-search {
-    flex: 1; min-width: 220px;
-    font-family: 'Geist', sans-serif;
-    font-size: 14px; color: var(--fg);
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--fg);
     background: var(--bg-2);
     border: 1px solid var(--line-2);
     border-radius: 999px;
@@ -102,9 +176,13 @@ const counts = {
     transition: border-color .18s ease, background .18s ease;
   }
   .wu-search::placeholder { color: var(--fg-3); }
-  .wu-search:focus { border-color: color-mix(in srgb, var(--accent) 60%, var(--line-2)); background: var(--bg-3); }
-  @media (max-width: 768px) { .wu-search { font-size: 16px; } }
-  .wu-controls { display: flex; gap: 8px; flex-wrap: wrap; }
+  .wu-search:focus {
+    border-color: color-mix(in srgb, var(--accent) 60%, var(--line-2));
+    background: var(--bg-3);
+  }
+  @media (max-width: 768px) {
+    .wu-search { font-size: 16px; } /* stops iOS zooming on focus */
+  }
 
   .wu-empty {
     color: var(--fg-2); font-size: 15px;
@@ -115,113 +193,49 @@ const counts = {
     color: var(--accent); cursor: pointer;
     font: inherit; text-decoration: underline;
   }
-
-  .wu-items { border-top: 1px solid var(--line); }
-  .wu-row {
-    display: grid;
-    grid-template-columns: 80px 1fr auto;
-    gap: 32px;
-    padding: 28px 0;
-    border-bottom: 1px solid var(--line);
-    text-decoration: none; color: inherit;
-    transition: padding .2s ease, background .2s ease;
-    cursor: pointer;
-    position: relative;
-  }
-  .wu-row::before {
-    content: ''; position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 2px; background: var(--accent);
-    transform: scaleY(0); transform-origin: center;
-    transition: transform .22s ease;
-  }
-  @media (hover: hover) {
-    .wu-row:hover::before { transform: scaleY(1); }
-    .wu-row:hover { padding-left: 16px; padding-right: 16px; background: var(--bg-2); }
-  }
-  @media (max-width: 700px) {
-    .wu-row { grid-template-columns: 1fr; gap: 12px; padding: 24px 0; }
-    .wu-num { display: none; }
-  }
-  .wu-num {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px; color: var(--fg-3);
-    padding-top: 6px;
-  }
-  .wu-main { min-width: 0; }
-  .wu-header-row {
-    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-    margin-bottom: 10px;
-  }
-  .wu-name {
-    font-family: var(--font-display);
-    font-size: 28px; font-weight: 500;
-    letter-spacing: -0.025em; line-height: 1;
-    color: var(--fg);
-  }
-  .wu-desc {
-    color: var(--fg-2);
-    font-size: 15px; line-height: 1.55;
-    max-width: 640px;
-    margin-bottom: 12px;
-  }
-  .wu-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-  .wu-meta {
-    text-align: right;
-    display: flex; flex-direction: column; align-items: flex-end;
-    gap: 10px;
-    padding-top: 6px;
-  }
-  @media (max-width: 700px) { .wu-meta { text-align: left; align-items: flex-start; } }
-  .wu-date {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px; color: var(--fg-3);
-  }
-  .wu-plat {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px; color: var(--fg-2);
-    letter-spacing: 0.06em;
-  }
 </style>
 
 <script>
-  const chips  = Array.from(document.querySelectorAll<HTMLButtonElement>('.chip'));
-  const rows   = Array.from(document.querySelectorAll<HTMLElement>('.wu-row'));
+  const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('.chip'));
+  const cards = Array.from(document.querySelectorAll<HTMLAnchorElement>('.wu-card'));
   const search = document.getElementById('wuSearch') as HTMLInputElement | null;
-  const empty  = document.getElementById('wuEmpty');
-  const reset  = document.getElementById('wuReset');
+  const empty = document.getElementById('wuEmpty');
+  const reset = document.getElementById('wuReset');
+  const countEl = document.getElementById('listCount');
 
   let activeFilter = 'all';
 
   const apply = () => {
     const q = (search?.value ?? '').trim().toLowerCase();
-    let n = 1;
     let shown = 0;
-    rows.forEach((row) => {
-      const diff = row.getAttribute('data-difficulty');
-      const feat = row.getAttribute('data-featured') === 'true';
-      const hay  = row.getAttribute('data-search') ?? '';
+
+    cards.forEach((card) => {
+      const diff = card.dataset.difficulty;
+      const feat = card.dataset.featured === 'true';
+      const hay = card.dataset.search ?? '';
+
       const matchFilter =
         activeFilter === 'all' ? true :
         activeFilter === 'featured' ? feat :
         diff === activeFilter;
       const matchSearch = q === '' || hay.includes(q);
       const show = matchFilter && matchSearch;
-      row.style.display = show ? '' : 'none';
-      if (show) {
-        shown++;
-        const num = row.querySelector('.wu-num');
-        if (num) num.textContent = String(n++).padStart(2, '0');
-      }
+
+      // The cards carry Tailwind's `flex`, which beats the [hidden] attribute,
+      // so visibility is driven inline.
+      card.style.display = show ? '' : 'none';
+      if (show) shown++;
     });
+
     if (empty) empty.hidden = shown !== 0;
+    if (countEl) countEl.innerHTML = `&mdash; ${shown} writeup${shown === 1 ? '' : 's'}`;
   };
 
   chips.forEach((c) => {
     c.addEventListener('click', () => {
       chips.forEach((x) => x.classList.remove('active'));
       c.classList.add('active');
-      activeFilter = c.getAttribute('data-filter') ?? 'all';
+      activeFilter = c.dataset.filter ?? 'all';
       apply();
     });
   });
@@ -231,7 +245,7 @@ const counts = {
   reset?.addEventListener('click', () => {
     if (search) search.value = '';
     activeFilter = 'all';
-    chips.forEach((x) => x.classList.toggle('active', x.getAttribute('data-filter') === 'all'));
+    chips.forEach((x) => x.classList.toggle('active', x.dataset.filter === 'all'));
     apply();
   });
 </script>

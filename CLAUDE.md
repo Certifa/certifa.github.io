@@ -2,50 +2,82 @@
 
 ## Project
 
-Multi-page portfolio and writeup hub for Mike (**Certifa**), an offensive-security student and pentester. Dark, monochrome, professional. Shell pages (home, about, projects, contact) carry the visual flair; writeup pages stay clean for reading.
+Multi-page portfolio and writeup hub for Mike (**Certifa**), an offensive-security student and pentester. Dark, near-black, with a single green accent. Shell pages (home, about, projects, contact, 404) carry the visual flair; writeup pages stay clean for reading.
 
 This site is a signal to recruiters, hiring managers, and CTF teams, so polish is load-bearing, not cosmetic. Built with Astro (static output), deployed to **certifa.net** via GitHub Pages.
 
 No database, no auth, no server-side code in this repo. The only backend touchpoint is a Cloudflare Worker for the contact form (see below). If a change seems to need a database, auth, or a server, stop and ask: it belongs elsewhere.
 
+## Design source of truth
+
+The whole visual system comes from six static HTML mockups exported from AIDesigner:
+
+```
+/home/certifa/Desktop/Site/template/certifa.net/
+├── design-export/design-export/Page_1__Copy.html   → home
+├── design-export (1)/design-export/Page_8.html     → writeups list
+├── design-export (2)/design-export/Page_14.html    → about
+├── design-export (3)/design-export/Page_19.html    → contact
+├── design-export (4)/design-export/Page_22.html    → projects
+└── design-export (5)/design-export/Page_27.html    → 404
+```
+
+**These files are the design authority.** Do not invent new visual patterns, colors, or page layouts beyond what they contain. If the real site needs something the six don't cover (the writeup detail template, for instance), say so and design it with Mike rather than improvising.
+
+Two caveats when reading them:
+
+- **They disagree with each other.** Page_1 was an earlier pass using a `#00FA9A`/`#00F0FF` accent on `#040405` with Geist; the other five use `#4ade80` and Inter, three of them commenting `// Unified green accent site-wide`. The unified system won, and Page_1 was restyled onto it while keeping its layout, structure, and copy. Backgrounds ranged across four near-blacks; `#09090b` is the settled base.
+- **Their copy is largely placeholder.** The exports invent writeups (`Bypass EDR via Syscalls`, `API Abuse & Data Exfil`, `Custom Enumeration Engine`, `IDOR to Account Takeover`, `PowerShell Post-Exploitation`, `Lateral Movement via RBCD`, `SSRF to Internal Pivot`), certifications Mike does not hold, and stock imagery. Layout and styling come from the exports; **content comes from the content collection and from Mike**. Never ship a claim the exports invented.
+
 ## Working style
 
 This is a living project, improved continuously. The standing goal is "more beautiful, more technical, more polished." Every change should raise the bar, not just satisfy the letter of the request.
 
-- Read the existing design tokens, CSS, and components before touching anything. Build on the established aesthetic, sharpen it, don't replace it. Cohesion beats novelty.
-- Taste bar: intentional typography and spacing, real visual hierarchy, and one high-impact motion moment per view (a staggered reveal, a scroll trigger, a surprising hover) over scattered micro-animations. Restraint where it counts.
+- Read the tokens, `global.css`, and the relevant export before touching anything.
 - Never regress performance, accessibility, or mobile layout to chase an effect. Keyboard nav and clean mobile layouts are part of the quality bar.
 - If you spot a bad assumption in a request or a better approach, say so before building. Flag it rather than silently obey.
+- Factual accuracy outranks design fidelity. If an export states something untrue about Mike, flag it and use the real thing.
 
 ## Tech Stack
 
 | Layer | Tech | Notes |
 |---|---|---|
 | **Framework** | Astro 5 | Static output, markdown-native, zero-JS by default |
-| **Styling** | Tailwind (`@astrojs/tailwind`) + scoped CSS | Mostly per-component scoped styles + CSS custom properties in `global.css`; Tailwind available but used lightly |
-| **Animations** | CSS + IntersectionObserver | Scroll-reveal fade-ups, hover lifts. No JS animation libraries |
+| **Styling** | Tailwind (`@astrojs/tailwind`) | Tailwind-first, since the exports are Tailwind. Scoped `<style>` blocks only for what utilities can't express (SVG internals, keyframes, spotlight, prose) |
+| **Animations** | CSS + IntersectionObserver | Scroll reveals via `[data-reveal]`, hover lifts, cursor spotlight. No JS animation libraries |
 | **Content** | Astro Content Collections | Markdown writeups with frontmatter become pages |
 | **Code Highlighting** | Shiki (build-time) | `github-dark` theme, `wrap: true` |
 | **Diagrams** | Mermaid (client-side) | Loaded from CDN in `WriteupLayout`, only when a writeup contains a `mermaid` code block |
-| **Fonts** | Google Fonts | Bricolage Grotesque (display headings), Geist (body/UI), JetBrains Mono (mono), Instrument Serif (page-title accent only) |
-| **Contact form** | Cloudflare Worker | Home + contact forms POST to `forms.certifa.net` (`localhost:8787` in dev) |
-| **Social cards** | CanvasKit (canvaskit-wasm) | Per-writeup OG images rendered at build (`/og/<slug>.png`); other pages use the static `og-v2.png` |
+| **Fonts** | Google Fonts | Inter (body/UI), JetBrains Mono (mono), Space Grotesk (display), Newsreader italic (one word on the 404, nowhere else) |
+| **Background effects** | AIDesigner WebGL runtime | Third-party CDN, opt-in per page. See below |
+| **Contact form** | Cloudflare Worker | Both forms POST to `forms.certifa.net` (`localhost:8787` in dev) |
 | **Deployment** | GitHub Actions → GitHub Pages | Auto-deploy on push to `main`; `public/CNAME` → certifa.net |
 
-**No Three.js.** The home hero uses a pure-CSS animated dot-grid background, not WebGL. Do not add Three.js.
+**No Three.js.** Background fields come from the AIDesigner runtime, not a local WebGL library. Do not add Three.js.
+
+### AIDesigner WebGL runtime
+
+Four exports carry a `[data-aifx]` background: home and about and projects use `ascii`, the 404 uses `dot-grid-wave`. `BaseLayout` loads the runtime from `cdn.aidesigner.ai` only when a page passes `effects`:
+
+```astro
+<BaseLayout title="About" effects>
+```
+
+Writeups and contact deliberately don't pass it. Things to know: the script carries Mike's API key, checks a licence endpoint on every load, and injects a "Made in AIDesigner" badge if the key is unlicensed. The current key returns `{"watermark":false}`, so no badge appears. The hero background depends on their CDN staying up.
 
 ## Site Structure
 
 ```
-/                    → Home (hero + terminal card + recent writeups + projects + about strip + heatmap + contact)
+/                    → Home (hero + attack-path graph + writeups + arsenal bento + contact)
 /about               → Bio + fact sidebar + focus-area grid
-/projects            → Featured rows + project grid
-/writeups            → Writeup listing with difficulty/featured filters
+/projects            → Project card grid
+/writeups            → Writeup listing with search + difficulty filters
 /writeups/[slug]     → Individual writeup (rendered from markdown)
-/contact             → Contact channels + availability
+/contact             → Contact channels + form
+/404                 → Not found
 ```
 
-There is **no** `/skills` page.
+There is **no** `/skills` page, no `/tags` pages, no RSS feed.
 
 ## Astro Project Structure
 
@@ -53,42 +85,58 @@ There is **no** `/skills` page.
 certifa.github.io/
 ├── src/
 │   ├── layouts/
-│   │   ├── BaseLayout.astro      ← HTML shell, nav, footer, noise overlay, meta/OG tags, scroll-reveal + copy-to-clipboard scripts
-│   │   └── WriteupLayout.astro   ← Clean reading layout: header meta, TOC sidebar, copy buttons, active-heading tracking, Mermaid
+│   │   ├── BaseLayout.astro      ← HTML shell, nav, footer, meta, fonts, `effects` prop, scroll-reveal + copy-to-clipboard
+│   │   └── WriteupLayout.astro   ← Reading layout: header meta, TOC sidebar, copy buttons, active-heading tracking, Mermaid
 │   ├── components/
-│   │   ├── Nav.astro             ← Sticky blur nav, active page, mobile hamburger, brand logo (C-with-wink)
-│   │   └── Footer.astro
+│   │   ├── Nav.astro             ← Fixed blur nav, real routes, active state, availability chip, mobile drawer
+│   │   ├── Footer.astro          ← Shared footer, year derived at build
+│   │   ├── ContactForm.astro     ← Editor-motif form. `variant="filled"` (home) | `"outlined"` (contact). Validation, honeypot and Worker call defined once
+│   │   ├── CardMotif.astro       ← Code-motif card visual, variant chosen from a writeup's tags
+│   │   └── WriteupFeature.astro  ← Homepage's alternating two-column writeup row
 │   ├── content/
 │   │   ├── config.ts             ← Content collection schema (writeups)
 │   │   └── writeups/             ← Drop .md files here; they become pages
 │   ├── pages/
-│   │   ├── index.astro           ← Home (all sections + inline styles + client scripts)
+│   │   ├── index.astro           ← Home
 │   │   ├── about.astro
-│   │   ├── projects.astro
+│   │   ├── projects.astro        ← Project list lives in this file's frontmatter
 │   │   ├── contact.astro
+│   │   ├── 404.astro
 │   │   └── writeups/
-│   │       ├── index.astro       ← Listing with filter chips
-│   │       └── [...slug].astro   ← Dynamic route; computes reading time, passes to WriteupLayout
-│   └── styles/
-│       └── global.css            ← Theme tokens, base styles, shared pills/tags, writeup prose, TOC, locked-writeup notice
+│   │       ├── index.astro       ← Listing with search + filter chips
+│   │       └── [...slug].astro   ← Dynamic route; computes reading time
+│   ├── styles/
+│   │   └── global.css            ← Theme tokens, base, chips/pills/tags, writeup prose, TOC, locked notice
+│   └── assets/og-fonts/          ← TTFs the banner script needs at render time. Do not delete
 ├── scripts/
-│   └── fetch-htb-activity.mjs    ← Pulls HTB activity → public/data/heatmap.json (run by the heatmap workflow, not by hand)
-├── .github/workflows/
-│   ├── deploy.yml                ← Build with Astro + deploy to GitHub Pages (on push to main)
-│   └── heatmap-update.yml        ← Cron 4×/day: refresh heatmap.json, which re-triggers deploy
+│   └── make-banners.mjs          ← Writeup header banners. Run by hand, see below
+├── .github/workflows/deploy.yml  ← Build with Astro + deploy to Pages (on push to main)
 ├── public/
-│   ├── images/writeups/<box>/    ← Writeup screenshots
-│   ├── data/heatmap.json         ← Real HTB activity feeding the home heatmap
+│   ├── images/writeups/<box>/    ← Writeup screenshots + the generated logo.png banner
+│   ├── og-avatars/<box>.png      ← Square HTB box art, input to the banner script
 │   ├── favicon.svg
-│   ├── og-v2.png                 ← Social share card
 │   └── CNAME                     ← certifa.net
 ├── astro.config.mjs
-├── tailwind.config.cjs
-├── tsconfig.json
+├── tailwind.config.cjs           ← Colour + font tokens
 └── package.json
 ```
 
-Page styles live in `<style>` blocks inside each `.astro` file (scoped). Only cross-page primitives (pills, tags, buttons, writeup prose, TOC, page-head, locked notice) live in `global.css`.
+### Writeup banners
+
+Every finished writeup opens with a generated banner under `## Overview`:
+
+```markdown
+![Shocker](/images/writeups/shocker/logo.png)
+```
+
+`scripts/make-banners.mjs` renders one per box at 1600×300 from that box's square HTB avatar in `public/og-avatars/<box>.png`, using CanvasKit and the TTFs vendored in `src/assets/og-fonts/`. Its colours and type mirror the site tokens: `#0f0f12` plate, `#4ade80` left edge, Space Grotesk Bold title, JetBrains Mono `<OS> · <Difficulty>` meta. **Keep the constants at the top of the script in step with `:root`.**
+
+Adding a box:
+1. Drop a square PNG at `public/og-avatars/<box>.png` (box = slug minus the `htb-` prefix).
+2. `node scripts/make-banners.mjs`
+3. Reference the result in the markdown.
+
+No avatar means the box is skipped, which is how locked writeups stay bannerless. `canvaskit-wasm` is a **devDependency**: the banner step is manual and never runs during `astro build`.
 
 ## Commands
 
@@ -97,11 +145,49 @@ Treat `package.json` scripts as the source of truth.
 - `npm run build` — production build to `dist/`
 - `npm run preview` — serve the build locally
 
-Node/npm are installed on this machine; `npm run dev` works. There is no `gh` CLI.
+Node/npm are installed on this machine. There is no `gh` CLI.
 
-**Deployment is push-to-deploy via GitHub Actions.** The Pages source is set to "GitHub Actions" (not "deploy from a branch"), so `.github/workflows/deploy.yml` builds the site with Astro and publishes it to GitHub Pages (`actions/deploy-pages`) on every push to `main`. `public/CNAME` maps Pages to certifa.net. GitHub Actions is the pipeline; GitHub Pages is the host. **Pushing to `main` deploys the live site immediately, so only push when explicitly asked.**
+**Deployment is push-to-deploy via GitHub Actions.** The Pages source is "GitHub Actions", so `.github/workflows/deploy.yml` builds and publishes on every push to `main`. **Pushing to `main` deploys the live site immediately, so only push when explicitly asked.**
 
-A second workflow, `.github/workflows/heatmap-update.yml`, runs on a cron (4× per day) and via `workflow_dispatch`. It executes `scripts/fetch-htb-activity.mjs` (using Discord bot secrets) and commits `public/data/heatmap.json` when it changes. That commit re-triggers the deploy workflow, so the home heatmap refreshes on its own. Don't hand-edit `heatmap.json`.
+## Design Direction
+
+### Colour tokens
+
+Defined in `tailwind.config.cjs`, and mirrored as CSS custom properties in `global.css` so the markdown prose system (which Tailwind never sees) stays on the same palette. **Keep the two in sync.**
+
+```js
+bg: '#09090b'  surface: '#0f0f12'  surfaceHover: '#161619'
+border: '#1f1f23'  borderHover: '#3f3f46'
+muted: '#71717a'  fg: '#e4e4e7'
+accent: { DEFAULT: '#4ade80', dim: 'rgba(74,222,128,0.1)', faint: 'rgba(74,222,128,0.05)' }
+```
+
+Difficulty is the **only** badge that carries colour, because there the colour encodes real data. Semantic, not a single-hue ramp:
+
+```css
+--diff-easy:   #4ade80   /* green  */
+--diff-medium: #fbbf24   /* amber  */
+--diff-hard:   #f87171   /* red    */
+--diff-insane: #c084fc   /* violet */
+```
+
+Weight climbs with severity so the ramp survives without colour. Use `.diff-pill .diff-<difficulty>`; never restyle difficulty inline.
+
+### Typography
+
+- **Display (Space Grotesk)** via `font-display`: page titles, section headings, writeup and card titles.
+- **Sans (Inter)**: body, descriptions, buttons, UI.
+- **Mono (JetBrains Mono)**: kickers, section labels, code, badges, form chrome.
+- **Serif (Newsreader italic)**: the words "this path." on the 404. Nowhere else.
+- **Writeup prose**: Inter at 17px, 1.8 line height, max-width 760px.
+
+### Layout
+
+The nav is `fixed`, so `global.css` gives `main` a `4rem` top padding to clear it. Pages that want more add the **remainder** on their own wrapper, not the full value from the export. Example: Page_1 specifies `pt-32`, so `index.astro` uses `pt-16`.
+
+### Visual effects in use
+
+Scroll reveals (`[data-reveal]`), card hover lift, cursor-follow spotlight on the arsenal bento, a scan line on the tooling card, the `ascii` and `dot-grid-wave` WebGL fields, image `group-hover:scale-105`, and the 404's split-numeral hover. All present because an export specifies them.
 
 ## Writeup Content System
 
@@ -118,146 +204,90 @@ featured: true | false
 ---
 ```
 
-### Content collection config (src/content/config.ts)
-```typescript
-import { defineCollection, z } from 'astro:content';
+### Card motifs
 
-const writeups = defineCollection({
-  type: 'content',
-  schema: z.object({
-    title: z.string(),
-    date: z.date(),
-    tags: z.array(z.string()),
-    difficulty: z.enum(['easy', 'medium', 'hard', 'insane']),
-    platform: z.enum(['HTB', 'THM', 'CTF', 'Other']),
-    description: z.string(),
-    featured: z.boolean().default(false),
-  }),
-});
+`CardMotif.astro` turns a writeup's tags into a code panel, following the `.card-visual-code` pattern from Page_8. Variants: `delegation`, `kerberos`, `ad-enum`, `shellshock`, `mcp`, `sqli`, `web-rce`, `network`, `privesc`, `recon`. **Order matters, first match wins**, and delegation is deliberately checked before kerberos so a box tagged both tells the more specific story. Hostnames derive from the slug (`htb-cicada` → `cicada.htb`). Token colours live in `.card-visual-code` in `global.css`.
 
-export const collections = { writeups };
-```
+Adding a new attack shape means adding a variant here, not a bespoke visual on the page.
 
 ### Writeup page features (WriteupLayout)
-- Table of contents from H2/H3 headings (sticky sidebar on desktop, collapsible drawer on mobile)
+- TOC from H2/H3 headings (sticky sidebar desktop, collapsible drawer mobile)
 - Copy button on every code block
-- Reading-time estimate (computed in `[...slug].astro`; strips HTML/`<style>` so markup doesn't inflate the count)
-- Difficulty badge + platform + date + tags in the header
-- "Back to writeups" links (top and bottom). No prev/next navigation currently
-- Active-heading highlight in the TOC via IntersectionObserver
-- Wide tables wrapped for horizontal scroll; Mermaid diagrams rendered client-side
+- Reading-time estimate (computed in `[...slug].astro`)
+- Difficulty badge, platform, date, and tags in the header. Tags are plain text, not links
+- Wide tables wrapped for horizontal scroll; Mermaid rendered client-side
+
+This template is **not** covered by the six exports. It uses the token system but its layout predates them. Redesign it with Mike rather than reshaping it ad hoc.
 
 ### Writeup listing (writeups/index.astro)
-- Filter chips: All / Easy / Medium / Hard / Insane / Featured (chips only appear when that count > 0)
+- Search over title, description, and tags, combining with the active chip
+- Chips: All / Easy / Medium / Hard / Insane / Featured, each shown only when its count is non-zero
+- Empty state with a "Clear filters" reset
 - Sorted by date, newest first
-- Row list (not cards); numbers renumber when filtered. No free-text search
 
-### Social share images (OG)
-Each writeup gets its own Open Graph card rendered at build by `src/pages/og/[...route].ts`, served at `/og/<slug>.png` and set as that page's `og:image` via `WriteupLayout`. The route draws the card directly with CanvasKit (`canvaskit-wasm`): dark gradient, azure left edge, box avatar on the left with the Bricolage Grotesque title and a JetBrains Mono meta line (`platform · difficulty · certifa.net`) beside it, the group vertically centred. No avatar -> the text sits at the left, still centred. Fonts are vendored as static TTFs in `src/assets/og-fonts/` (needed at build; do not delete). Non-writeup pages keep the static `public/og-v2.png`.
-
-Optional per-box avatar: drop a square PNG at `public/og-avatars/<box>.png` (box = slug minus the `htb-` prefix, e.g. `shocker.png`). Present -> shown at the top of the card; missing -> text-only card, no error. Add one when a new box's avatar becomes available.
+Filtering sets `style.display` directly: the cards carry Tailwind's `flex`, which outranks the `[hidden]` attribute.
 
 ### Active-machine (locked) writeups
 HTB's streaming policy forbids publishing walkthroughs for machines that are still active. Boxes that aren't retired yet ship as a **locked notice** instead of a full writeup:
-- The markdown body is a single `<div class="wu-locked">…</div>` (kicker + heading + copy + a link to HTB's policy). No inline `<style>`, no per-file CSS.
-- All styling lives in one `.wu-locked` block in `global.css`, built from theme tokens. Do not reintroduce hardcoded colors or a separate font.
+- The markdown body is a single `<div class="wu-locked">…</div>`. No inline `<style>`, no per-file CSS.
+- All styling lives in one `.wu-locked` block in `global.css`, built from theme tokens.
 - Frontmatter still uses a real title/date/tags; `description` is the placeholder "Active HackTheBox machine. Full writeup published after retirement."
-- When a box retires, replace the locked `<div>` with the real writeup. Any writeup whose Overview table says `Status: Active` is one to double-check against this policy.
+- When a box retires, replace the locked `<div>` with the real writeup.
 
-## Design Direction
-
-### Aesthetic
-- **Dark, near-black monochrome** (`#0a0a0a` base) with a **single electric-azure accent**. No cyan/purple, no multi-color neon.
-- **Restrained terminal touches**: mono `// section-label` metas, a typing terminal card on the home hero, a blinking cursor. Subtle, not edgy.
-- **Two modes**: shell pages get flair (animated hero background, hover lifts); writeup pages stay clean for reading.
-- **Serif is rationed**: Instrument Serif italic appears only in the accent word of a page title, at most once per page. Do not sprinkle it across section headings or body copy.
-
-### Color Palette (from global.css — keep this doc in sync when tokens change)
-```css
-:root {
-  --bg:        #0a0a0a;
-  --bg-2:      #111111;
-  --bg-3:      #161616;
-  --line:      #1f1f1f;
-  --line-2:    #2a2a2a;
-  --fg:        #ededed;
-  --fg-2:      #a0a0a0;
-  --fg-3:      #6b6b6b;
-  --fg-4:      #4a4a4a;
-  --accent:    oklch(0.74 0.15 248);   /* electric azure */
-  --accent-2:  oklch(0.62 0.15 248);
-  --warn:      oklch(0.78 0.13 40);
-  --font-display: 'Bricolage Grotesque', 'Geist', sans-serif;
-}
-```
-
-### Typography
-- **Display (Bricolage Grotesque)** via `--font-display`: hero name, section titles, page titles, writeup titles, card names.
-- **Sans (Geist)**: body, descriptions, buttons, UI.
-- **Mono (JetBrains Mono)**: nav-adjacent labels, section metas, code, dates, badges.
-- **Serif (Instrument Serif, italic)**: page-title accent word only.
-- **Writeup prose**: Geist at 17px, 1.8 line height, max-width 760px.
-
-### Visual Effects
-- Subtle SVG noise overlay (fixed, `pointer-events: none`, ~3.5% opacity).
-- Scroll-triggered fade-up reveals via IntersectionObserver (`[data-reveal]`).
-- Card hover: slight `translateY` lift, border/background shift.
-- Home hero: CSS animated dot-grid + a single falling accent line.
-- **No** scanlines, **no** cursor glow, **no** pulsing status dots (status dots are static).
-
-### Writeup Page Styling
-- Minimal: no noise-heavy chrome, no hero flair.
-- Custom prose classes in `global.css` (`.prose-writeup`).
-- Code blocks: Shiki `github-dark`, dark bg matching the theme.
-- Emphasis (`em`) renders as plain italic in body color, not serif/accent.
+**Open issue:** the homepage hero graph spells out Pirate's full chain down to `root.txt`, while `htb-pirate.md` is still a locked placeholder, and the hero links to a writeup that doesn't exist. Resolve before the next deploy.
 
 ## Responsive Design — MANDATORY
 
 - **Mobile-first**: design for 375px, then scale up.
-- Breakpoints roughly: 600–640px, 768px, 900–1000px, 1200px.
 - Touch targets min 44px; inputs use 16px font on mobile to stop iOS zoom.
-- Nav collapses to a hamburger drawer under ~860px.
+- Nav collapses to a hamburger drawer under `md`.
 - Writeup TOC: collapsible drawer on mobile, sticky sidebar on desktop.
 
 ## Performance Rules
 
-- Astro zero-JS by default; add client scripts only where needed (home interactions, writeup TOC/copy, Mermaid).
-- Mermaid is imported from CDN only when a writeup actually contains a diagram.
-- Lazy-load images where practical.
+- Astro zero-JS by default; add client scripts only where needed.
+- Mermaid imported from CDN only when a writeup actually contains a diagram.
+- The WebGL runtime loads only on pages passing `effects`.
+- Images lazy-loaded with `loading="lazy" decoding="async"`.
 - Shiki highlighting at build time, not client-side.
-- Keep only the fonts in use in the Google Fonts request (Bricolage Grotesque, Geist, JetBrains Mono, Instrument Serif).
+- Keep only the four fonts in use in the Google Fonts request.
 
 ## Content Tone
 
-- First person, confident but not arrogant. Mike is presented as an offensive-security **student** (this is deliberate positioning across the site, e.g. "a student who breaks things for a grade"). Keep that framing.
+- First person, confident but not arrogant. Mike is presented as an offensive-security **student**; keep that framing.
 - Technical but accessible: recruiters and hackers should both get it.
 - Short sentences, active voice. English (Mike is a Dutch speaker).
-- **Active Directory, Linux, and web are presented as three equal focus areas.** Do not frame the work as Windows/AD-only.
-- **No fabricated liveness**: no fake uptime, "session active," live counters, or response-time promises. Derive any numbers from real data (e.g. writeup count from the content collection).
-- **At most one clever/quippy line per page**; everything else plain and specific.
-- **No em dashes (—).** They read as AI. Use a colon for label/heading/caption cases, a comma for mid-sentence pauses, a period where a full stop reads better, and → for arrows.
+- **Active Directory, Linux, and web are three equal focus areas.** Do not frame the work as Windows/AD-only.
+- **No fabricated claims.** No certifications he doesn't hold, no projects he hasn't built, no fake uptime or live counters. Derive numbers from real data.
+- **No em dashes (—)** in prose written for the site. Use a colon, a comma, a period, or → for arrows. Copy quoted verbatim from an export is the one exception.
+
+### Current facts (verify before changing)
+- 24, Utrecht, Netherlands. Hogeschool Utrecht, Cybersecurity & Cloud BSc.
+- HackTheBox Master, peak Pro Hacker, 50+ machines. Parrot, tmux/vim/burp.
+- Windows Server 2022 DC plus two workstations at home.
+- **No certifications yet.** CJCA exam booked, CPTS next, CCNA planned.
+- Five real projects, listed in `projects.astro`.
 
 ## Code Conventions
 
-- Astro components: logic in frontmatter, markup lean, styles scoped. Prefer native Astro/HTML/CSS over framework islands unless interactivity genuinely needs it.
-- Semantic HTML5; CSS custom properties for all theme values (never hardcode a hex that a token already covers).
+- Astro components: logic in frontmatter, markup lean. Tailwind utilities first; scoped `<style>` only where utilities fall short.
+- Repeated markup belongs in a component or a frontmatter array, never copy-pasted across pages.
+- Semantic HTML5; use the tokens, never hardcode a hex a token already covers.
 - TypeScript for the content collection config and inline scripts.
-- Match existing file structure and naming. No jQuery, no heavy animation libraries, no unnecessary dependencies.
-- Write clean, self-contained components a future reader can grasp at a glance.
 
 ## Guardrails
 
 - Small, focused changes over sweeping rewrites. If a task balloons in scope, pause and re-scope.
-- **Confirm before anything hard to reverse or outward-facing**: deploying/pushing to `main`, deleting files, or adding a dependency. A static site's assets are easy to misjudge as unused, so never delete without confirmation.
-- Routine, in-scope edits (styling, copy, a component tweak) don't need pre-approval, but keep me oriented: say what you're about to do, and surface anything surprising you find along the way.
-- If you spot a better approach than what was asked, propose it first.
+- **Confirm before anything hard to reverse or outward-facing**: deploying/pushing to `main`, deleting files, or adding a dependency.
+- Routine, in-scope edits don't need pre-approval, but keep Mike oriented: say what you're about to do, and surface anything surprising.
 
 ## What NOT to Do
 
-- No Three.js (the hero is CSS).
-- No templates or template-looking designs; no AI-slop tells (serif-accent-word on every heading, pulsing "available" dots, decorative 01/02/03 numbering on non-sequences, fake terminal liveness).
+- No Three.js.
+- No new visual patterns outside the six exports; ask instead.
+- No shipping the exports' invented content as fact.
+- No Lorem ipsum; real content always.
 - No excessive glow hurting readability.
 - No autoplaying sound or video.
-- No Lorem ipsum; real or realistic content always.
 - No client-side JS where Astro handles it at build time.
 - No cookie banners or popups.

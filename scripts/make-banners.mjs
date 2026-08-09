@@ -4,8 +4,11 @@
 // that box's square avatar in public/og-avatars/. Replaces the HTB screenshots,
 // which came from two different eras of their UI and never matched each other.
 //
-// Same CanvasKit + vendored-font approach as src/pages/og/[...route].ts, so the
-// banner and the share card share their typography. Run with:
+// Typography and colour follow the site tokens, so a banner reads as part of
+// the page rather than an imported asset. Fonts are vendored as TTFs in
+// src/assets/og-fonts/ because CanvasKit needs the bytes at render time.
+//
+// Run after adding a box avatar to public/og-avatars/:
 //   node scripts/make-banners.mjs
 
 import { readFile, writeFile, mkdir, readdir } from 'node:fs/promises';
@@ -20,10 +23,11 @@ const PAD = 56;
 const AVATAR = 200;
 const GAP = 44;
 
-const BG = [14, 14, 14];         // --bg-2
-const ACCENT = [83, 177, 255];   // --accent
-const FG = [237, 237, 237];      // --fg
-const FG_2 = [154, 154, 154];    // --fg-2
+// Keep in step with :root in src/styles/global.css.
+const BG = [15, 15, 18];         // --bg-2   #0f0f12
+const ACCENT = [74, 222, 128];   // --accent #4ade80
+const FG = [228, 228, 231];      // --fg     #e4e4e7
+const FG_2 = [161, 161, 170];    // --fg-2   #a1a1aa
 
 const WRITEUPS = 'src/content/writeups';
 const AVATARS = 'public/og-avatars';
@@ -46,11 +50,11 @@ const CanvasKitInit = require('canvaskit-wasm/bin/canvaskit.js');
 const ckDir = path.dirname(require.resolve('canvaskit-wasm/bin/canvaskit.js'));
 const CanvasKit = await CanvasKitInit({ locateFile: (f) => path.join(ckDir, f) });
 
-const [bricolage, jetbrains] = await Promise.all([
-  readFile('src/assets/og-fonts/bricolage-700.ttf'),
+const [spaceGrotesk, jetbrains] = await Promise.all([
+  readFile('src/assets/og-fonts/space-grotesk-700.ttf'),
   readFile('src/assets/og-fonts/jetbrains-400.ttf'),
 ]);
-const fontMgr = CanvasKit.FontMgr.FromData(bricolage, jetbrains);
+const fontMgr = CanvasKit.FontMgr.FromData(spaceGrotesk, jetbrains);
 
 function paragraph(text, color, size, family, weight) {
   const style = new CanvasKit.ParagraphStyle({
@@ -102,7 +106,7 @@ async function banner({ title, difficulty, os }, avatarFile) {
 
   // Title over meta, the pair centred against the avatar.
   const textX = ACCENT_BAR + PAD + AVATAR + GAP;
-  const name = paragraph(title, FG, 68, 'Bricolage Grotesque', 'Bold');
+  const name = paragraph(title, FG, 68, 'Space Grotesk', 'Bold');
   const label = difficulty[0].toUpperCase() + difficulty.slice(1);
   const meta = paragraph(`${os} · ${label}`, FG_2, 30, 'JetBrains Mono', 'Normal');
 

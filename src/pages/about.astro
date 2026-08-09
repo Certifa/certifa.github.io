@@ -1,165 +1,127 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 
+const facts = [
+  { label: 'Identity', value: 'Certifa', detail: 'Mike · 24 y/o', live: true },
+  { label: 'Location', value: 'Utrecht', detail: 'Netherlands' },
+  { label: 'Studying At', value: 'Hogeschool Utrecht', detail: 'Cybersecurity & Cloud<br>BSc' },
+  { label: 'Primary Platform', value: 'HackTheBox', detail: 'Master · peak Pro' },
+];
+
 const focus = [
-  { label: 'windows', title: 'Active Directory',     desc: 'Kerberos abuse, BloodHound paths, NTLM relay, certificate services, full domain compromise.' },
-  { label: 'web',     title: 'Web Exploitation',     desc: 'SQLi, SSRF, auth bypass, and chained logic flaws, manual-first with Burp Suite.' },
-  { label: 'privesc', title: 'Privilege Escalation', desc: 'Linux + Windows: weak services, SUID chains, DLL hijack, token impersonation.' },
-  { label: 'creds',   title: 'Password Attacks',     desc: 'Hashcat rules, Responder, Pass-the-Hash, credential hunting on AD.' },
-  { label: 'tooling', title: 'Python Automation',    desc: 'Recon orchestration: nmap + ffuf + gobuster into a single pipeline.' },
-  { label: 'network', title: 'Networking',           desc: 'CCNA in progress: routing, VLANs, ACLs, the plumbing under every box.' },
+  {
+    kicker: 'Windows',
+    title: 'Active Directory',
+    body: 'Kerberos abuse, BloodHound paths, NTLM relay, certificate services, full domain compromise.',
+  },
+  {
+    kicker: 'Web',
+    title: 'Web Exploitation',
+    body: 'SQLi, SSRF, auth bypass, and chained logic flaws, manual-first with Burp Suite.',
+  },
+  {
+    kicker: 'Privesc',
+    title: 'Privilege Escalation',
+    body: 'Linux + Windows: weak services, SUID chains, DLL hijack, token impersonation.',
+  },
+  {
+    kicker: 'Creds',
+    title: 'Password Attacks',
+    body: 'Hashcat rules, Responder, Pass-the-Hash, credential hunting on AD.',
+  },
 ];
 ---
-<BaseLayout title="About" description="Mike, offensive security student at Hogeschool Utrecht and HackTheBox Master.">
-  <section class="page-head">
-    <div class="wrap">
-      <div class="page-kicker" data-reveal>/ about</div>
-      <h1 class="page-title" data-reveal data-reveal-delay="1">A student who <span class="italic">breaks things</span><br/>for a grade.</h1>
-      <p class="page-sub" data-reveal data-reveal-delay="2">Offensive security student at Hogeschool Utrecht. 24 years old. Active Directory, Linux, and web. Whatever the box asks for.</p>
-    </div>
-  </section>
 
-  <section>
-    <div class="wrap">
-      <div class="about-grid">
-        <aside class="about-side" data-reveal>
-          <div class="about-fact">
-            <div class="about-label">Identity</div>
-            <div class="about-key">Certifa</div>
-            <div class="about-val">Mike · 24 y/o</div>
-          </div>
-          <div class="about-fact">
-            <div class="about-label">Location</div>
-            <div class="about-key">Utrecht</div>
-            <div class="about-val">Netherlands</div>
-          </div>
-          <div class="about-fact">
-            <div class="about-label">Studying at</div>
-            <div class="about-key">Hogeschool Utrecht</div>
-            <div class="about-val">Cybersecurity &amp; Cloud · BSc</div>
-          </div>
-          <div class="about-fact">
-            <div class="about-label">Primary Platform</div>
-            <div class="about-key">HackTheBox</div>
-            <div class="about-val">Master · peak Pro Hacker</div>
-          </div>
-          <div class="about-fact">
-            <div class="about-label">Attack OS</div>
-            <div class="about-key">Parrot</div>
-            <div class="about-val">tmux · vim · burp</div>
-          </div>
-        </aside>
+<BaseLayout
+  title="About"
+  description="Offensive security student at Hogeschool Utrecht and HackTheBox Master. Active Directory, Linux, and web."
+  effects
+>
+  <div class="relative isolate">
+    <div
+      data-aifx="ascii"
+      data-aifx-colors="#0a0a0c,#0d1a12,#163320,#4ade80"
+      data-aifx-bg="#09090b"
+      data-aifx-bg-alpha="1"
+      data-aifx-speed="0.2"
+      data-aifx-cell-size="14"
+      data-aifx-glow="0.2"
+      data-aifx-contrast="2"
+      class="absolute inset-0 -z-10 pointer-events-none opacity-40"
+      style="-webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 70%); mask-image: linear-gradient(to bottom, black 0%, transparent 70%);"
+      aria-hidden="true"
+    ></div>
 
-        <div class="about-body" data-reveal data-reveal-delay="1">
-          <p>My main platform is <b>HackTheBox</b>: <code>50+</code> machines across Easy → Insane. I write a machine up <em>after it retires</em>, because explaining the chain is where the learning actually sticks.</p>
+    <div class="w-full max-w-4xl mx-auto px-6 pt-24 pb-24">
+      <section class="relative">
+        <div class="flex items-center gap-3 mb-6">
+          <h2 class="text-xs font-mono text-zinc-500 uppercase tracking-widest">/ About</h2>
+          <div class="h-px bg-border flex-1 max-w-[100px]"></div>
+        </div>
 
-          <p>On the <b>Windows</b> side: Kerberos abuse (AS-REP, Kerberoast, delegation chains), BloodHound path-finding, NTLM relay, and certificate services abuse. I run a <b>Server 2022 DC</b> and two workstations at home to rebuild the same attacks outside the platform.</p>
+        <h1 class="text-4xl md:text-5xl font-display font-bold text-white mb-16 max-w-2xl leading-tight">
+          A student who <span class="text-accent italic">breaks things</span> for a grade.
+        </h1>
 
-          <p>On <b>Linux</b>: privesc through weak services, SUID chains, misconfigured cron. On the <b>web</b>: SQLi, SSRF, auth bypass, chained logic bugs, manual-first with Burp.</p>
-
-          <p>I glue my recon together with <b>Python</b>: <code>nmap</code>, <code>ffuf</code>, <code>gobuster</code> piped into a single report template. Currently grinding <b>CCNA</b> because the best attackers actually understand the network they're living in. Next on the cert list: <b>CJCA</b> and <b>CPTS</b>.</p>
-
-          <div class="focus-grid">
-            {focus.map((f) => (
-              <div class="focus-card">
-                <div class="fc-label">{f.label}</div>
-                <div class="fc-title">{f.title}</div>
-                <div class="fc-desc">{f.desc}</div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-12">
+          <!-- Fact sidebar -->
+          <div class="col-span-1 border border-border bg-surface/40 backdrop-blur-sm rounded-xl p-6 h-fit">
+            {facts.map((f) => (
+              <div class="border-b border-dashed border-border pb-4 mb-4">
+                <div class="flex items-center gap-2 mb-2">
+                  {f.live && (
+                    <div class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.5)]"></div>
+                  )}
+                  <h3 class="text-[10px] font-mono text-zinc-500 uppercase">{f.label}</h3>
+                </div>
+                <p class="text-sm text-white font-medium">{f.value}</p>
+                <p class="text-xs text-zinc-400 font-mono mt-1" set:html={f.detail} />
               </div>
             ))}
+
+            <div>
+              <h3 class="text-[10px] font-mono text-zinc-500 uppercase mb-2">Attack OS</h3>
+              <p class="text-sm text-white font-medium">Parrot</p>
+              <div class="flex flex-wrap gap-2 mt-2">
+                {['tmux', 'vim', 'burp'].map((t) => (
+                  <span class="px-1.5 py-0.5 border border-border rounded text-[10px] font-mono text-zinc-400 bg-bg">{t}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <!-- Bio -->
+          <div class="col-span-1 md:col-span-3 space-y-8 text-zinc-300 text-sm leading-relaxed">
+            <p>
+              My main platform is <span class="text-white font-medium">HackTheBox</span>: 50+ machines across Easy → Insane. I write a machine up <em class="text-zinc-400">after it retires</em>, because explaining the chain is where the learning actually sticks.
+            </p>
+            <p>
+              On the <span class="text-white font-medium">Windows side</span>: Kerberos abuse (AS-REP, Kerberoast, delegation chains), BloodHound path-finding, NTLM relay, and certificate services abuse. I run a <span class="text-white font-medium">Server 2022 DC</span> and two workstations at home to rebuild the same attacks outside the platform.
+            </p>
+            <p>
+              On <span class="text-white font-medium">Linux</span>: privesc through weak services, SUID chains, misconfigured cron. On the web: SQLi, SSRF, auth bypass, chained logic bugs, manual-first with Burp.
+            </p>
+            <p>
+              I glue my recon together with <span class="text-white font-medium font-mono text-xs">Python</span>: <code class="font-mono text-xs text-zinc-400 border border-border px-1 py-0.5 rounded">nmap</code>, <code class="font-mono text-xs text-zinc-400 border border-border px-1 py-0.5 rounded">ffuf</code>, <code class="font-mono text-xs text-zinc-400 border border-border px-1 py-0.5 rounded">gobuster</code> piped into a single report template. No certs yet: <span class="text-white font-medium">CJCA</span> is the closest, with the exam coming up soon. <span class="text-white font-medium">CPTS</span> is next after that, and <span class="text-white font-medium">CCNA</span> is on the list too, because the best attackers actually understand the network they're living in.
+            </p>
+
+            <!-- Focus areas -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
+              {focus.map((f) => (
+                <div class="p-6 border border-border rounded-xl bg-surface/40 hover:bg-surface hover:border-borderHover transition-colors group relative overflow-hidden">
+                  <div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <h4 class="text-[10px] font-mono text-zinc-500 uppercase mb-3 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-zinc-700 group-hover:bg-accent transition-colors"></span>
+                    {f.kicker}
+                  </h4>
+                  <p class="text-white font-medium mb-1">{f.title}</p>
+                  <p class="text-xs text-zinc-400 leading-relaxed">{f.body}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
-  </section>
+  </div>
 </BaseLayout>
-
-<style>
-  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
-  @media (max-width: 768px) { .wrap { padding: 0 20px; } }
-
-  .about-grid {
-    padding: 96px 0;
-    display: grid;
-    grid-template-columns: 260px 1fr;
-    gap: 80px;
-  }
-  @media (max-width: 900px) {
-    .about-grid { grid-template-columns: 1fr; gap: 40px; padding: 56px 0; }
-  }
-
-  .about-side { position: sticky; top: 100px; align-self: start; }
-  @media (max-width: 900px) {
-    /* Compact 2-column fact grid so the bio starts sooner */
-    .about-side {
-      position: static;
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 24px 20px;
-    }
-  }
-
-  .about-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px; color: var(--fg-3);
-    letter-spacing: 0.14em; text-transform: uppercase;
-    margin-bottom: 16px;
-  }
-  .about-key { font-size: 16px; color: var(--fg); margin-bottom: 4px; }
-  .about-val { font-size: 14px; color: var(--fg-2); margin-bottom: 20px; }
-  @media (max-width: 900px) {
-    .about-label { margin-bottom: 10px; }
-    .about-val { margin-bottom: 0; }
-  }
-
-  .about-body p {
-    font-size: 17px; line-height: 1.7;
-    color: var(--fg-2);
-    margin-bottom: 20px;
-    max-width: 700px;
-  }
-  .about-body p b { color: var(--fg); font-weight: 500; }
-  .about-body p code {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 14px;
-    background: var(--bg-3);
-    border: 1px solid var(--line);
-    padding: 2px 7px;
-    border-radius: 4px;
-    color: var(--fg);
-  }
-
-  .focus-grid {
-    margin-top: 48px;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-  @media (max-width: 700px) { .focus-grid { grid-template-columns: 1fr; } }
-  .focus-card {
-    background: var(--bg-2);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 22px;
-    transition: border-color .2s ease, background .2s ease;
-  }
-  @media (hover: hover) {
-    .focus-card:hover { border-color: var(--line-2); background: var(--bg-3); }
-  }
-  .focus-card .fc-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; color: var(--fg-3);
-    letter-spacing: 0.12em; text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-  .focus-card .fc-title {
-    font-size: 17px; font-weight: 500; color: var(--fg);
-    letter-spacing: -0.01em;
-    margin-bottom: 6px;
-  }
-  .focus-card .fc-desc {
-    color: var(--fg-2);
-    font-size: 13.5px;
-    line-height: 1.6;
-  }
-</style>

@@ -1,47 +1,80 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
-<BaseLayout title="404" description="That page could not be found.">
-  <section class="nf">
-    <div class="wrap">
-      <div class="nf-code" data-reveal>404</div>
-      <div class="page-kicker" data-reveal data-reveal-delay="1">/ not found</div>
-      <h1 class="nf-title" data-reveal data-reveal-delay="1">No shell on <span class="italic">this path.</span></h1>
-      <p class="nf-sub" data-reveal data-reveal-delay="2">The page moved, retired, or never existed. Nothing to enumerate here.</p>
-      <div class="nf-cta" data-reveal data-reveal-delay="3">
-        <a class="btn primary" href="/">← Back home</a>
-        <a class="btn ghost" href="/writeups/">Read writeups</a>
+
+<BaseLayout
+  title="404"
+  description="Target directory not found in the current routing table."
+  effects
+>
+  <div class="min-h-[calc(100vh-8rem)] flex items-center justify-center relative isolate overflow-hidden">
+    <!-- Cursor-reactive dot grid -->
+    <div
+      data-aifx="dot-grid-wave"
+      data-aifx-colors="#4ade80,#047857"
+      data-aifx-bg="#09090b"
+      data-aifx-bg-alpha="1"
+      data-aifx-spacing="0.6"
+      data-aifx-dot-size="0.25"
+      data-aifx-wave-scale="1.5"
+      data-aifx-mouse="1"
+      data-aifx-wave-speed="0.2"
+      class="absolute inset-0 -z-20 pointer-events-none"
+      aria-hidden="true"
+    ></div>
+
+    <!-- Oversized background numeral -->
+    <div class="absolute inset-0 flex items-center justify-center overflow-hidden z-0" aria-hidden="true">
+      <span class="ghost-404 text-[35vw] font-display font-bold text-transparent tracking-tighter leading-none cursor-crosshair select-none">
+        404
+      </span>
+    </div>
+
+    <div class="relative z-10 flex flex-col items-center text-center max-w-lg px-8 py-12 w-full mx-4 bg-bg/40 backdrop-blur-xl border border-border rounded-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] hover:border-accent/40 transition-colors duration-700">
+      <div class="font-mono text-xs text-accent tracking-[0.1em] uppercase mb-6 flex items-center justify-center gap-2">
+        <span class="inline-block w-2 h-2 bg-accent rounded-full animate-pulse"></span> STATUS: UNKNOWN
+      </div>
+
+      <h1 class="font-display text-4xl md:text-5xl font-bold tracking-tight mb-6 leading-[1.1]">
+        No shell on <span class="font-serif italic font-normal text-white/50 tracking-normal">this path.</span>
+      </h1>
+
+      <p class="text-sm text-white/60 mb-10 max-w-sm leading-relaxed font-mono">
+        Target directory not found in the current routing table. The connection was dropped.
+      </p>
+
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 w-full">
+        <a
+          href="/"
+          class="w-full sm:w-auto px-8 py-3 border border-border rounded-md font-mono text-sm text-white/90 hover:border-accent hover:text-accent transition-all duration-300 flex items-center justify-center gap-2"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+          Return to root
+        </a>
       </div>
     </div>
-  </section>
+  </div>
 </BaseLayout>
 
 <style>
-  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
-  @media (max-width: 768px) { .wrap { padding: 0 20px; } }
+  /* Outlined numeral that splits into offset copies on hover. */
+  .ghost-404 {
+    -webkit-text-stroke: 1px rgba(74, 222, 128, 0.15);
+    transition:
+      text-shadow 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+      transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .ghost-404:hover {
+    text-shadow:
+      -12px -12px 0 #4ade80,
+      -24px -24px 0 rgba(74, 222, 128, 0.2),
+      12px 12px 0 rgba(255, 255, 255, 0.1),
+      24px 24px 0 rgba(255, 255, 255, 0.05);
+    transform: scale(1.03) rotate(-2deg);
+  }
 
-  .nf { padding: clamp(120px, 22vh, 220px) 0 clamp(80px, 14vh, 160px); }
-  .nf-code {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: clamp(72px, 18vw, 180px);
-    font-weight: 500; line-height: 1;
-    color: color-mix(in srgb, var(--fg) 8%, transparent);
-    letter-spacing: -0.02em;
-    margin-bottom: 8px;
+  @media (prefers-reduced-motion: reduce) {
+    .ghost-404 { transition: none; }
+    .ghost-404:hover { transform: none; }
   }
-  .nf-title {
-    font-family: var(--font-display);
-    font-size: clamp(40px, 7vw, 72px);
-    font-weight: 600; letter-spacing: -0.035em; line-height: 1;
-    margin-bottom: 20px;
-  }
-  .nf-title .italic {
-    font-family: 'Instrument Serif', serif;
-    font-style: italic; font-weight: 400; color: var(--accent);
-  }
-  .nf-sub {
-    font-size: 18px; color: var(--fg-2);
-    max-width: 520px; line-height: 1.6; margin-bottom: 32px;
-  }
-  .nf-cta { display: flex; gap: 12px; flex-wrap: wrap; }
 </style>
