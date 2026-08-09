@@ -58,7 +58,7 @@ const visuals = [
         data-aifx-speed="0.25"
         data-aifx-scale="1.2"
         data-aifx-glow="0.6"
-        class="absolute inset-[0_0_10%_0] -z-10 pointer-events-none [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_80%)]"
+        class="absolute inset-[0_0_10%_0] -z-10 pointer-events-none opacity-70 [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_80%)]"
         aria-hidden="true"
       ></div>
 
@@ -66,7 +66,7 @@ const visuals = [
       <div class="flex flex-col items-start text-left z-10 lg:sticky lg:top-32">
         <div class="flex flex-col gap-4 mb-8">
           <div class="flex items-center gap-3">
-            <span class="font-mono text-[10px] text-muted uppercase tracking-widest">
+            <span class="font-mono text-[10px] text-zinc-400 uppercase tracking-widest">
               OFFENSIVE SECURITY STUDENT <span class="text-accent font-bold">_</span>
             </span>
           </div>
@@ -82,10 +82,10 @@ const visuals = [
           <span class="text-accent">Document truth.</span>
         </h1>
 
-        <p class="font-mono text-[13px] text-zinc-400 max-w-[28rem] leading-relaxed mb-6">
+        <p class="font-mono text-[13px] text-zinc-300 max-w-[28rem] leading-relaxed mb-6">
           I take apart Active Directory environments, web applications, and Linux boxes on HackTheBox: Kerberos abuse, BloodHound, NTLM relay, SQLi, privesc chains, then write down exactly how, start to finish.
         </p>
-        <p class="font-mono text-[13px] text-zinc-400 max-w-[28rem] leading-relaxed mb-12">
+        <p class="font-mono text-[13px] text-zinc-300 max-w-[28rem] leading-relaxed mb-12">
           Offensive security student at Hogeschool Utrecht, looking for my first red-team seat.
         </p>
 
@@ -98,7 +98,7 @@ const visuals = [
           </a>
         </div>
 
-        <a href="#logs" class="font-mono text-[10px] text-muted hover:text-white transition-colors flex items-center gap-2 border-b border-transparent hover:border-borderHover pb-0.5">
+        <a href="#logs" class="font-mono text-[10px] text-zinc-400 hover:text-white transition-colors flex items-center gap-2 border-b border-transparent hover:border-borderHover pb-0.5">
           ↓ see how Pirate fell
         </a>
       </div>
@@ -206,7 +206,7 @@ const visuals = [
           </div>
         </div>
 
-        <div class="mt-4 font-mono text-[10px] text-muted flex items-center gap-2 px-2">
+        <div class="mt-4 font-mono text-[10px] text-zinc-400 flex items-center gap-2 px-2">
           ↳ 11 nodes · 11 edges · full writeup below
         </div>
       </div>
@@ -260,7 +260,7 @@ const visuals = [
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Tooling -->
-        <div class="spotlight-card group md:col-span-2 h-[400px]" data-reveal>
+        <div class="spotlight-card group md:col-span-2 h-auto md:h-[400px]" data-reveal>
           <div class="spotlight-content p-8 flex flex-col justify-between overflow-hidden relative">
             <div class="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none"></div>
             <div class="scan-line hidden md:block"></div>
@@ -299,7 +299,7 @@ const visuals = [
         </div>
 
         <!-- Certifications -->
-        <div class="spotlight-card md:col-span-1 h-[400px]" data-reveal data-reveal-delay="1">
+        <div class="spotlight-card md:col-span-1 h-auto md:h-[400px]" data-reveal data-reveal-delay="1">
           <div class="spotlight-content p-8 flex flex-col relative overflow-hidden">
             <div class="absolute top-0 right-0 w-48 h-48 bg-accent/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
 

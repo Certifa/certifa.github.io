@@ -60,6 +60,16 @@ body {
    want more breathing room (the homepage) add their own padding on top. */
 main { padding-top: 4rem; }
 
+/* The WebGL fields sit behind copy. On desktop the columns keep text clear of
+   the busiest area; on mobile everything stacks straight onto them, so they
+   drop back to a faint texture instead of competing with the words. */
+@media (max-width: 767px) {
+  [data-aifx] { opacity: 0.18; }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-aifx] { display: none; }
+}
+
 /* subtle noise overlay */
 body::before {
   content: '';
