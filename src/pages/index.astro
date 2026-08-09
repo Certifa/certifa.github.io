@@ -58,7 +58,7 @@ const visuals = [
         data-aifx-speed="0.25"
         data-aifx-scale="1.2"
         data-aifx-glow="0.6"
-        class="absolute inset-[0_0_10%_0] -z-10 pointer-events-none opacity-70 [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_80%)]"
+        class="hero-field absolute inset-[0_0_10%_0] -z-10 pointer-events-none opacity-70 [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_80%)]"
         aria-hidden="true"
       ></div>
 
@@ -424,6 +424,17 @@ const visuals = [
 </BaseLayout>
 
 <style>
+  /* The export's radial mask assumes a wide, short hero. Stacked on a phone the
+     section grows tall and that ellipse shrinks to a patch in the vertical
+     middle, which lands behind the diagram and nowhere else. A vertical fade
+     covers the full column instead, so the field reads as deliberate texture. */
+  @media (max-width: 767px) {
+    .hero-field {
+      -webkit-mask-image: linear-gradient(to bottom, black 0%, black 62%, transparent 100%);
+      mask-image: linear-gradient(to bottom, black 0%, black 62%, transparent 100%);
+    }
+  }
+
   /* Scrim: gives the hero copy its own ground so it never competes with the
      animated field. Soft-edged and generously inset, so it reads as a vignette
      in the background rather than a panel. `position: relative` also activates
