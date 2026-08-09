@@ -63,7 +63,7 @@ const visuals = [
       ></div>
 
       <!-- Left: typography & CTAs -->
-      <div class="flex flex-col items-start text-left z-10 lg:sticky lg:top-32">
+      <div class="hero-copy flex flex-col items-start text-left z-10 lg:sticky lg:top-32">
         <div class="flex flex-col gap-4 mb-8">
           <div class="flex items-center gap-3">
             <span class="font-mono text-[10px] text-zinc-400 uppercase tracking-widest">
@@ -424,6 +424,42 @@ const visuals = [
 </BaseLayout>
 
 <style>
+  /* Scrim: gives the hero copy its own ground so it never competes with the
+     animated field. Soft-edged and generously inset, so it reads as a vignette
+     in the background rather than a panel. `position: relative` also activates
+     the column's z-10, keeping the scrim above the field but under the text. */
+  .hero-copy {
+    position: relative;
+  }
+  .hero-copy::before {
+    content: '';
+    position: absolute;
+    inset: -3rem -4rem -3rem -3rem;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(
+      ellipse 75% 60% at 30% 45%,
+      rgba(9, 9, 11, 0.94) 0%,
+      rgba(9, 9, 11, 0.82) 45%,
+      rgba(9, 9, 11, 0.45) 68%,
+      transparent 85%
+    );
+  }
+  @media (max-width: 767px) {
+    /* Stacked layout puts the field directly behind every line, so the scrim
+       covers more and sits a touch heavier. */
+    .hero-copy::before {
+      inset: -2rem -1.5rem;
+      background: radial-gradient(
+        ellipse 90% 70% at 50% 50%,
+        rgba(9, 9, 11, 0.96) 0%,
+        rgba(9, 9, 11, 0.88) 55%,
+        rgba(9, 9, 11, 0.5) 75%,
+        transparent 90%
+      );
+    }
+  }
+
   /* Attack-path graph */
   .attack-graph { font-family: 'JetBrains Mono', monospace; }
   .attack-graph :global(.grid-dot) { fill: rgba(255, 255, 255, 0.04); }
