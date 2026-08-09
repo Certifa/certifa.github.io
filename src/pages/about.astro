@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 
 const facts = [
-  { label: 'Identity', value: 'Certifa', detail: 'Mike · 24 y/o', live: true },
+  { label: 'Identity', value: 'Certifa', detail: 'Mike · 24 y/o' },
   { label: 'Location', value: 'Utrecht', detail: 'Netherlands' },
   { label: 'Studying At', value: 'Hogeschool Utrecht', detail: 'Cybersecurity & Cloud<br>BSc' },
   { label: 'Primary Platform', value: 'HackTheBox', detail: 'Master · peak Pro' },
@@ -55,7 +55,7 @@ const focus = [
     <div class="w-full max-w-4xl mx-auto px-6 pt-24 pb-24">
       <section class="relative">
         <div class="flex items-center gap-3 mb-6">
-          <h2 class="text-xs font-mono text-zinc-500 uppercase tracking-widest">/ About</h2>
+          <h2 class="text-xs font-mono text-muted uppercase tracking-widest">/ About</h2>
           <div class="h-px bg-border flex-1 max-w-[100px]"></div>
         </div>
 
@@ -68,19 +68,14 @@ const focus = [
           <div class="col-span-1 border border-border bg-surface/40 backdrop-blur-sm rounded-xl p-6 h-fit">
             {facts.map((f) => (
               <div class="border-b border-dashed border-border pb-4 mb-4">
-                <div class="flex items-center gap-2 mb-2">
-                  {f.live && (
-                    <div class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.5)]"></div>
-                  )}
-                  <h3 class="text-[10px] font-mono text-zinc-500 uppercase">{f.label}</h3>
-                </div>
+                <h3 class="text-[10px] font-mono text-muted uppercase mb-2">{f.label}</h3>
                 <p class="text-sm text-white font-medium">{f.value}</p>
                 <p class="text-xs text-zinc-400 font-mono mt-1" set:html={f.detail} />
               </div>
             ))}
 
             <div>
-              <h3 class="text-[10px] font-mono text-zinc-500 uppercase mb-2">Attack OS</h3>
+              <h3 class="text-[10px] font-mono text-muted uppercase mb-2">Attack OS</h3>
               <p class="text-sm text-white font-medium">Parrot</p>
               <div class="flex flex-wrap gap-2 mt-2">
                 {['tmux', 'vim', 'burp'].map((t) => (
@@ -110,7 +105,7 @@ const focus = [
               {focus.map((f) => (
                 <div class="p-6 border border-border rounded-xl bg-surface/40 hover:bg-surface hover:border-borderHover transition-colors group relative overflow-hidden">
                   <div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <h4 class="text-[10px] font-mono text-zinc-500 uppercase mb-3 flex items-center gap-2">
+                  <h4 class="text-[10px] font-mono text-muted uppercase mb-3 flex items-center gap-2">
                     <span class="w-1.5 h-1.5 rounded-full bg-zinc-700 group-hover:bg-accent transition-colors"></span>
                     {f.kicker}
                   </h4>

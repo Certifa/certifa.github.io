@@ -1,6 +1,10 @@
 ---
 // The alternating two-column writeup row from the Page_1 export ("Threat
-// Intelligence Logs"), including its stock imagery and hover treatment.
+// Intelligence Logs"). The export's stock photography was replaced with the
+// real box art the writeups listing already uses, so each row shows the box it
+// actually links to. Boxes without art fall back to the code motif.
+import CardMotif from './CardMotif.astro';
+
 interface Props {
   slug: string;
   title: string;
@@ -9,23 +13,21 @@ interface Props {
   difficulty: string;
   platform: string;
   kicker: string;
-  image: string;
-  imageAlt: string;
-  imageFilter: string;
-  overlay: string;
+  avatar: string | null;
   flip?: boolean;
 }
 
 const {
   slug, title, description, tags, difficulty, platform, kicker,
-  image, imageAlt, imageFilter, overlay, flip = false,
+  avatar, flip = false,
 } = Astro.props;
 
 const category = platform === 'HTB' ? 'HTB_MACHINE' : `${platform}_ENTRY`;
 const shownTags = tags.slice(0, 3);
 
-const dither =
-  "background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E'); mix-blend-mode: overlay;";
+// The export ordered the visual first and flipped it on alternate rows. Kept,
+// so the column order stays identical whichever visual is rendered.
+const visualOrder = flip ? 'order-2' : 'order-2 md:order-1';
 ---
 
 <a
@@ -33,31 +35,35 @@ const dither =
   class="group grid grid-cols-1 md:grid-cols-2 gap-12 items-center transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(74,222,128,0.05)] rounded-[2rem] p-4 -m-4"
   data-reveal
 >
-  <div
-    class:list={[
-      'relative rounded-[1.25rem] overflow-hidden border border-border bg-surface p-2 aspect-[16/10]',
-      flip ? 'order-2' : 'order-2 md:order-1',
-    ]}
-  >
-    <div class:list={['absolute inset-0 mix-blend-multiply z-10 pointer-events-none transition-colors duration-500', overlay]}></div>
-    <div class="absolute inset-0 z-20 pointer-events-none opacity-20" style={dither}></div>
-    <img
-      src={image}
-      alt={imageAlt}
-      loading="lazy"
-      decoding="async"
+  {avatar ? (
+    <div
       class:list={[
-        'w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-700 ease-out',
-        imageFilter,
+        'relative rounded-[1.25rem] overflow-hidden border border-border bg-bg aspect-[16/10] flex items-center justify-center',
+        visualOrder,
       ]}
-    />
-  </div>
+    >
+      <div
+        class="absolute inset-0 opacity-50 group-hover:opacity-90 transition-opacity duration-500"
+        style="background-image: radial-gradient(circle at center, rgba(74,222,128,0.14) 0%, transparent 68%);"
+        aria-hidden="true"
+      ></div>
+      <img
+        src={avatar}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        class="relative h-28 w-28 lg:h-36 lg:w-36 object-contain group-hover:scale-105 transition-transform duration-700 ease-out"
+      />
+    </div>
+  ) : (
+    <CardMotif slug={slug} tags={tags} class={`aspect-[16/10] ${visualOrder}`} />
+  )}
 
-  <div class:list={['flex flex-col items-start', flip ? 'order-1' : 'order-1 md:order-2']}>
+  <div class:list={['flex flex-col items-start min-w-0', flip ? 'order-1' : 'order-1 md:order-2']}>
     <div class="flex items-center gap-4 mb-6">
       <span class="font-mono text-[10px] text-zinc-300 uppercase tracking-wider px-2.5 py-1 border border-border rounded-md bg-white/5">{category}</span>
       <span class="w-8 h-px bg-border" aria-hidden="true"></span>
-      <span class="font-mono text-[10px] text-zinc-500 uppercase tracking-wider">{kicker}</span>
+      <span class="font-mono text-[10px] text-muted uppercase tracking-wider">{kicker}</span>
     </div>
 
     <h3 class="font-display text-3xl lg:text-4xl font-semibold tracking-tighter text-fg group-hover:text-white transition-colors mb-4">

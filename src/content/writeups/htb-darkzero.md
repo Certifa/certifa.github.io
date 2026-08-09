@@ -15,7 +15,7 @@ featured: true
 | **Machine** | DarkZero |
 | **OS** | Windows |
 | **Difficulty** | Hard |
-| **Status** | Active |
+| **Status** | Retired |
 
 ## TL;DR
 

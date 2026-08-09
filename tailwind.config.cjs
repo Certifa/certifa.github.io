@@ -13,7 +13,11 @@ module.exports = {
         surfaceHover: '#161619',
         border: '#1f1f23',
         borderHover: '#3f3f46',
-        muted: '#71717a',
+        // Lifted from #71717a, which measured 4.12:1 on bg and 3.96:1 on
+        // surface and so failed WCAG AA for normal text. #83838c clears it on
+        // both (5.30:1 / 5.09:1) while staying clearly dimmer than fg-2, so the
+        // three-step text hierarchy survives. Mirrored as --fg-3 in global.css.
+        muted: '#83838c',
         fg: '#e4e4e7',
         accent: {
           DEFAULT: '#4ade80',

@@ -71,8 +71,9 @@ const siteTitle = title === 'Certifa' ? title : `${title} · Certifa`;
     <meta name="theme-color" content="#09090b" />
   </head>
   <body class="bg-bg text-fg font-sans min-h-screen flex flex-col">
+    <a href="#main-content" class="skip-link">Skip to content</a>
     <Nav />
-    <main id="main-content" class="flex-1"><slot /></main>
+    <main id="main-content" class="flex-1" tabindex="-1"><slot /></main>
     <Footer />
 
     <div class="copy-toast" id="copyToast">Copied</div>

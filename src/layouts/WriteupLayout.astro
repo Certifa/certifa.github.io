@@ -29,7 +29,7 @@ const card = ogCard(entry.slug);
 // Shared chrome, lifted from the Page_8 card and the Page_14 sidebar so this
 // template reads as part of the same system the exports established.
 const CARD = 'rounded-xl border border-border bg-surface hover:border-borderHover hover:bg-white/[0.02] transition-all duration-300';
-const MICRO = 'font-mono text-[10px] uppercase tracking-widest text-zinc-500';
+const MICRO = 'font-mono text-[10px] uppercase tracking-widest text-muted';
 ---
 <BaseLayout title={title} description={description} image={card}>
   <div class="wu-progress" id="wuProgress" aria-hidden="true"></div>
@@ -38,12 +38,12 @@ const MICRO = 'font-mono text-[10px] uppercase tracking-widest text-zinc-500';
     <!-- Header band -->
     <header class="border-b border-border">
       <div class="max-w-6xl mx-auto px-6 pt-10 pb-10">
-        <a href="/writeups/" class="inline-flex items-center gap-2 font-mono text-xs text-zinc-500 hover:text-accent transition-colors mb-10 group">
+        <a href="/writeups/" class="inline-flex items-center gap-2 font-mono text-xs text-muted hover:text-accent transition-colors mb-10 group">
           <span class="transition-transform group-hover:-translate-x-0.5" aria-hidden="true">←</span>
           back to writeups
         </a>
 
-        <div class="font-mono text-xs tracking-wider text-zinc-500 uppercase mb-4 flex items-center gap-2">
+        <div class="font-mono text-xs tracking-wider text-muted uppercase mb-4 flex items-center gap-2">
           <span class="text-accent">/</span> WRITEUP
         </div>
 
@@ -93,7 +93,7 @@ const MICRO = 'font-mono text-[10px] uppercase tracking-widest text-zinc-500';
           <details class="wu-toc rounded-xl border border-border bg-surface/40 backdrop-blur-sm px-5 py-4" id="wuToc" open>
             <summary class="wu-toc-title flex items-center justify-between gap-3 cursor-pointer list-none">
               <span class={MICRO}>On this page</span>
-              <span class="wu-toc-chevron text-zinc-500 text-xs" aria-hidden="true">▾</span>
+              <span class="wu-toc-chevron text-muted text-xs" aria-hidden="true">▾</span>
             </summary>
             <nav class="wu-toc-list mt-4 flex flex-col">
               {tocHeadings.map((h) => (
@@ -120,7 +120,7 @@ const MICRO = 'font-mono text-[10px] uppercase tracking-widest text-zinc-500';
                 <a href={`/writeups/${r.slug}/`} class={`${CARD} group p-5 flex flex-col gap-3`}>
                   <span class={`diff-pill diff-${r.data.difficulty} self-start`}>{r.data.difficulty}</span>
                   <span class="font-display text-lg font-medium text-fg group-hover:text-accent transition-colors">{r.data.title}</span>
-                  <span class="font-mono text-[11px] text-zinc-500 leading-relaxed">{r.data.tags.slice(0, 3).join(' · ')}</span>
+                  <span class="font-mono text-[11px] text-muted leading-relaxed">{r.data.tags.slice(0, 3).join(' · ')}</span>
                 </a>
               ))}
             </div>

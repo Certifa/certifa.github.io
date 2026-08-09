@@ -1,4 +1,5 @@
 ---
+import { existsSync } from 'node:fs';
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import WriteupFeature from '../components/WriteupFeature.astro';
@@ -11,30 +12,30 @@ const featured = (await getCollection('writeups'))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, 3);
 
-// The three card visuals from the export, with their per-card grading. Cycled
-// by position so the treatment holds however many writeups are featured.
-const dither =
-  "background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E'); mix-blend-mode: overlay;";
+// Real box art, the same source the writeups listing uses. The export's stock
+// photography was cycled by position, so a given photo stood for whichever box
+// happened to land in that slot. Resolved at build; a box without an avatar
+// falls back to the code motif rather than 404ing.
+const avatarFor = (slug: string) => {
+  const box = slug.replace(/^htb-/, '');
+  return existsSync(`public/og-avatars/${box}.png`) ? `/og-avatars/${box}.png` : null;
+};
 
-const visuals = [
-  {
-    image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=1200&auto=format&fit=crop',
-    imageAlt: 'Server rack',
-    imageFilter: 'filter grayscale contrast-125 brightness-75',
-    overlay: 'bg-black/50 group-hover:bg-black/30',
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1200&auto=format&fit=crop',
-    imageAlt: 'Network wireframe',
-    imageFilter: 'filter grayscale contrast-150 brightness-50 sepia-[.2] hue-rotate-[180deg]',
-    overlay: 'bg-black/50 group-hover:bg-black/30',
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=1200&auto=format&fit=crop',
-    imageAlt: 'Terminal code execution',
-    imageFilter: 'filter grayscale contrast-125 brightness-75 sepia-[.1] hue-rotate-[200deg]',
-    overlay: 'bg-black/60 group-hover:bg-black/40',
-  },
+// The section is called Security Arsenal but never showed an actual tool. Every
+// entry here appears in a published writeup or on the about page: nothing
+// aspirational. Rendered with the tool-pill treatment from Page_14's sidebar.
+const toolkit = [
+  { label: 'Recon', tools: ['nmap', 'ffuf', 'gobuster'] },
+  { label: 'Active Directory', tools: ['BloodHound', 'impacket', 'Rubeus', 'crackmapexec'] },
+  { label: 'Creds & post-ex', tools: ['hashcat', 'Responder', 'evil-winrm'] },
+];
+
+// Read as a roadmap, not a trophy shelf: none of these are held yet, which the
+// card says outright. `current` marks the one with a date attached.
+const certs = [
+  { name: 'CJCA', issuer: 'HackTheBox', status: 'EXAM BOOKED', current: true },
+  { name: 'CPTS', issuer: 'HackTheBox', status: 'NEXT', current: false },
+  { name: 'CCNA', issuer: 'Cisco', status: 'PLANNED', current: false },
 ];
 ---
 
@@ -64,17 +65,10 @@ const visuals = [
 
       <!-- Left: typography & CTAs -->
       <div class="hero-copy flex flex-col items-start text-left z-10 lg:sticky lg:top-32">
-        <div class="flex flex-col gap-4 mb-8">
-          <div class="flex items-center gap-3">
-            <span class="font-mono text-[10px] text-zinc-400 uppercase tracking-widest">
-              OFFENSIVE SECURITY STUDENT <span class="text-accent font-bold">_</span>
-            </span>
-          </div>
-          <div class="flex flex-wrap gap-2">
-            <span class="px-3 py-1.5 rounded-[3px] border border-border font-mono text-[11px] text-zinc-300">AD ATTACK CHAIN</span>
-            <span class="px-3 py-1.5 rounded-[3px] border border-border font-mono text-[11px] text-zinc-300">KERBEROS</span>
-            <span class="px-3 py-1.5 rounded-[3px] border border-border font-mono text-[11px] text-zinc-300">RBCD</span>
-          </div>
+        <div class="flex items-center gap-3 mb-8">
+          <span class="font-mono text-[10px] text-zinc-400 uppercase tracking-widest">
+            OFFENSIVE SECURITY STUDENT <span class="text-accent font-bold">_</span>
+          </span>
         </div>
 
         <h1 class="font-display text-5xl md:text-6xl lg:text-[4rem] font-bold tracking-tight leading-[1.05] text-white mb-8">
@@ -82,41 +76,46 @@ const visuals = [
           <span class="text-accent">Document truth.</span>
         </h1>
 
-        <p class="font-mono text-[13px] text-zinc-300 max-w-[28rem] leading-relaxed mb-6">
-          I take apart Active Directory environments, web applications, and Linux boxes on HackTheBox: Kerberos abuse, BloodHound, NTLM relay, SQLi, privesc chains, then write down exactly how, start to finish.
-        </p>
         <p class="font-mono text-[13px] text-zinc-300 max-w-[28rem] leading-relaxed mb-12">
-          Offensive security student at Hogeschool Utrecht, looking for my first red-team seat.
+          I break Active Directory, Linux, and web targets on HackTheBox, then write down exactly how. Looking for my first red-team seat.
         </p>
 
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto mb-12">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
           <a href="#logs" class="w-full sm:w-auto px-8 py-3 rounded-[3px] border border-border bg-surface text-white font-mono text-[10px] uppercase tracking-widest hover:bg-surfaceHover hover:border-borderHover transition-colors flex items-center justify-center text-center">
             VIEW WRITEUPS
           </a>
           <a href="#infrastructure" class="w-full sm:w-auto px-8 py-3 rounded-[3px] border border-border bg-surface text-white font-mono text-[10px] uppercase tracking-widest hover:bg-surfaceHover hover:border-borderHover transition-colors flex items-center justify-center text-center">
-            EXPLORE LAB
+            VIEW ARSENAL
           </a>
         </div>
-
-        <a href="#logs" class="font-mono text-[10px] text-zinc-400 hover:text-white transition-colors flex items-center gap-2 border-b border-transparent hover:border-borderHover pb-0.5">
-          ↓ see how Pirate fell
-        </a>
       </div>
 
-      <!-- Right: static attack-path graph -->
+      <!-- Right: static attack-path graph. The box it charts is retired, so the
+           panel links to its writeup: see "The hero graph must show a retired
+           box" in CLAUDE.md before swapping in another machine. -->
       <div class="flex flex-col w-full z-10">
-        <div class="relative w-full rounded-lg overflow-hidden border border-accent/30 bg-surface/90 backdrop-blur p-6 lg:p-8 shadow-[0_0_50px_rgba(74,222,128,0.08)]">
-          <div class="absolute top-6 right-6 z-20 hidden sm:flex flex-col gap-3 font-mono text-[9px] text-muted">
-            <div class="flex items-center gap-3">
-              <span class="w-6 h-[1.5px] bg-accent"></span> Primary Path
-            </div>
-            <div class="flex items-center gap-3">
-              <span class="w-6 border-t border-dashed border-zinc-600"></span> Secondary Paths
+        <a
+          href="/writeups/htb-darkzero/"
+          aria-label="DarkZero writeup"
+          class="group relative block w-full rounded-lg overflow-hidden border border-accent/30 bg-surface/90 backdrop-blur p-6 lg:p-8 shadow-[0_0_50px_rgba(74,222,128,0.08)] hover:border-accent/60 hover:shadow-[0_0_60px_rgba(74,222,128,0.14)] transition-all duration-500"
+        >
+          <div class="relative z-20 flex items-start justify-between gap-4 mb-4">
+            <span class="font-mono text-[9px] text-zinc-400 group-hover:text-white uppercase tracking-widest transition-colors flex items-center gap-2">
+              DarkZero · HTB · Hard
+              <svg class="w-3 h-3 text-accent opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </span>
+            <div class="hidden sm:flex flex-col gap-3 font-mono text-[9px] text-muted shrink-0">
+              <div class="flex items-center gap-3">
+                <span class="w-6 h-[1.5px] bg-accent"></span> Foothold Chain
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="w-6 border-t border-dashed border-zinc-600"></span> Objectives
+              </div>
             </div>
           </div>
 
           <div class="relative z-20 w-full flex items-center justify-center">
-            <svg viewBox="0 0 400 560" class="w-full h-auto attack-graph" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Attack path: pentest credentials through pre-2000 computer account, gMSA hash dump, WinRM, tunnelling, coerced NTLM relay to RBCD, S4U2Proxy, then user and root flags.">
+            <svg viewBox="0 0 400 560" class="w-full h-auto attack-graph" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="DarkZero attack path: domain credentials into MSSQL, a linked-server hop to the second domain, xp_cmdshell for execution as the SQL service account, CVE-2024-30088 for SYSTEM on DC02, then user.txt on one branch and, on the other, Rubeus with PetitPotam capturing the DC01 ticket, a Golden Ticket forged from the krbtgt key, and root.txt.">
               <defs>
                 <marker id="arrow-accent" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
                   <path d="M 0 0 L 10 5 L 0 10 z" class="arrow-primary" />
@@ -147,38 +146,38 @@ const visuals = [
               <path d="M 100 415 L 100 490 L 200 490" class="edge-secondary" />
 
               <rect x="120" y="15" width="160" height="30" class="node-rect" />
-              <text x="200" y="31" class="node-text">pentest creds</text>
+              <text x="200" y="31" class="node-text">john.w · domain creds</text>
               <circle cx="100" cy="30" r="8" class="node-num-circle" />
               <text x="100" y="31" class="node-num">1</text>
 
               <rect x="120" y="65" width="160" height="30" class="node-rect" />
-              <text x="200" y="81" class="node-text">Pre-2K · MS01$:ms01</text>
+              <text x="200" y="81" class="node-text">MSSQL 1433 · DC01</text>
               <circle cx="100" cy="80" r="8" class="node-num-circle" />
               <text x="100" y="81" class="node-num">2</text>
 
               <rect x="120" y="115" width="160" height="30" class="node-rect" />
-              <text x="200" y="131" class="node-text">gMSA Hash Dump</text>
+              <text x="200" y="131" class="node-text">use_link → DC02.ext</text>
               <circle cx="100" cy="130" r="8" class="node-num-circle" />
               <text x="100" y="131" class="node-num">3</text>
 
               <rect x="120" y="165" width="160" height="30" class="node-rect" />
-              <text x="200" y="181" class="node-text">WinRM → DC01</text>
+              <text x="200" y="181" class="node-text">xp_cmdshell → RCE</text>
               <circle cx="100" cy="180" r="8" class="node-num-circle" />
               <text x="100" y="181" class="node-num">4</text>
 
               <rect x="120" y="215" width="160" height="30" class="node-rect" />
-              <text x="200" y="231" class="node-text">Ligolo-ng Tunnel</text>
+              <text x="200" y="231" class="node-text">Meterpreter · svc_sql</text>
               <circle cx="100" cy="230" r="8" class="node-num-circle" />
               <text x="100" y="231" class="node-num">5</text>
 
               <rect x="120" y="265" width="160" height="40" class="node-rect" />
-              <text x="200" y="280" class="node-text">Coerce + Relay →</text>
-              <text x="200" y="294" class="node-text">RBCD on WEB01</text>
+              <text x="200" y="280" class="node-text">winPEAS → CVE-2024-30088</text>
+              <text x="200" y="294" class="node-text">kernel LPE</text>
               <circle cx="100" cy="285" r="8" class="node-num-circle" />
               <text x="100" y="286" class="node-num">6</text>
 
               <rect x="120" y="325" width="160" height="30" class="node-rect" />
-              <text x="200" y="341" class="node-text">S4U2Proxy · Admin → WEB01</text>
+              <text x="200" y="341" class="node-text">SYSTEM on DC02</text>
               <circle cx="100" cy="340" r="8" class="node-num-circle" />
               <text x="100" y="341" class="node-num">7</text>
 
@@ -188,13 +187,13 @@ const visuals = [
               <text x="30" y="401" class="node-num">8</text>
 
               <rect x="180" y="385" width="150" height="40" class="node-rect" />
-              <text x="255" y="400" class="node-text">secretsdump ·</text>
-              <text x="255" y="414" class="node-text">a.white creds</text>
+              <text x="255" y="400" class="node-text">Rubeus + PetitPotam</text>
+              <text x="255" y="414" class="node-text">→ DC01 TGT</text>
               <circle cx="160" cy="405" r="8" class="node-num-circle" />
               <text x="160" y="406" class="node-num">8</text>
 
               <rect x="180" y="445" width="150" height="30" class="node-rect" />
-              <text x="255" y="461" class="node-text">SPN-Jack · HTTP/WEB01</text>
+              <text x="255" y="461" class="node-text">krbtgt → Golden Ticket</text>
               <circle cx="160" cy="460" r="8" class="node-num-circle" />
               <text x="160" y="461" class="node-num">9</text>
 
@@ -204,11 +203,7 @@ const visuals = [
               <text x="100" y="521" class="node-num">10</text>
             </svg>
           </div>
-        </div>
-
-        <div class="mt-4 font-mono text-[10px] text-zinc-400 flex items-center gap-2 px-2">
-          ↳ 11 nodes · 11 edges · full writeup below
-        </div>
+        </a>
       </div>
     </section>
 
@@ -235,18 +230,15 @@ const visuals = [
             platform={w.data.platform}
             kicker={i === 0 ? 'RECENT' : 'ARCHIVE'}
             flip={i % 2 === 1}
-            image={visuals[i % visuals.length].image}
-            imageAlt={visuals[i % visuals.length].imageAlt}
-            imageFilter={visuals[i % visuals.length].imageFilter}
-            overlay={visuals[i % visuals.length].overlay}
+            avatar={avatarFor(w.slug)}
           />
         ))}
       </div>
 
       <div class="mt-20 flex justify-center" data-reveal>
         <a href="/writeups" class="px-8 py-3 rounded-[3px] border border-border font-mono text-[10px] uppercase tracking-widest text-white hover:bg-white/5 hover:border-borderHover flex items-center gap-2 transition-all">
-          Load Archive
-          <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          All writeups
+          <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
       </div>
     </section>
@@ -255,7 +247,7 @@ const visuals = [
     <section id="infrastructure" class="max-w-7xl mx-auto px-6 md:px-12 mb-40">
       <div class="mb-12" data-reveal>
         <h2 class="font-display text-3xl font-semibold tracking-tighter text-white mb-2">Security Arsenal</h2>
-        <p class="text-muted">Development, automation, and continuous learning.</p>
+        <p class="text-muted">The tools I reach for, the lab I run them against, and what's next on the list.</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -273,27 +265,23 @@ const visuals = [
                 <h3 class="font-medium text-white">Custom Tooling &amp; Automation</h3>
               </div>
               <p class="text-muted text-sm max-w-md">
-                Developing highly concurrent enumeration tools and exploit scripts in Go and Python to streamline infrastructure assessment.
+                A Python orchestrator that chains recon on every box: nmap fingerprints the services, the parsed results pick the wordlists, and ffuf and gobuster fill in one report template.
               </p>
             </div>
 
             <div class="relative z-10 w-full bg-[#0d0d0f] border border-border rounded-lg mt-6 p-4 shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-              <div class="flex gap-2 mb-4 border-b border-border pb-3">
-                <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
-                <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-                <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
-                <span class="ml-4 font-mono text-[10px] text-muted uppercase">enum_engine.go</span>
+              <div class="flex items-center gap-2 mb-4 border-b border-border pb-3">
+                <span class="w-1.5 h-1.5 rounded-full bg-accent/60"></span>
+                <span class="font-mono text-[10px] text-muted uppercase tracking-widest">recon.py</span>
               </div>
-              <pre class="font-mono text-xs leading-relaxed overflow-x-auto text-zinc-400"><code><span class="text-purple-400">func</span> <span class="text-blue-400">ScanTarget</span>(ip <span class="text-teal-400">string</span>, ports []<span class="text-teal-400">int</span>) &#123;
-    <span class="text-purple-400">for</span> _, p := <span class="text-purple-400">range</span> ports &#123;
-        <span class="text-purple-400">go</span> <span class="text-blue-400">connect</span>(ip, p) <span class="text-zinc-600">// Highly concurrent dialed connections</span>
-    &#125;
+              <pre class="font-mono text-xs leading-relaxed overflow-x-auto text-zinc-400"><code><span class="text-purple-400">def</span> <span class="text-blue-400">enumerate</span>(target):
+    services = <span class="text-blue-400">nmap</span>(target, <span class="text-teal-400">flags</span>=<span class="text-green-400">"-sC -sV"</span>)
 
-    <span class="text-zinc-600">// [CRITICAL] Analyzing response heuristics</span>
-    <span class="text-purple-400">if</span> vuln == <span class="text-orange-400">true</span> &#123;
-        log.<span class="text-blue-400">Printf</span>(<span class="text-green-400">"[+] Exploitable vector identified at %s"</span>, ip)
-    &#125;
-&#125;</code></pre>
+    <span class="text-purple-400">for</span> svc <span class="text-purple-400">in</span> services:
+        <span class="text-purple-400">if</span> svc.name <span class="text-purple-400">in</span> (<span class="text-green-400">"http"</span>, <span class="text-green-400">"https"</span>):
+            <span class="text-blue-400">ffuf</span>(svc, wordlist=<span class="text-blue-400">pick</span>(svc))
+
+    <span class="text-purple-400">return</span> <span class="text-blue-400">report</span>(target, services)</code></pre>
             </div>
           </div>
         </div>
@@ -303,72 +291,122 @@ const visuals = [
           <div class="spotlight-content p-8 flex flex-col relative overflow-hidden">
             <div class="absolute top-0 right-0 w-48 h-48 bg-accent/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
 
-            <div class="flex items-center gap-3 mb-8">
+            <div class="flex items-center gap-3 mb-2">
               <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white border border-border">
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="M8.5 14.5L7 22l5-3 5 3-1.5-7.5"/></svg>
               </div>
-              <h3 class="font-medium text-white">Certifications</h3>
+              <h3 class="font-medium text-white">Certification Roadmap</h3>
+            </div>
+            <p class="text-muted text-sm mb-6">None held yet. This is the order they land in.</p>
+
+            <!-- Vertical rail, borrowing the node-and-path language the attack
+                 graph already establishes: filled node for the booked exam,
+                 hollow for what is still ahead. -->
+            <ol class="relative z-10 flex flex-col">
+              {certs.map((c, i) => (
+                <li class="relative flex gap-4 pb-6 last:pb-0">
+                  {i < certs.length - 1 && (
+                    <span class="absolute left-[5px] top-4 bottom-0 w-px bg-border" aria-hidden="true"></span>
+                  )}
+                  <span
+                    class:list={[
+                      'mt-1.5 w-[11px] h-[11px] rounded-full shrink-0 border',
+                      c.current ? 'bg-accent border-accent' : 'bg-bg border-borderHover',
+                    ]}
+                    aria-hidden="true"
+                  ></span>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-baseline justify-between gap-3">
+                      <span class:list={['text-sm font-medium', c.current ? 'text-white' : 'text-zinc-300']}>{c.name}</span>
+                      <span
+                        class:list={[
+                          'font-mono text-[10px] tracking-wider shrink-0',
+                          c.current ? 'text-accent bg-accent/10 px-2 py-0.5 rounded' : 'text-muted',
+                        ]}
+                      >{c.status}</span>
+                    </div>
+                    <p class="text-[11px] font-mono text-muted mt-1">{c.issuer}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+
+            <p class="relative z-10 mt-auto pt-6 border-t border-border text-[11px] font-mono text-muted leading-relaxed">
+              Also in progress: Cybersecurity &amp; Cloud BSc, Hogeschool Utrecht.
+            </p>
+          </div>
+        </div>
+
+        <!-- Toolkit -->
+        <div class="spotlight-card md:col-span-1 h-auto md:h-[360px]" data-reveal data-reveal-delay="2">
+          <div class="spotlight-content p-8 flex flex-col relative overflow-hidden">
+            <div class="absolute -top-16 -right-16 w-48 h-48 bg-accent/[0.07] rounded-full blur-3xl"></div>
+
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent border border-accent/20">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/></svg>
+              </div>
+              <h3 class="font-medium text-white">The Toolkit</h3>
             </div>
 
-            <div class="flex flex-col gap-4 flex-1 justify-center">
-              <div class="flex items-center justify-between p-3 rounded-lg border border-border bg-white/[0.02]">
-                <div class="flex items-center gap-3">
-                  <svg class="w-4 h-4 text-blue-400 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg>
-                  <span class="text-sm font-medium text-white">CJCA</span>
+            <div class="relative z-10 flex flex-col gap-5">
+              {toolkit.map((g) => (
+                <div>
+                  <h4 class="text-[10px] font-mono text-muted uppercase tracking-widest mb-2">{g.label}</h4>
+                  <div class="flex flex-wrap gap-1.5">
+                    {g.tools.map((t) => (
+                      <span class="px-2 py-1 border border-border rounded text-[11px] font-mono text-zinc-400 bg-bg">{t}</span>
+                    ))}
+                  </div>
                 </div>
-                <span class="font-mono text-[10px] text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded">EXAM_BOOKED</span>
-              </div>
-
-              <div class="flex items-center justify-between p-3 rounded-lg border border-border bg-white/[0.02]">
-                <div class="flex items-center gap-3">
-                  <svg class="w-4 h-4 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/></svg>
-                  <span class="text-sm font-medium text-white">CPTS</span>
-                </div>
-                <span class="font-mono text-[10px] text-muted">NEXT</span>
-              </div>
-
-              <div class="flex items-center justify-between p-3 rounded-lg border border-transparent">
-                <div class="flex items-center gap-3">
-                  <svg class="w-4 h-4 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/></svg>
-                  <span class="text-sm font-medium text-muted">CCNA</span>
-                </div>
-                <span class="font-mono text-[10px] text-muted">PLANNED</span>
-              </div>
+              ))}
             </div>
           </div>
         </div>
 
-        <!-- Sandboxing -->
-        <div class="spotlight-card md:col-span-3 h-auto md:h-64" data-reveal data-reveal-delay="2">
+        <!-- Homelab -->
+        <div class="spotlight-card md:col-span-2 h-auto md:h-[360px]" data-reveal data-reveal-delay="3">
           <div class="spotlight-content p-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
             <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-accent/10 rounded-full blur-3xl"></div>
 
             <div class="w-full md:w-1/2">
               <div class="flex items-center gap-3 mb-4">
                 <div class="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent border border-accent/20">
-                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h8M9 3h6M6 10h12v6a6 6 0 0 1-12 0zM4 12H2M22 12h-2M5 18l-2 2M19 18l2 2M5 8L3 6M19 8l2-2"/></svg>
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="7" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/><path d="M7 7.5h.01M7 17h.01"/></svg>
                 </div>
-                <h3 class="font-medium text-white">Malware Analysis Sandboxing</h3>
+                <h3 class="font-medium text-white">Active Directory Homelab</h3>
               </div>
               <p class="text-muted text-sm leading-relaxed mb-6">
-                Engineering isolated environments to safely detonate and reverse-engineer malicious payloads, extracting IOCs and understanding execution flow.
+                A Windows Server 2022 domain controller and two workstations at home, so every chain I read about gets rebuilt outside the platform: Kerberos abuse, BloodHound paths, NTLM relay.
               </p>
               <a href="/projects" class="inline-flex items-center gap-2 text-sm text-white font-medium hover:text-accent transition-colors">
-                View Research Specs
+                See the lab
                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
               </a>
             </div>
 
-            <div class="w-full md:w-1/2 relative rounded-2xl overflow-hidden border border-border bg-surface p-1.5 aspect-video group/img">
-              <div class="absolute inset-0 bg-black/60 mix-blend-multiply z-10 pointer-events-none group-hover/img:bg-black/40 transition-colors duration-500"></div>
-              <div class="absolute inset-0 z-20 pointer-events-none opacity-20" style={dither}></div>
-              <img
-                src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1200&auto=format&fit=crop"
-                alt="Malware sandbox network"
-                loading="lazy"
-                decoding="async"
-                class="w-full h-full object-cover rounded-lg filter grayscale contrast-125 brightness-50 sepia-[.1] hue-rotate-[180deg] group-hover/img:scale-105 transition-transform duration-700 ease-out"
-              />
+            <div class="w-full md:w-1/2 relative rounded-2xl overflow-hidden border border-border bg-bg p-6 flex items-center justify-center">
+              <svg viewBox="0 0 320 130" class="w-full h-auto max-h-56 attack-graph" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Home lab topology: a Server 2022 domain controller with two joined workstations.">
+                <defs>
+                  <pattern id="labDots" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <circle cx="2" cy="2" r="1" class="grid-dot" />
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#labDots)" />
+
+                <path d="M 160 46 L 160 68" class="edge-primary" />
+                <path d="M 160 68 L 70 68 L 70 90" class="edge-secondary" />
+                <path d="M 160 68 L 250 68 L 250 90" class="edge-secondary" />
+
+                <rect x="90" y="18" width="140" height="28" class="node-rect-accent" />
+                <text x="160" y="33" class="node-text-accent">DC01 · Server 2022</text>
+
+                <rect x="25" y="90" width="90" height="28" class="node-rect" />
+                <text x="70" y="105" class="node-text">WS01</text>
+
+                <rect x="205" y="90" width="90" height="28" class="node-rect" />
+                <text x="250" y="105" class="node-text">WS02</text>
+              </svg>
             </div>
           </div>
         </div>
@@ -381,32 +419,31 @@ const visuals = [
         <div class="w-full lg:w-[45%] flex flex-col justify-between gap-8">
           <div>
             <h2 class="font-display text-3xl font-semibold tracking-tighter text-white mb-4">
-              Working on something<br />interesting?
+              Get in touch.
             </h2>
             <p class="text-muted text-sm leading-relaxed max-w-md">
-              CTF teams, internship leads, lab trades, or feedback on a writeup.<br />
-              Pick a channel, they all reach me.
+              CTF teams, internship leads, or feedback on a writeup. Pick a channel, they all reach me.
             </p>
           </div>
 
           <div class="flex flex-wrap gap-2.5">
-            <a href="mailto:mike@certifa.net" class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-white/[0.02] hover:bg-white/10 hover:text-white transition-colors text-xs font-mono text-muted">
+            <a href="mailto:mike@certifa.net" class="touch-pill flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-white/[0.02] hover:bg-white/10 hover:text-white transition-colors text-xs font-mono text-muted">
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>
               mike@certifa.net
             </a>
-            <a href="https://github.com/Certifa" rel="me noopener" class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-white/[0.02] hover:bg-white/10 hover:text-white transition-colors text-xs font-mono text-muted">
+            <a href="https://github.com/Certifa" rel="me noopener" class="touch-pill flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-white/[0.02] hover:bg-white/10 hover:text-white transition-colors text-xs font-mono text-muted">
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.5 2 2 6.6 2 12.3c0 4.5 2.9 8.3 6.8 9.7.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.4-3.4-1.4-.4-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.6-1.4-2.2-.3-4.6-1.1-4.6-5.1 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1a9 9 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 4-2.4 4.8-4.6 5.1.4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5 3.9-1.4 6.8-5.2 6.8-9.7C22 6.6 17.5 2 12 2z"/></svg>
               github/Certifa
             </a>
-            <a href="https://app.hackthebox.com/users/Certifa" rel="me noopener" class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-white/[0.02] hover:bg-white/10 hover:text-white transition-colors text-xs font-mono text-muted">
+            <a href="https://app.hackthebox.com/users/Certifa" rel="me noopener" class="touch-pill flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-white/[0.02] hover:bg-white/10 hover:text-white transition-colors text-xs font-mono text-muted">
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 3.5 7v10L12 22l8.5-5V7L12 2zm0 2.3 6.5 3.8-6.5 3.8-6.5-3.8L12 4.3zM5.5 9.6l5.5 3.2v6.5l-5.5-3.2V9.6zm7.5 9.7v-6.5l5.5-3.2v6.5l-5.5 3.2z"/></svg>
               hackthebox
             </a>
-            <a href="https://www.linkedin.com/in/certifa" rel="me noopener" class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-white/[0.02] hover:bg-white/10 hover:text-white transition-colors text-xs font-mono text-muted">
+            <a href="https://www.linkedin.com/in/certifa" rel="me noopener" class="touch-pill flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-white/[0.02] hover:bg-white/10 hover:text-white transition-colors text-xs font-mono text-muted">
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.75-1.95 4 0 4.4 2.5 4.4 5.8V21h-4v-5.6c0-1.35-.03-3.1-1.9-3.1-1.9 0-2.2 1.45-2.2 3v5.7H9z"/></svg>
               linkedin
             </a>
-            <button type="button" data-copy="Quetro" class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-white/[0.02] hover:bg-white/10 hover:text-white transition-colors text-xs font-mono text-muted">
+            <button type="button" data-copy="Quetro" class="touch-pill flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-white/[0.02] hover:bg-white/10 hover:text-white transition-colors text-xs font-mono text-muted">
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.3 5.3A16 16 0 0 0 15.2 4l-.2.4a15 15 0 0 1 3.6 1.3 12 12 0 0 0-9.2 0A15 15 0 0 1 13 4.4L12.8 4a16 16 0 0 0-4.1 1.3C5.9 9.5 5.2 13.6 5.5 17.6A16 16 0 0 0 10.4 20l.6-1a11 11 0 0 1-1.8-.9l.4-.3a11.5 11.5 0 0 0 9.8 0l.4.3a11 11 0 0 1-1.8.9l.6 1a16 16 0 0 0 4.9-2.4c.4-4.6-.7-8.7-3-12.3zM9.7 15.2c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2zm4.6 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2z"/></svg>
               discord · Quetro
             </button>
@@ -504,16 +541,23 @@ const visuals = [
     transition: opacity 0.3s ease;
     background: radial-gradient(
       800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-      rgba(255, 255, 255, 0.06),
+      rgba(255, 255, 255, 0.1),
       transparent 40%
     );
     z-index: 1;
   }
   .spotlight-card:hover::before { opacity: 1; }
+  /* The export calls this the Border Spotlight: the content sits on its own
+     opaque ground, inset by 1px, so the radial above only shows through that
+     1px ring and reads as a lit edge tracking the cursor. Our first port
+     dropped the margin and the background, which left the gradient washing
+     flatly across the whole card instead. Both are load-bearing. */
   .spotlight-card > .spotlight-content {
     position: relative;
     z-index: 2;
-    height: 100%;
+    height: calc(100% - 2px);
+    margin: 1px;
+    background: inherit;
     border-radius: inherit;
   }
 

@@ -15,7 +15,7 @@
   --line-2:    #3f3f46;
   --fg:        #e4e4e7;
   --fg-2:      #a1a1aa;   /* body copy */
-  --fg-3:      #71717a;   /* muted */
+  --fg-3:      #83838c;   /* muted, WCAG AA on bg and surface. See tailwind.config.cjs */
   --fg-4:      #52525b;   /* dim */
   --accent:    #4ade80;
   --accent-2:  #22c55e;   /* one step down */
@@ -56,9 +56,36 @@ body {
 
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
 
+/* Skip link. Every page puts the brand, five nav links, the GitHub button and
+   the menu toggle ahead of the content, so keyboard users get a way past them.
+   Off-screen until focused, and above the fixed nav's z-50 when it lands. */
+.skip-link {
+  position: fixed;
+  top: 0;
+  left: 1rem;
+  z-index: 100;
+  transform: translateY(-150%);
+  padding: 0.75rem 1.25rem;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--bg-2);
+  color: var(--fg);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  transition: transform 0.2s ease;
+}
+.skip-link:focus { transform: translateY(1rem); }
+@media (prefers-reduced-motion: reduce) {
+  .skip-link { transition: none; }
+}
+
 /* The nav is fixed in every export, so main clears its 4rem height. Pages that
    want more breathing room (the homepage) add their own padding on top. */
 main { padding-top: 4rem; }
+/* Target of the skip link: focusable programmatically, without drawing a ring
+   around the whole page, and offset so the fixed nav does not cover the top. */
+main:focus { outline: none; }
+main { scroll-margin-top: 5rem; }
 
 /* The WebGL fields sit behind copy. On desktop the columns keep text clear of
    the busiest area; on mobile everything stacks straight onto them, so they
@@ -170,6 +197,16 @@ body::before {
 }
 .chip:hover { color: var(--fg); border-color: var(--line-2); }
 .chip.active { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+
+/* Touch targets. The chips and channel pills render around 28px, under the 44px
+   minimum for a thumb. Scoped to coarse pointers so mouse users keep the dense
+   sizing the exports specify, and applied as min-height on elements that are
+   already centred flex rows, so nothing else about them moves. */
+@media (pointer: coarse) {
+  .chip,
+  .touch-pill { min-height: 44px; }
+  .chip { display: inline-flex; align-items: center; }
+}
 
 .tag {
   font-family: 'JetBrains Mono', monospace;

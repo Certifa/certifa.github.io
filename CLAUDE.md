@@ -277,7 +277,7 @@ HTB's streaming policy forbids publishing walkthroughs for machines that are sti
 - Frontmatter still uses a real title/date/tags; `description` is the placeholder "Active HackTheBox machine. Full writeup published after retirement."
 - When a box retires, replace the locked `<div>` with the real writeup.
 
-**Open issue:** the homepage hero graph spells out Pirate's full chain down to `root.txt`, while `htb-pirate.md` is still a locked placeholder, and the hero links to a writeup that doesn't exist. Resolve before the next deploy.
+**The hero graph must show a retired box.** It used to spell out Pirate's full chain down to `root.txt`, naming real credentials, while `htb-pirate.md` withheld the writeup precisely because the machine was still active. The graph is a walkthrough in its own right, so it falls under the same policy as the prose. It now shows **DarkZero**, which is retired and has a published writeup. When swapping in a new box, check it is retired first, and keep the panel's label (`DarkZero · HTB · Hard`) in step with the SVG.
 
 ## Responsive Design — MANDATORY
 
