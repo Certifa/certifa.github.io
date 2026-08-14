@@ -424,8 +424,17 @@ if (!reduce) {
     .from('.grade',{opacity:0,scale:.86,duration:.5,ease:'back.out(1.7)'})
     .to({v:0},{v:98,duration:1.05,ease:'power2.out',
       onUpdate(){ document.getElementById('score').textContent = Math.round(this.targets()[0].v); }},'-=.28')
-    .to('#gradefill',{scaleX:.98,duration:1.05,ease:'power2.out'},'<')
-    .from('.checks li',{opacity:0,x:-10,duration:.3,ease:'power4.out',stagger:.05},'-=1.1');
+    .to('#gradefill',{scaleX:.98,duration:1.05,ease:'power2.out'},'<');
+
+  /* The checks own their trigger rather than riding the grade's timeline.
+     Side by side on a desktop the two panels enter together, so borrowing
+     .gradebody looked correct. Stacked on a phone the checks come first and
+     .gradebody does not reach its start point until they have already been
+     scrolled past, so .from() held the whole list at opacity 0 on the way down
+     and it appeared only once it was behind you. An element has to reveal on
+     its own position, or it breaks the moment the columns collapse. */
+  gsap.timeline({scrollTrigger:{trigger:'.checks',start:'top 88%'}})
+    .from('.checks li',{opacity:0,x:-10,duration:.3,ease:'power4.out',stagger:.05});
 
   gsap.timeline({scrollTrigger:{trigger:'.foot',start:'top 85%'}})
     .from('.foot-k',{opacity:0,y:12,duration:.3,ease:'power4.out'})
