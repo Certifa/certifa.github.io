@@ -26,7 +26,10 @@ const SHELL_CARDS: Record<string, string> = {
   '/contact': ogCard('contact'),
 };
 const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
-const resolved = image ?? SHELL_CARDS[currentPath];
+// A page that is not mapped above still shares with the site card rather than
+// with nothing. No og:image at all is the one outcome that looks broken, and
+// it would happen silently the next time a page is added.
+const resolved = image ?? SHELL_CARDS[currentPath] ?? ogCard('home');
 const ogImage = resolved ? new URL(resolved, Astro.site).href : null;
 
 const siteTitle = title === 'Certifa' ? title : `${title} · Certifa`;
