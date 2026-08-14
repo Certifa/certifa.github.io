@@ -9,7 +9,7 @@
  * platform has already rendered: those keep their cached image until the link
  * is posted somewhere new.
  */
-export const OG_VERSION = 'v4';
+export const OG_VERSION = 'v5';
 
 /** Public path of a generated share card, e.g. ogCard('htb-kobold'). */
 export const ogCard = (name: string): string => `/og/${OG_VERSION}/${name}.png`;

@@ -20,30 +20,33 @@ const entries = await getCollection('writeups');
  * reason the writeup cards omit the title: the link preview prints the name
  * already. Copy is lifted verbatim from each page so the card sounds like it.
  */
-const SHELL: Record<string, { eyebrow: string; headline: string; refs: string }> = {
+// The headline is two lines because the site's own headings are: one line in
+// bone, the next in crimson. A share card is the first thing anyone sees of
+// this site, so it states the work rather than introducing the author.
+const SHELL: Record<string, { eyebrow: string; headline: [string, string]; refs: string }> = {
   home: {
     eyebrow: 'OFFENSIVE SECURITY  ·  UTRECHT',
-    headline: "Hi, I'm Certifa.",
+    headline: ['Break systems.', 'Document truth.'],
     refs: 'active directory  ·  linux  ·  web',
   },
   writeups: {
     eyebrow: 'WRITEUPS',
-    headline: 'Notes, after the flag.',
+    headline: ['Notes,', 'after the flag.'],
     refs: `${entries.length} machines  ·  hack the box`,
   },
   about: {
     eyebrow: 'ABOUT',
-    headline: 'A student who breaks things for a grade.',
+    headline: ['A student who breaks', 'things for a grade.'],
     refs: 'active directory  ·  linux  ·  web',
   },
   projects: {
     eyebrow: 'PROJECTS',
-    headline: 'Things built on purpose.',
+    headline: ['Things built', 'on purpose.'],
     refs: 'labs  ·  tooling  ·  dashboards',
   },
   contact: {
     eyebrow: 'CONTACT',
-    headline: "Let's talk.",
+    headline: ['Say something', 'worth reading.'],
     refs: 'discord  ·  github  ·  hack the box  ·  email',
   },
 };
@@ -222,7 +225,7 @@ export const GET: APIRoute = async ({ props }) => {
     size: number,
     family: string,
     weight: string,
-    opts: { align?: any; tracking?: number; width?: number } = {},
+    opts: { align?: any; tracking?: number; width?: number; leading?: number } = {},
   ) => {
     const style = new CanvasKit.ParagraphStyle({
       textStyle: {
@@ -230,7 +233,10 @@ export const GET: APIRoute = async ({ props }) => {
         fontFamilies: [family],
         fontSize: size,
         fontStyle: { weight: CanvasKit.FontWeight[weight] },
-        heightMultiplier: 1.15,
+        // Display type set at this size needs its leading pulled in well under
+        // the 1.15 that suits a line of body copy, or the two headline lines
+        // read as two separate statements instead of one.
+        heightMultiplier: opts.leading ?? 1.15,
         letterSpacing: opts.tracking ?? 0,
       },
       textAlign: opts.align ?? CanvasKit.TextAlign.Left,
@@ -285,11 +291,39 @@ export const GET: APIRoute = async ({ props }) => {
     textX = PAD + AVATAR + GAP;
   }
 
-  // Shell cards stop here: headline set to wrap, no meter, no OS line.
+  // Shell cards stop here: two-line headline, no meter, no OS line.
   if (shell) {
-    const headline = para(shell.headline.toUpperCase(), FG, 62, 'Anton', 'Normal', { width: 880 });
-    canvas.drawParagraph(headline, PAD, mid - headline.getHeight() / 2);
-    headline.delete();
+    const lines = shell.headline.map((l) => l.toUpperCase());
+    const LEADING = 0.92;
+    const CAP = 132;
+    const maxW = W - PAD * 2;
+
+    // Anton is condensed, but "A STUDENT WHO BREAKS" still sets far wider than
+    // "NOTES," at the same size. Measure each line's real set width and scale
+    // the whole block down until the longest fits the column, so a headline
+    // never wraps into a third line and the two cards never disagree on size
+    // for the same reason.
+    let size = CAP;
+    for (const l of lines) {
+      const probe = para(l, FG, CAP, 'Anton', 'Normal', { width: 100000, leading: LEADING });
+      const w = probe.getMaxIntrinsicWidth?.() ?? probe.getLongestLine?.() ?? 0;
+      probe.delete();
+      if (w > maxW) size = Math.min(size, Math.floor(CAP * (maxW / w)));
+    }
+
+    const drawn = lines.map((l, i) =>
+      para(l, i === 0 ? FG : ACCENT, size, 'Anton', 'Normal', { width: maxW, leading: LEADING }));
+
+    // Bottom-anchored against the footer rule. Centring the block in the band
+    // left a hollow middle with the type floating in it; sitting it low echoes
+    // the site's hero, where the heading rests near the foot of the viewport.
+    const blockH = drawn.reduce((s, p) => s + p.getHeight(), 0);
+    let y = ruleY - 58 - blockH;
+    for (const p of drawn) {
+      canvas.drawParagraph(p, PAD, y);
+      y += p.getHeight();
+      p.delete();
+    }
 
     eyebrow.delete();
     refs.delete();
@@ -308,7 +342,9 @@ export const GET: APIRoute = async ({ props }) => {
   const tags: string[] = (data.tags ?? []).map((t: string) => t.toLowerCase());
   const os = tags.includes('windows') ? 'Windows' : tags.includes('linux') ? 'Linux' : data.platform;
   const label = data.difficulty[0].toUpperCase() + data.difficulty.slice(1);
-  const title = para(data.title.toUpperCase(), FG, 88, 'Anton', 'Normal', { width: W - textX - PAD });
+  // Matched to the weight the shell cards carry: the longest box name is ten
+  // characters, which still sets well inside the column left of the avatar.
+  const title = para(data.title.toUpperCase(), FG, 116, 'Anton', 'Normal', { width: W - textX - PAD });
   const meta = para(`${os}  ·  ${label}`, FG_2, 26, 'JetBrains Mono', 'Normal', {
     width: W - textX - PAD,
   });
