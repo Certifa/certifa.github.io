@@ -264,6 +264,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   @media(max-width:1000px){
     .vitals{grid-template-columns:repeat(3,1fr)}
+    /* The hairlines are the container background showing through 1px gaps, so
+       a trailing cell with no element in it reads as a solid block of --line
+       rather than as blank space. Five vitals across three columns always
+       leave one. Widen the last item to close the row. Both rules stop
+       applying by themselves if the count ever divides evenly by three. */
+    .vitals > *:last-child:nth-child(3n+1){grid-column:span 3}
+    .vitals > *:last-child:nth-child(3n+2){grid-column:span 2}
     .kit-grid{grid-template-columns:repeat(2,1fr)}
   }
   @media(max-width:820px){
