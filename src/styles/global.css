@@ -43,6 +43,12 @@ html {
   font-size: 112.5%;
   scroll-behavior: smooth;
 }
+/* 18px suits a monitor at arm's length. A phone is held far closer and the
+   column is a quarter as wide, so the same value reads oversized and chops the
+   measure into short lines. Stepping the root down takes the whole scale with
+   it, since every size on the site is in rem. */
+@media (max-width: 900px) { html { font-size: 106.25%; } }  /* 17px */
+@media (max-width: 600px) { html { font-size: 100%; } }     /* 16px */
 html, body { margin: 0; background: var(--void); }
 body {
   font-family: var(--mono);
