@@ -28,7 +28,21 @@
    BASE
    ========================================================= */
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html {
+  /* Body copy was 16px, which reads small because the whole site is set in a
+     monospace: narrow glyphs make a mono face look a size smaller than a
+     proportional one at the same value. 112.5% puts body copy at 18px on a
+     stock browser while still honouring anyone who has changed their own
+     default, which a hard `font-size: 18px` would silently override.
+
+     One declaration is enough because every size on the site is in rem (134
+     of them, none in px) and every reading column is in ch. So the whole
+     scale moves together: the hierarchy between sizes is untouched, and the
+     measure holds at 48 characters per line rather than dropping to 43 the
+     way a bare size increase would. */
+  font-size: 112.5%;
+  scroll-behavior: smooth;
+}
 html, body { margin: 0; background: var(--void); }
 body {
   font-family: var(--mono);
