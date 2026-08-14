@@ -34,3 +34,7 @@ Thumbs.db
 
 # Draft writeups for active HTB machines (never publish)
 _drafts/
+
+# 3D source models live in Certifa.v2/hero-prototype/assets/models, not here.
+# Only the draco-compressed exports in public/models ship.
+.gstack/

@@ -20,322 +20,376 @@ const fmt = new Intl.DateTimeFormat('en-GB', {
   day: 'numeric', month: 'long', year: 'numeric',
 }).format(date);
 
-const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
-
-// Rendered at build by src/pages/og/[...route].ts. One image serves both jobs:
-// the masthead here and the og:image when the link is shared.
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+const os = tags.includes('windows') ? 'Windows' : tags.includes('linux') ? 'Linux' : null;
 const card = ogCard(entry.slug);
-
-// Shared chrome, lifted from the Page_8 card and the Page_14 sidebar so this
-// template reads as part of the same system the exports established.
-const CARD = 'rounded-xl border border-border bg-surface hover:border-borderHover hover:bg-white/[0.02] transition-all duration-300';
-const MICRO = 'font-mono text-[10px] uppercase tracking-widest text-muted';
 ---
+
 <BaseLayout title={title} description={description} image={card}>
-  <div class="wu-progress" id="wuProgress" aria-hidden="true"></div>
+  <div class="prog" aria-hidden="true"><i id="prog"></i></div>
 
-  <article class="wu-page pb-24">
-    <!-- Header band -->
-    <header class="border-b border-border">
-      <div class="max-w-6xl mx-auto px-6 pt-10 pb-10">
-        <a href="/writeups/" class="inline-flex items-center gap-2 font-mono text-xs text-muted hover:text-accent transition-colors mb-10 group">
-          <span class="transition-transform group-hover:-translate-x-0.5" aria-hidden="true">←</span>
-          back to writeups
-        </a>
+  <header class="whead">
+    <a class="back" href="/writeups/">&larr; Back to writeups</a>
+    <h1 class="wtitle">{title}</h1>
+    <p class="wsub">{description}</p>
+    <p class="meta">
+      <span class="diff">{difficulty}</span>
+      <span>{platform}</span>
+      {os && <span>{os}</span>}
+      <span>{fmt}</span>
+      <span>~{readingTime} min read</span>
+    </p>
+    <div class="wtags">{tags.map((t) => <i>{t}</i>)}</div>
+  </header>
 
-        <div class="font-mono text-xs tracking-wider text-muted uppercase mb-4 flex items-center gap-2">
-          <span class="text-accent">/</span> WRITEUP
-        </div>
+  <div class="shell">
+    <nav class="toc" id="toc" aria-label="On this page">
+      <p>On this page</p>
+      {toc.map((h) => (
+        <a class:list={[{ sub: h.depth === 3 }]} href={`#${h.slug}`}>{h.text}</a>
+      ))}
+    </nav>
 
-        {card ? (
-          <>
-            {/* The card sets the title in Space Grotesk already, so the h1 is
-                kept for structure and screen readers rather than printed twice. */}
-            <img
-              src={card}
-              alt={title}
-              width="1200"
-              height="630"
-              decoding="async"
-              class="w-full max-w-2xl h-auto rounded-xl border border-border mb-7"
-            />
-            <h1 class="sr-only">{title}</h1>
-          </>
-        ) : (
-          <h1 class="font-display text-4xl md:text-5xl font-bold text-white tracking-tight leading-[1.1] mb-5 max-w-3xl">
-            {title}
-          </h1>
-        )}
+    <article class="body" id="wuBody"><slot /></article>
+  </div>
 
-        <p class="text-lg text-zinc-400 max-w-2xl leading-relaxed">{description}</p>
-
-        <div class="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
-          <span class={`diff-pill diff-${difficulty}`}>{difficulty}</span>
-          <span class={MICRO}>{platform}</span>
-          <span class="text-zinc-700" aria-hidden="true">·</span>
-          <span class={MICRO}>{fmt}</span>
-          <span class="text-zinc-700" aria-hidden="true">·</span>
-          <span class={MICRO}>~{readingTime} min read</span>
-        </div>
-
-        <div class="mt-5 flex flex-wrap gap-2">
-          {tags.map((t) => (
-            <span class="px-2 py-1 text-[10px] font-mono text-muted border border-border rounded">{t}</span>
-          ))}
-        </div>
-      </div>
-    </header>
-
-    <!-- Body -->
-    <div class="max-w-6xl mx-auto px-6 pt-12 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_260px] gap-8 lg:gap-14 items-start">
-      {tocHeadings.length > 0 && (
-        <aside class="lg:order-2 lg:sticky lg:top-24 w-full">
-          <details class="wu-toc rounded-xl border border-border bg-surface/40 backdrop-blur-sm px-5 py-4" id="wuToc" open>
-            <summary class="wu-toc-title flex items-center justify-between gap-3 cursor-pointer list-none">
-              <span class={MICRO}>On this page</span>
-              <span class="wu-toc-chevron text-muted text-xs" aria-hidden="true">▾</span>
-            </summary>
-            <nav class="wu-toc-list mt-4 flex flex-col">
-              {tocHeadings.map((h) => (
-                <a href={`#${h.slug}`} class={`toc-link depth-${h.depth}`}>{h.text}</a>
-              ))}
-            </nav>
-          </details>
-        </aside>
-      )}
-
-      <div class="lg:order-1 min-w-0">
-        <div class="prose-writeup"><slot /></div>
-      </div>
-    </div>
-
-    <!-- End of writeup -->
-    <footer class="max-w-6xl mx-auto px-6 mt-20">
-      <div class="border-t border-border pt-10">
-        {related.length > 0 && (
-          <section class="mb-12">
-            <h2 class={`${MICRO} mb-5`}>Related writeups</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {related.map((r) => (
-                <a href={`/writeups/${r.slug}/`} class={`${CARD} group p-5 flex flex-col gap-3`}>
-                  <span class={`diff-pill diff-${r.data.difficulty} self-start`}>{r.data.difficulty}</span>
-                  <span class="font-display text-lg font-medium text-fg group-hover:text-accent transition-colors">{r.data.title}</span>
-                  <span class="font-mono text-[11px] text-muted leading-relaxed">{r.data.tags.slice(0, 3).join(' · ')}</span>
-                </a>
-              ))}
-            </div>
-          </section>
-        )}
-
-        <nav class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10" aria-label="More writeups">
-          {older ? (
-            <a href={`/writeups/${older.slug}/`} class={`${CARD} group p-5 flex flex-col gap-2`}>
-              <span class={`${MICRO} flex items-center gap-2`}>
-                <span class="transition-transform group-hover:-translate-x-0.5" aria-hidden="true">←</span> Older
-              </span>
-              <span class="font-display text-base font-medium text-fg group-hover:text-accent transition-colors">{older.data.title}</span>
-            </a>
-          ) : <span></span>}
-          {newer ? (
-            <a href={`/writeups/${newer.slug}/`} class={`${CARD} group p-5 flex flex-col gap-2 sm:text-right sm:items-end`}>
-              <span class={`${MICRO} flex items-center gap-2`}>
-                Newer <span class="transition-transform group-hover:translate-x-0.5" aria-hidden="true">→</span>
-              </span>
-              <span class="font-display text-base font-medium text-fg group-hover:text-accent transition-colors">{newer.data.title}</span>
-            </a>
-          ) : <span></span>}
-        </nav>
-
-        <div class="flex justify-center">
-          <a href="/writeups/" class="px-6 py-2.5 text-sm font-medium text-zinc-400 border border-border rounded-lg hover:border-accent hover:text-accent transition-colors">
-            All writeups
+  {related.length > 0 && (
+    <section class="related">
+      <p>Related writeups</p>
+      <div class="rel-grid">
+        {related.map((w) => (
+          <a class="rel" href={`/writeups/${w.slug}/`}>
+            <span class="wipe"></span>
+            <span class="d">{w.data.difficulty} &middot; {w.data.platform}</span>
+            <h4>{w.data.title}</h4>
+            <p class="t">{w.data.tags.slice(0, 3).join(' · ')}</p>
           </a>
-        </div>
+        ))}
       </div>
-    </footer>
-  </article>
+    </section>
+  )}
 
-  <!-- Mermaid: render diagram code blocks client-side (loaded only when a diagram exists) -->
-  <script type="module" is:inline>
-    const diagrams = document.querySelectorAll('pre[data-language="mermaid"]');
-    if (diagrams.length > 0) {
-      const { default: mermaid } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
-      mermaid.initialize({
-        startOnLoad: false,
-        theme: 'base',
-        themeVariables: {
-          darkMode: true,
-          background: '#09090b',
-          primaryColor: '#161619',
-          primaryTextColor: '#e4e4e7',
-          primaryBorderColor: 'rgba(74, 222, 128, 0.35)',
-          lineColor: 'rgba(74, 222, 128, 0.85)',
-          secondaryColor: '#0f0f12',
-          tertiaryColor: '#1f1f23',
-          edgeLabelBackground: '#09090b',
-          nodeTextColor: '#e4e4e7',
-          clusterBkg: '#0f0f12',
-          titleColor: '#e4e4e7',
-        },
-      });
-      for (const pre of diagrams) {
-        const code = pre.querySelector('code');
-        const text = (code ?? pre).textContent.trim();
-        const id = 'mermaid-' + Math.random().toString(36).slice(2, 8);
-        try {
-          const { svg } = await mermaid.render(id, text);
-          const wrapper = document.createElement('div');
-          wrapper.className = 'mermaid-diagram';
-          wrapper.innerHTML = svg;
-          pre.replaceWith(wrapper);
-        } catch (e) {}
+  <div class="pager">
+    {older
+      ? <a href={`/writeups/${older.slug}/`}>&larr; Older &middot; {older.data.title}</a>
+      : <span></span>}
+    <a href="/writeups/">All writeups</a>
+    {newer
+      ? <a href={`/writeups/${newer.slug}/`}>Newer &middot; {newer.data.title} &rarr;</a>
+      : <span></span>}
+  </div>
+</BaseLayout>
+
+<style is:global>
+  /* Long-form pages hold the grain still. A texture that re-renders every
+     0.28s under body copy is a shimmer you read through. */
+  .pagegrain { animation: none; opacity: .035; }
+
+  /* reading progress, the only chrome that tracks how far you are */
+  .prog { position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 60; background: transparent; }
+  .prog i { display: block; height: 100%; width: 0; background: var(--blood-lit);
+    box-shadow: 0 0 10px rgba(193,31,31,.6); }
+
+  /* ================= HEAD ================= */
+  .whead { position: relative; padding: 20vh 4vw 5vh; border-bottom: 1px solid var(--line); }
+  .whead::before { content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse 50% 60% at 14% 50%, rgba(193,31,31,.09), transparent 70%); }
+  .whead > * { position: relative; }
+  .back { display: inline-block; font-size: .6rem; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--dim); text-decoration: none; margin-bottom: 4vh; transition: color .28s; }
+  .back:hover { color: var(--blood-lit); }
+  .wtitle { margin: 0; font-family: var(--display); font-weight: 400; text-transform: uppercase;
+    font-size: clamp(2.6rem, 9vw, 7rem); line-height: .86; color: var(--bone); }
+  .wsub { margin: 1.6em 0 0; max-width: 64ch; font-size: 1rem; line-height: 1.8; color: var(--read); }
+  .meta { display: flex; gap: 1.7em; flex-wrap: wrap; margin-top: 3.4vh;
+    font-size: .68rem; letter-spacing: .18em; text-transform: uppercase; color: var(--dim); }
+  .meta .diff { color: var(--blood-lit); }
+  .wtags { display: flex; gap: .5em; flex-wrap: wrap; margin-top: 2.6vh; }
+  .wtags i { font-style: normal; font-size: .55rem; letter-spacing: .16em; text-transform: uppercase;
+    color: #3a3732; border: 1px solid var(--line); padding: .45em .8em; }
+
+  /* ================= LAYOUT ================= */
+  .shell { display: grid; grid-template-columns: 290px 1fr; gap: 4vw;
+    padding: 8vh 4vw 12vh; align-items: start; }
+
+  /* ---- contents ----
+     Long writeups run past the viewport, so the list scrolls, but the scrollbar
+     is hidden and the list moves itself to keep the current section in view. */
+  .toc { position: sticky; top: 12vh; max-height: 78vh; overflow-y: auto;
+    scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; }
+  .toc::-webkit-scrollbar { width: 0; height: 0; }
+  .toc p { margin: 0 0 1.8em; font-size: .64rem; letter-spacing: .24em;
+    text-transform: uppercase; color: var(--blood-lit); }
+  .toc a { display: block; font-size: .84rem; line-height: 1.5; color: #8a867f;
+    text-decoration: none; padding: .58em 0 .58em 1.1em; border-left: 1px solid var(--line);
+    transition: color .25s, border-color .25s; }
+  .toc a:hover { color: var(--bone); }
+  .toc a.sub { padding-left: 2.2em; font-size: .78rem; }
+  .toc a.on { color: var(--bone); border-left-color: var(--blood-lit); }
+
+  /* ---- prose ----
+     The container does not cap everything, or evidence could never be wider
+     than the prose. Reading elements carry the 66ch measure themselves. */
+  .body { max-width: 58rem; min-width: 0; counter-reset: sec; }
+  .body p, .body ul:not(.tldr):not(.lessons), .body ol, .body blockquote { max-width: 66ch; }
+
+  .body h2 { margin: 3.6em 0 1.2em; padding-top: 1.8em; border-top: 1px solid var(--line);
+    font-family: var(--display); font-weight: 400; text-transform: uppercase;
+    font-size: clamp(1.35rem, 3vw, 2.2rem); line-height: 1; color: var(--bone);
+    scroll-margin-top: 12vh; max-width: none; }
+  .body h2::before { counter-increment: sec; content: counter(sec, decimal-leading-zero);
+    display: block; font-family: var(--mono); font-size: .6rem; letter-spacing: .22em;
+    color: var(--blood-lit); margin-bottom: 1.1em; }
+  .body > :first-child.h2, .body h2:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+  .body h3 { margin: 2.6em 0 .9em; font-size: .92rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--blood-lit); scroll-margin-top: 12vh; }
+  .body p { margin: 0 0 1.5em; font-size: 1.08rem; line-height: 1.8; color: var(--read); }
+  .body strong { color: var(--bone); font-weight: 400; }
+  .body a { color: var(--bone); text-decoration: none; border-bottom: 1px solid #3a3440;
+    transition: color .28s, border-color .28s; }
+  .body a:hover { color: var(--blood-lit); border-bottom-color: var(--blood-lit); }
+  .body ul, .body ol { margin: 0 0 1.6em; padding-left: 1.3em; }
+  .body li { font-size: 1.05rem; line-height: 1.8; color: var(--read); margin-bottom: .7em; }
+  .body li::marker { color: var(--blood-lit); }
+  .body :not(pre) > code { font-family: var(--mono); font-size: .86em; color: var(--bone);
+    background: #141219; border: 1px solid var(--line); padding: .12em .45em; }
+
+  /* ---- TL;DR: the section a skimmer reads, so it reads as a briefing ---- */
+  .body ul.tldr { list-style: none; margin: 0 0 2em; padding: 24px 26px 26px;
+    border: 1px solid var(--line); background: var(--panel); width: min(100%, 48rem); max-width: none; }
+  .body ul.tldr li { position: relative; margin: 0; padding: 1.05em 0 0 1.8em;
+    border-top: 1px solid var(--line); font-size: .98rem; line-height: 1.8; color: #b6b2aa; }
+  .body ul.tldr li:first-child { border-top: 0; padding-top: 0; }
+  .body ul.tldr li::marker { content: none; }
+  .body ul.tldr li::before { content: '→'; position: absolute; left: 0; top: 1em;
+    color: var(--blood-lit); font-size: .85em; }
+  .body ul.tldr li:first-child::before { top: 0; }
+
+  /* ---- Lessons: his best writing, so it stops looking like a bullet list ---- */
+  .body ul.lessons { list-style: none; counter-reset: lesson; margin: 0 0 2em; padding: 0;
+    display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line);
+    width: min(100%, 48rem); max-width: none; }
+  .body ul.lessons li { background: var(--panel); margin: 0; padding: 26px 30px 28px;
+    font-size: .95rem; line-height: 1.82; color: var(--read); }
+  .body ul.lessons li::marker { content: none; }
+  .body ul.lessons li::before { counter-increment: lesson;
+    content: counter(lesson, decimal-leading-zero); display: block;
+    font-family: var(--mono); font-size: .56rem; letter-spacing: .22em;
+    color: var(--blood-lit); margin-bottom: 1.1em; }
+  .body ul.lessons li > strong:first-child { display: block; font-family: var(--display);
+    font-weight: 400; text-transform: uppercase; font-size: 1.02rem; line-height: 1.12;
+    letter-spacing: .01em; color: var(--bone); margin-bottom: .8em; }
+
+  /* ---- the overview table ---- */
+  .body table { width: 100%; border-collapse: collapse; margin: 0 0 2em;
+    border: 1px solid var(--line); max-width: none; }
+  .body th, .body td { text-align: left; padding: 1em 1.2em; border-bottom: 1px solid var(--line);
+    font-size: .88rem; font-weight: 400; }
+  .body tr:last-child th, .body tr:last-child td { border-bottom: 0; }
+  .body th { width: 12em; color: var(--dimmer); font-size: .58rem; letter-spacing: .2em;
+    text-transform: uppercase; background: #0a090c; }
+  .body td { color: var(--bone); }
+
+  /* ---- code ----
+     Evidence fills the column: half the code lines are 34 characters but the
+     longest reach 146, and a command you cannot read is useless. */
+  .cb { position: relative; margin: 0 0 .55em; background: var(--panel);
+    border: 1px solid var(--line); width: 100%; max-width: none; }
+  .cb + p, figure + p, .cb + h3, figure + h3 { margin-top: 2.6em; }
+  .body p + .cb, .body p + figure { margin-top: 1.4em; }
+  .cbar { display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 16px; border-bottom: 1px solid var(--line);
+    font-size: .62rem; letter-spacing: .18em; text-transform: uppercase; color: var(--dimmer); }
+  /* a named fence is something he ran; an unlabelled one is what came back */
+  .cb.cmd { border-left: 2px solid #4d1616; }
+  .cb.cmd .cbar span:first-child { color: var(--blood-lit); }
+  .cb.out { background: #08070a; }
+  .body pre { margin: 0 !important; padding: 22px 20px !important; font-size: .85rem;
+    line-height: 1.8; overflow-x: auto; background: transparent !important; }
+  .cb.out pre { font-size: .8rem; }
+  .body pre code { font-family: var(--mono); background: none; border: 0; padding: 0; }
+  .copy { font-family: var(--mono); font-size: .56rem; letter-spacing: .18em;
+    text-transform: uppercase; background: transparent; border: 1px solid var(--line);
+    color: var(--dimmer); padding: .5em .9em; cursor: pointer;
+    transition: color .25s, border-color .25s; }
+  .copy:hover { color: var(--bone); border-color: var(--blood-lit); }
+  .copy.done { color: var(--blood-lit); border-color: var(--blood-lit); }
+
+  /* a line that matters more than the rest of the block */
+  .body blockquote { margin: 0 0 2em; padding: 18px 20px; border-left: 2px solid var(--blood-lit);
+    background: #0a090c; font-size: .9rem; line-height: 1.85; color: var(--read); }
+  .body blockquote p:last-child { margin-bottom: 0; }
+
+  /* ---- screenshots ---- */
+  .body figure { margin: 0 0 .55em; border: 1px solid var(--line); padding: 0;
+    width: 100%; max-width: none; }
+  .body figure img { display: block; width: 100%; height: auto; }
+  .body figcaption { margin: .95em .2em .1em; font-size: .66rem; letter-spacing: .1em;
+    color: var(--dimmer); display: flex; gap: .7em; align-items: baseline; }
+  .body figcaption::before { content: ''; width: 14px; height: 1px; background: var(--blood-lit);
+    flex: 0 0 auto; transform: translateY(-.35em); }
+  .body > p > img { display: block; width: 100%; height: auto; border: 1px solid var(--line); }
+
+  /* ---- the embargo panel, styled from the markdown's own classes ---- */
+  .wu-locked { border: 1px solid var(--line); background: #0a090c; padding: 44px 34px;
+    text-align: center; max-width: none; }
+  .wu-locked-icon { width: 34px; height: 34px; color: var(--blood-lit); margin-bottom: 1.4em; }
+  .wu-locked-kicker { margin: 0 0 1em !important; font-size: .56rem; letter-spacing: .28em;
+    text-transform: uppercase; color: var(--blood-lit); }
+  .wu-locked h2 { margin: 0 0 1em !important; padding: 0 !important; border: 0 !important;
+    font-size: clamp(1.3rem, 3vw, 2rem); }
+  .wu-locked h2::before { content: none !important; }
+  .wu-locked p { margin: 0 auto !important; max-width: 52ch; font-size: .9rem; }
+  .wu-locked-foot { margin-top: 1.6em !important; font-size: .62rem; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--dimmer); }
+
+  /* ================= RELATED / NAV ================= */
+  .related { padding: 0 4vw 6vh; }
+  .related > p { margin: 0 0 4vh; font-size: .6rem; letter-spacing: .32em;
+    text-transform: uppercase; color: var(--dimmer); }
+  .rel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+    gap: 1px; }
+  .rel { position: relative; background: var(--panel); padding: 26px 24px 28px; overflow: hidden;
+    text-decoration: none; display: block; box-shadow: 0 0 0 1px var(--line);
+    transition: background .3s; }
+  .rel:hover { background: #100e14; }
+  .rel .wipe { position: absolute; left: 0; right: 0; top: 0; height: 2px;
+    background: var(--blood-lit); transform: scaleX(0); transform-origin: left;
+    pointer-events: none; transition: transform .45s cubic-bezier(.2,0,0,1); }
+  .rel:hover .wipe { transform: scaleX(1); }
+  .rel .d { font-size: .55rem; letter-spacing: .22em; text-transform: uppercase; color: var(--dimmer); }
+  .rel h4 { margin: 1.3em 0 0; font-family: var(--display); font-weight: 400;
+    text-transform: uppercase; font-size: 1.25rem; line-height: 1; color: var(--bone); }
+  .rel .t { margin: 1em 0 0; font-size: .66rem; letter-spacing: .12em; color: #3a3732; }
+
+  .pager { display: flex; justify-content: space-between; gap: 2em; flex-wrap: wrap;
+    padding: 0 4vw 14vh; }
+  .pager a { font-size: .62rem; letter-spacing: .2em; text-transform: uppercase; color: var(--dim);
+    text-decoration: none; border: 1px solid var(--line); padding: 1.1em 1.7em;
+    transition: border-color .3s, color .3s; }
+  .pager a:hover { border-color: var(--blood-lit); color: var(--bone); }
+
+  @media (max-width: 980px) {
+    .shell { grid-template-columns: 1fr; gap: 0; }
+    .toc { position: static; max-height: none; margin-bottom: 6vh;
+      border: 1px solid var(--line); padding: 22px 20px; }
+    .whead { padding-top: 16vh; }
+  }
+</style>
+
+<script>
+  /* Astro renders the markdown; this adds the chrome the design needs on top of
+     it. Doing it here rather than in the markdown means the content files stay
+     plain and portable. */
+  const body = document.getElementById('wuBody');
+
+  if (body) {
+    // Code blocks become panels. A fence with a language is a command he ran;
+    // an unlabelled one is what came back, and they should not look the same.
+    body.querySelectorAll('pre').forEach((pre) => {
+      const lang = pre.getAttribute('data-language') || '';
+      const isCmd = lang && lang !== 'plaintext' && lang !== 'text';
+      const box = document.createElement('div');
+      box.className = `cb ${isCmd ? 'cmd' : 'out'}`;
+      const bar = document.createElement('div');
+      bar.className = 'cbar';
+      bar.innerHTML = `<span>${isCmd ? lang : 'output'}</span>`;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'copy';
+      btn.textContent = 'Copy';
+      bar.appendChild(btn);
+      pre.replaceWith(box);
+      box.append(bar, pre);
+    });
+
+    // The summary and the takeaways stop being ordinary bullet lists.
+    const mark = (slug: string, cls: string) => {
+      const h = document.getElementById(slug);
+      let n = h?.nextElementSibling;
+      while (n && n.tagName !== 'UL' && n.tagName !== 'H2') n = n.nextElementSibling;
+      if (n && n.tagName === 'UL') n.classList.add(cls);
+    };
+    mark('tldr', 'tldr');
+    mark('tl-dr', 'tldr');
+    mark('lessons-learned', 'lessons');
+
+    // Images become figures so the alt text can caption them.
+    body.querySelectorAll('p > img').forEach((img) => {
+      const p = img.parentElement!;
+      if (p.childNodes.length !== 1) return;
+      const fig = document.createElement('figure');
+      const alt = img.getAttribute('alt') || '';
+      p.replaceWith(fig);
+      fig.appendChild(img);
+      if (alt.trim()) {
+        const cap = document.createElement('figcaption');
+        cap.textContent = alt;
+        fig.appendChild(cap);
+      }
+    });
+  }
+
+  // Copy, with a fallback: the async clipboard needs a secure context, and this
+  // button exists to hand over commands.
+  document.querySelectorAll('.copy').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const code = (button.closest('.cb')?.querySelector('pre') as HTMLElement)?.innerText ?? '';
+      let copied = false;
+      try {
+        await navigator.clipboard.writeText(code);
+        copied = true;
+      } catch {
+        const scratch = document.createElement('textarea');
+        scratch.value = code;
+        scratch.setAttribute('readonly', '');
+        scratch.style.cssText = 'position:fixed;top:-9999px';
+        document.body.appendChild(scratch);
+        scratch.select();
+        try { copied = document.execCommand('copy'); } catch { copied = false; }
+        scratch.remove();
+      }
+      button.textContent = copied ? 'Copied' : 'Press Ctrl+C';
+      button.classList.toggle('done', copied);
+      setTimeout(() => { button.textContent = 'Copy'; button.classList.remove('done'); }, 1600);
+    });
+  });
+
+  // Reading progress
+  const prog = document.getElementById('prog');
+  const onScroll = () => {
+    if (!prog) return;
+    const max = document.documentElement.scrollHeight - innerHeight;
+    prog.style.width = (max > 0 ? (scrollY / max) * 100 : 0) + '%';
+  };
+  onScroll();
+  addEventListener('scroll', onScroll, { passive: true });
+
+  /* Scroll spy. Tracks the heading nearest the top rather than whichever one
+     intersects, so short sections still register as you pass them. */
+  const toc = document.getElementById('toc');
+  const links = [...document.querySelectorAll('.toc a')] as HTMLAnchorElement[];
+  const targets = links.map((a) => document.getElementById(a.getAttribute('href')!.slice(1)));
+  let lastActive: HTMLAnchorElement | null = null;
+
+  function spy() {
+    const line = innerHeight * 0.22;
+    let current = 0;
+    targets.forEach((section, index) => {
+      if (section && section.getBoundingClientRect().top <= line) current = index;
+    });
+    links.forEach((a, index) => a.classList.toggle('on', index === current));
+
+    // Keep the current entry visible without the reader ever scrolling the list.
+    const active = links[current];
+    if (toc && active && active !== lastActive) {
+      lastActive = active;
+      const box = toc.getBoundingClientRect();
+      const row = active.getBoundingClientRect();
+      if (row.top < box.top + 8 || row.bottom > box.bottom - 8) {
+        toc.scrollTo({ top: active.offsetTop - toc.clientHeight / 2, behavior: 'smooth' });
       }
     }
-  </script>
-
-  <script>
-    // Wrap tables so wide ones scroll horizontally instead of overflowing the viewport
-    document.querySelectorAll('.prose-writeup table').forEach((table) => {
-      const wrap = document.createElement('div');
-      wrap.className = 'table-wrap';
-      table.parentNode?.insertBefore(wrap, table);
-      wrap.appendChild(table);
-    });
-
-    // TOC: always-open sticky sidebar on desktop, collapsed drawer on mobile
-    const toc = document.getElementById('wuToc') as HTMLDetailsElement | null;
-    if (toc) {
-      const mq = window.matchMedia('(min-width: 1001px)');
-      const syncToc = () => { toc.open = mq.matches; };
-      syncToc();
-      mq.addEventListener('change', syncToc);
-      // Collapse after picking a heading on mobile
-      toc.querySelectorAll('a').forEach((a) =>
-        a.addEventListener('click', () => { if (!mq.matches) toc.open = false; })
-      );
-    }
-
-    // Copy buttons on code blocks
-    document.querySelectorAll('.prose-writeup pre').forEach((pre) => {
-      const btn = document.createElement('button');
-      btn.className = 'copy-btn';
-      btn.type = 'button';
-      btn.textContent = 'copy';
-      btn.addEventListener('click', () => {
-        const code = pre.querySelector('code');
-        navigator.clipboard.writeText(code?.textContent ?? '').then(() => {
-          btn.textContent = 'copied';
-          setTimeout(() => (btn.textContent = 'copy'), 1600);
-        });
-      });
-      (pre as HTMLElement).style.position = 'relative';
-      pre.appendChild(btn);
-    });
-
-    // Active TOC heading via IntersectionObserver
-    const headings = document.querySelectorAll<HTMLElement>('.prose-writeup h2, .prose-writeup h3');
-    const links = document.querySelectorAll<HTMLAnchorElement>('.toc-link');
-    if (links.length > 0) {
-      const obs = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((e) => {
-            if (e.isIntersecting) {
-              const id = (e.target as HTMLElement).id;
-              let current: HTMLAnchorElement | null = null;
-              links.forEach((l) => {
-                const on = l.getAttribute('href') === `#${id}`;
-                l.classList.toggle('active', on);
-                if (on) current = l;
-              });
-              // The list scrolls on long writeups, so keep the highlighted
-              // entry in view. 'nearest' is a no-op when it already is, and
-              // stays instant, so there's no motion to suppress.
-              if (current) {
-                (current as HTMLAnchorElement).scrollIntoView({ block: 'nearest' });
-              }
-            }
-          });
-        },
-        { rootMargin: '-15% 0% -70% 0%', threshold: 0 }
-      );
-      headings.forEach((h) => obs.observe(h));
-    }
-
-    // Reading-progress bar: fraction of the article scrolled past the viewport top
-    const bar = document.getElementById('wuProgress');
-    const article = document.querySelector('.wu-page');
-    if (bar && article) {
-      const update = () => {
-        const rect = article.getBoundingClientRect();
-        const total = rect.height - window.innerHeight;
-        const scrolled = total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 0;
-        bar.style.transform = `scaleX(${scrolled})`;
-      };
-      update();
-      window.addEventListener('scroll', update, { passive: true });
-      window.addEventListener('resize', update);
-    }
-
-    // Hover anchor links on headings (headings already carry slug ids)
-    document.querySelectorAll<HTMLElement>('.prose-writeup h2[id], .prose-writeup h3[id]').forEach((h) => {
-      if (h.querySelector('.wu-anchor')) return;
-      const a = document.createElement('a');
-      a.className = 'wu-anchor';
-      a.href = `#${h.id}`;
-      a.setAttribute('aria-label', 'Link to this section');
-      a.textContent = '#';
-      h.appendChild(a);
-    });
-  </script>
-</BaseLayout>
-<style>
-  /* Reading progress, pinned under the fixed nav. */
-  .wu-progress {
-    position: fixed; top: 64px; left: 0; right: 0;
-    height: 2px;
-    background: var(--accent);
-    transform: scaleX(0); transform-origin: left;
-    z-index: 99;
-    will-change: transform;
   }
-
-  /* TOC panel. Sticky sidebar from lg up, collapsible drawer below it, with
-     the open state driven by the matchMedia sync in the script above. */
-  .wu-toc summary::-webkit-details-marker { display: none; }
-  .wu-toc-chevron { transition: transform .2s ease; }
-  .wu-toc[open] .wu-toc-chevron { transform: rotate(180deg); }
-  @media (min-width: 1024px) {
-    .wu-toc-chevron { display: none; }
-    .wu-toc-title { cursor: default; }
-    .wu-toc-list { max-height: calc(100vh - 12rem); overflow-y: auto; }
-  }
-
-  /* Hover anchor links on headings (created client-side) */
-  :global(.prose-writeup h2), :global(.prose-writeup h3) { position: relative; }
-  :global(.wu-anchor) {
-    position: absolute; left: -1.1em; top: 0;
-    color: var(--fg-4); text-decoration: none; font-weight: 400;
-    opacity: 0; transition: opacity .15s ease, color .15s ease;
-  }
-  :global(.wu-anchor:hover) { color: var(--accent); }
-  :global(.wu-anchor:focus-visible) { opacity: 1; color: var(--accent); }
-  @media (hover: hover) {
-    :global(.prose-writeup h2:hover .wu-anchor),
-    :global(.prose-writeup h3:hover .wu-anchor) { opacity: 1; }
-  }
-  @media (max-width: 900px) {
-    /* No room for a hanging marker next to the text */
-    :global(.wu-anchor) { display: none; }
-  }
-
-  :global(.mermaid-diagram) {
-    background: var(--bg-2);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin: 1.5rem 0;
-    overflow-x: auto;
-    text-align: center;
-  }
-  :global(.mermaid-diagram svg) { max-width: 100%; height: auto; }
-</style>
+  if (links.length) { spy(); addEventListener('scroll', spy, { passive: true }); }
+</script>

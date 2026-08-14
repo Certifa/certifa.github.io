@@ -1,252 +1,341 @@
 ---
-import { existsSync } from 'node:fs';
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import CardMotif from '../../components/CardMotif.astro';
 
-// Box art when the writeup has it, code motif when it doesn't (locked boxes
-// carry no avatar). Resolved at build, so a missing file can never 404.
-const avatarFor = (slug: string) => {
-  const box = slug.replace(/^htb-/, '');
-  return existsSync(`public/og-avatars/${box}.png`) ? `/og-avatars/${box}.png` : null;
-};
+const all = (await getCollection('writeups'))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
-const writeups = (await getCollection('writeups')).sort(
-  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
-);
+// A machine still under embargo ships a locked panel instead of a chain. That is
+// the honest source of truth for its status, rather than a second frontmatter
+// field that could drift away from the content.
+const isLocked = (e: (typeof all)[number]) => e.body.includes('wu-locked');
 
-// Difficulty + featured filters, as the site had before: a chip only appears
-// when its count is non-zero.
+const LEAD = 'htb-darkzero';
+const SHOWN_TAGS = 5;
+
+// Flagship first, then newest.
+const posts = [...all.filter((e) => e.slug === LEAD), ...all.filter((e) => e.slug !== LEAD)];
+
 const counts = {
-  all: writeups.length,
-  easy: writeups.filter((w) => w.data.difficulty === 'easy').length,
-  medium: writeups.filter((w) => w.data.difficulty === 'medium').length,
-  hard: writeups.filter((w) => w.data.difficulty === 'hard').length,
-  insane: writeups.filter((w) => w.data.difficulty === 'insane').length,
-  featured: writeups.filter((w) => w.data.featured).length,
+  easy: all.filter((e) => e.data.difficulty === 'easy').length,
+  medium: all.filter((e) => e.data.difficulty === 'medium').length,
+  hard: all.filter((e) => e.data.difficulty === 'hard').length,
 };
+
+// A grid can show nine machines. It cannot show breadth, which is the argument
+// this page is actually making, so the numbers say it directly. Computed, so
+// they cannot go stale when machine ten lands.
+const uniqueTags = new Set(all.flatMap((e) => e.data.tags.map((t) => t.toLowerCase())));
+const stats = {
+  machines: all.length,
+  techniques: uniqueTags.size,
+  // CVE ids are tagged inconsistently in case, so match on the prefix.
+  cves: [...uniqueTags].filter((t) => t.startsWith('cve-')).length,
+  ad: all.filter((e) => e.data.tags.includes('active-directory')).length,
+  web: all.filter((e) => e.data.tags.includes('web')).length,
+};
+
+const osOf = (tags: string[]) =>
+  tags.includes('windows') ? 'windows' : tags.includes('linux') ? 'linux' : '';
 ---
 
 <BaseLayout
   title="Writeups"
-  description="In-depth writeups covering Active Directory, web applications, infrastructure, and beyond. From initial foothold to full compromise."
+  description="Nine HackTheBox machines written up after they retire, from first port to domain admin. Active Directory, web, and the unglamorous middle."
 >
-  <!-- BaseLayout already renders the page's <main>, so this is a plain wrapper. -->
-  <div class="flex-1 max-w-[1600px] w-full mx-auto px-6 py-12 lg:py-24 grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-16 lg:gap-24 relative isolate">
-    <div class="absolute top-0 left-0 w-full h-[500px] bg-accent/5 blur-[120px] rounded-full pointer-events-none -z-10" aria-hidden="true"></div>
+  <header class="open">
+    <p class="eyebrow">/ Writeups</p>
+    <h1 class="lead">
+      <span class="ln"><span class="i">Break systems.</span></span>
+      <span class="ln crimson"><span class="i">Document truth.</span></span>
+    </h1>
+    <p class="lede">
+      Every machine written up <b>after it retires</b>, from first port to
+      domain admin. Active Directory, web, and the unglamorous middle where most
+      of the work actually happens.
+    </p>
+  </header>
 
-    <!-- Left: sticky header -->
-    <div class="flex flex-col gap-12 lg:sticky lg:top-32 self-start h-fit">
-      <div class="space-y-6">
-        <p class="text-xs font-mono text-muted uppercase tracking-widest">
-          Writeups Archive<span class="text-accent animate-pulse">_</span>
-        </p>
-        <h1 class="text-5xl lg:text-6xl xl:text-7xl font-display font-medium leading-[1.1] tracking-tight">
-          Break systems.<br />
-          Document <span class="text-accent">the flag.</span>
-        </h1>
-        <p class="text-muted font-mono text-sm leading-relaxed max-w-md pt-2">
-          In-depth writeups covering Active Directory, web applications, infrastructure, and beyond.<br />
-          From initial foothold to full compromise.
-        </p>
-      </div>
+  <section class="cover" aria-label="Coverage at a glance">
+    <div><p class="n">{stats.machines}</p><p class="k">Machines</p></div>
+    <div><p class="n">{stats.techniques}</p><p class="k">Techniques</p></div>
+    <div><p class="n">{stats.cves}</p><p class="k">Named CVEs</p></div>
+    <div><p class="n">{stats.ad}</p><p class="k">Active Directory</p></div>
+    <div><p class="n">{stats.web}</p><p class="k">Web</p></div>
+  </section>
 
-      <div class="space-y-8">
-        <input
-          id="wuSearch"
-          class="wu-search"
-          type="search"
-          placeholder="Search title, tag, or technique…"
-          aria-label="Search writeups"
-          autocomplete="off"
-        />
-
-        <div class="flex flex-wrap gap-2">
-          <button type="button" class="chip active" data-filter="all">All · {counts.all}</button>
-          {counts.easy > 0 && <button type="button" class="chip" data-filter="easy">Easy · {counts.easy}</button>}
-          {counts.medium > 0 && <button type="button" class="chip" data-filter="medium">Medium · {counts.medium}</button>}
-          {counts.hard > 0 && <button type="button" class="chip" data-filter="hard">Hard · {counts.hard}</button>}
-          {counts.insane > 0 && <button type="button" class="chip" data-filter="insane">Insane · {counts.insane}</button>}
-          {counts.featured > 0 && <button type="button" class="chip" data-filter="featured">Featured · {counts.featured}</button>}
-        </div>
-      </div>
+  <div class="controls">
+    <div class="filters" role="group" aria-label="Filter by difficulty">
+      <button type="button" data-filter="all" aria-pressed="true">All <span class="n">{all.length}</span></button>
+      <button type="button" data-filter="easy" aria-pressed="false">Easy <span class="n">{counts.easy}</span></button>
+      <button type="button" data-filter="medium" aria-pressed="false">Medium <span class="n">{counts.medium}</span></button>
+      <button type="button" data-filter="hard" aria-pressed="false">Hard <span class="n">{counts.hard}</span></button>
     </div>
-
-    <!-- Right: list -->
-    <div class="flex flex-col gap-8 w-full max-w-4xl">
-      <div class="hidden md:flex justify-between items-center pb-4 border-b border-border px-8">
-        <span class="text-[10px] font-mono text-muted uppercase tracking-widest">Writeup</span>
-        <div class="flex gap-24 pr-4">
-          <span class="text-[10px] font-mono text-muted uppercase tracking-widest">Difficulty</span>
-          <span class="text-[10px] font-mono text-muted uppercase tracking-widest">Tags</span>
-        </div>
-      </div>
-
-      <div class="flex flex-col gap-10" id="writeupList">
-        {writeups.map((entry) => (
-          <a
-            href={`/writeups/${entry.slug}/`}
-            data-difficulty={entry.data.difficulty}
-            data-featured={entry.data.featured ? 'true' : 'false'}
-            data-search={`${entry.data.title} ${entry.data.description} ${entry.data.tags.join(' ')}`.toLowerCase()}
-            class="wu-card group flex flex-col md:flex-row gap-8 p-8 rounded-xl border border-border bg-surface hover:border-borderHover hover:bg-white/[0.02] transition-all duration-300"
-          >
-            {avatarFor(entry.slug) ? (
-              <div class="w-full md:w-64 h-32 shrink-0 relative rounded-lg overflow-hidden bg-bg border border-border flex items-center justify-center">
-                <div
-                  class="absolute inset-0 opacity-40"
-                  style="background-image: radial-gradient(circle at center, rgba(74,222,128,0.12) 0%, transparent 70%);"
-                  aria-hidden="true"
-                ></div>
-                <img
-                  src={avatarFor(entry.slug)}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                  class="relative h-24 w-24 object-contain group-hover:scale-105 transition-transform duration-500 ease-out"
-                />
-              </div>
-            ) : (
-              <CardMotif slug={entry.slug} tags={entry.data.tags} class="w-full md:w-64 h-32" />
-            )}
-
-            <div class="flex-1 flex flex-col min-w-0 justify-between py-1">
-              <div>
-                <div class="flex items-start justify-between gap-4 mb-3">
-                  <h3 class="text-xl font-display font-medium text-fg group-hover:text-white transition-colors truncate">
-                    {entry.data.title}
-                  </h3>
-                  <span class={`diff-pill diff-${entry.data.difficulty} shrink-0 mt-1`}>{entry.data.difficulty}</span>
-                </div>
-                <p class="text-sm text-muted leading-relaxed line-clamp-2">{entry.data.description}</p>
-              </div>
-
-              <div class="flex flex-wrap gap-2 mt-6">
-                {entry.data.tags.slice(0, 4).map((tag) => (
-                  <span class="px-2 py-1 text-[10px] font-mono text-muted border border-border rounded">{tag}</span>
-                ))}
-              </div>
-            </div>
-          </a>
-        ))}
-      </div>
-
-      <p class="wu-empty" id="wuEmpty" hidden>
-        No writeups match that. <button type="button" id="wuReset">Clear filters</button>
-      </p>
-
-      <div class="mt-8 flex items-center justify-between text-xs font-mono text-muted px-4">
-        <span id="listCount">&mdash; {counts.all} writeups</span>
-        <span>Page 1 of 1</span>
-        <span>End of archive &mdash;</span>
-      </div>
-
-      <div class="mt-8 p-8 border border-border rounded-xl bg-surface hover:border-borderHover hover:bg-white/[0.02] transition-all duration-300 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden group">
-        <div class="absolute -right-16 -top-16 w-64 h-64 bg-accent/5 blur-[80px] rounded-full pointer-events-none transition-opacity duration-300 opacity-50 group-hover:opacity-100" aria-hidden="true"></div>
-        <div class="flex items-center gap-6 z-10">
-          <div class="w-12 h-12 rounded border border-border bg-bg flex items-center justify-center text-accent font-mono text-xl shrink-0 transition-colors group-hover:border-accent/30">
-            &gt;_
-          </div>
-          <div>
-            <h4 class="text-lg font-display text-fg mb-1">New writeups coming soon.</h4>
-            <p class="text-sm font-mono text-muted">
-              I'm always breaking, building, and documenting.<br />Check back or follow along on my socials.
-            </p>
-          </div>
-        </div>
-        <a href="/projects" class="px-6 py-3 border border-border rounded font-mono text-xs uppercase tracking-widest text-fg hover:border-accent hover:text-accent transition-colors whitespace-nowrap shrink-0 z-10 bg-surface">
-          View Lab
-        </a>
-      </div>
-    </div>
+    <p class="active-tag" id="activeTag" aria-live="polite">
+      Filtering by <b id="activeTagName"></b>
+      <button type="button" id="clearTag">Clear</button>
+    </p>
+    <label class="search">
+      <span aria-hidden="true">/</span>
+      <input id="q" type="search" placeholder="search name, tag or technique" aria-label="Search writeups" />
+    </label>
   </div>
+
+  <section class="archive">
+    <div class="grid" id="grid">
+      {posts.map((e) => {
+        const locked = isLocked(e);
+        const os = osOf(e.data.tags);
+        const extra = e.data.tags.length - SHOWN_TAGS;
+        return (
+          <article
+            class:list={['box', { 'lead-box': e.slug === LEAD, locked }]}
+            data-diff={e.data.difficulty}
+            data-os={os}
+            data-tags={e.data.tags.join(' ')}
+          >
+            <span class="wipe"></span>
+            <div class="top">
+              <span class:list={['diff', { hard: e.data.difficulty === 'hard' }]}>{e.data.difficulty}</span>
+              <span class="os">{os} &middot; {locked ? 'active' : 'retired'}</span>
+            </div>
+            <h3><a class="stretch" href={`/writeups/${e.slug}/`}>{e.data.title}</a></h3>
+            <p class="desc">{e.data.description}</p>
+            {locked && (
+              <div class="embargo">
+                <b>Held back.</b> Pirate is still an active HackTheBox machine. Publishing a
+                solution for it would break HTB's rules, so the writeup stays unpublished
+                until the box retires.
+              </div>
+            )}
+            <div class="tags">
+              {e.data.tags.slice(0, SHOWN_TAGS).map((t) => (
+                <button type="button" class="tag" data-tag={t}>{t}</button>
+              ))}
+              {extra > 0 && <span class="more">+{extra}</span>}
+            </div>
+            {!locked && <p class="go">Read the walkthrough &rarr;</p>}
+          </article>
+        );
+      })}
+    </div>
+    <p class="empty" id="empty">Nothing matches that. Try a technique, an OS, or a machine name.</p>
+  </section>
+
+  <p class="count" id="count">{all.length} of {all.length} writeups</p>
 </BaseLayout>
 
-<style>
-  /* Search field and empty state, carried over from the previous list page. */
-  .wu-search {
-    width: 100%;
-    font-family: var(--font-body);
-    font-size: 14px;
-    color: var(--fg);
-    background: var(--bg-2);
-    border: 1px solid var(--line-2);
-    border-radius: 999px;
-    padding: 10px 16px;
-    outline: none;
-    transition: border-color .18s ease, background .18s ease;
-  }
-  .wu-search::placeholder { color: var(--fg-3); }
-  .wu-search:focus {
-    border-color: color-mix(in srgb, var(--accent) 60%, var(--line-2));
-    background: var(--bg-3);
-  }
-  @media (max-width: 768px) {
-    .wu-search { font-size: 16px; } /* stops iOS zooming on focus */
-  }
+<style is:global>
+  /* ================= OPENING ================= */
+  .open { position: relative; padding: 22vh 4vw 6vh; }
+  .open::before { content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse 52% 60% at 16% 46%, rgba(193,31,31,.09), transparent 70%); }
+  .open > * { position: relative; }
+  .open .eyebrow { margin: 0 0 4vh; opacity: 0; }
+  .lead { margin: 0; font-family: var(--display); font-weight: 400; text-transform: uppercase;
+    line-height: .86; color: var(--bone); }
+  .lead .ln { display: block; overflow: hidden; }
+  .lead .ln .i { display: block; white-space: nowrap;
+    font-size: clamp(1.9rem, 7.2vw, 6.2rem); transform: translateY(104%); }
+  .lead .ln.crimson .i { color: var(--blood-lit); }
+  .lede { margin: 5vh 0 0; max-width: 56ch; font-size: .95rem; line-height: 1.82;
+    color: var(--read); opacity: 0; }
+  .lede b { color: var(--bone); font-weight: 400; }
 
-  .wu-empty {
-    color: var(--fg-2); font-size: 15px;
-    padding: 40px 0; text-align: center;
+  /* ================= COVERAGE ================= */
+  .cover { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--line);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .cover div { background: var(--panel); padding: 22px 20px 24px; text-align: center; }
+  .cover .n { margin: 0; font-family: var(--display); font-weight: 400;
+    font-size: clamp(1.5rem, 3vw, 2.1rem); line-height: 1; color: var(--bone); }
+  .cover .k { margin: .8em 0 0; font-size: .54rem; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--dimmer); }
+  @media (max-width: 820px) { .cover { grid-template-columns: repeat(2, 1fr); } }
+
+  /* ================= CONTROLS ================= */
+  .controls { position: sticky; top: 0; z-index: 20; padding: 2.2vh 4vw;
+    background: rgba(5,4,6,.88); backdrop-filter: blur(14px);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between; gap: 2vw; flex-wrap: wrap; }
+  .filters { display: flex; gap: .6em; flex-wrap: wrap; }
+  .filters button { font-family: var(--mono); font-size: .6rem; letter-spacing: .18em;
+    text-transform: uppercase; padding: .85em 1.3em; background: transparent;
+    border: 1px solid var(--line); color: var(--dim); cursor: pointer;
+    transition: border-color .28s, color .28s; }
+  .filters button:hover { color: var(--bone); }
+  .filters button[aria-pressed="true"] { border-color: var(--blood-lit); color: var(--bone); }
+  .filters button .n { color: #3a3732; margin-left: .7em; }
+  .filters button[aria-pressed="true"] .n { color: var(--blood-lit); }
+
+  .search { display: flex; align-items: center; gap: .7em; border-bottom: 1px solid var(--line);
+    padding-bottom: .5em; min-width: min(34vw, 300px); transition: border-color .28s; }
+  .search:focus-within { border-bottom-color: var(--blood-lit); }
+  .search span { color: var(--dim); font-size: .8rem; }
+  .search:focus-within span { color: var(--blood-lit); }
+  .search input { flex: 1; background: transparent; border: 0; outline: none;
+    font-family: var(--mono); font-size: .8rem; color: var(--bone); }
+  .search input::placeholder { color: #3a3732; }
+
+  .active-tag { display: none; align-items: center; gap: .7em; font-size: .6rem;
+    letter-spacing: .18em; text-transform: uppercase; color: var(--dim); }
+  .active-tag.on { display: flex; }
+  .active-tag b { color: var(--blood-lit); font-weight: 400; }
+  .active-tag button { font-family: var(--mono); font-size: .6rem; letter-spacing: .18em;
+    text-transform: uppercase; background: transparent; border: 1px solid var(--line);
+    color: var(--dim); padding: .5em .8em; cursor: pointer;
+    transition: color .22s, border-color .22s; }
+  .active-tag button:hover { color: var(--bone); border-color: var(--blood-lit); }
+
+  /* ================= THE LIST ================= */
+  .archive { padding: 8vh 4vw 4vh; }
+  /* auto-fit so filtering to one result collapses the empty track. The hairlines
+     are drawn by the cards themselves, not by the container's background showing
+     through the gaps: an unused cell would otherwise paint as a reserved slot
+     for a card that is not there. */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 30rem), 1fr));
+    gap: 1px; background: transparent; border: 0; }
+
+  .box { position: relative; isolation: isolate; background: var(--panel);
+    padding: 30px 28px 32px; overflow: hidden; display: flex; flex-direction: column;
+    text-decoration: none; box-shadow: 0 0 0 1px var(--line); transition: background .3s; }
+  .box:hover { background: #100e14; }
+  .box .wipe { position: absolute; left: 0; right: 0; top: 0; height: 2px;
+    background: var(--blood-lit); transform: scaleX(0); transform-origin: left;
+    pointer-events: none; transition: transform .45s cubic-bezier(.2,0,0,1); }
+  .box:hover .wipe { transform: scaleX(1); }
+
+  .box.lead-box { grid-column: 1 / -1; padding: 44px 32px 40px; }
+  .box.lead-box::before { content: ''; position: absolute; inset: 0; pointer-events: none;
+    z-index: -1;
+    background: radial-gradient(ellipse 60% 70% at 14% 80%, rgba(193,31,31,.14), transparent 70%); }
+
+  .top { display: flex; align-items: baseline; justify-content: space-between; gap: 1em;
+    margin-bottom: 1.6em; }
+  .diff { font-size: .56rem; letter-spacing: .22em; text-transform: uppercase;
+    padding: .5em .9em; border: 1px solid #2a262f; color: var(--dim); }
+  .diff.hard { color: var(--blood-lit); border-color: #4d1616; }
+  .os { font-size: .58rem; letter-spacing: .2em; text-transform: uppercase; color: #3a3732; }
+
+  .box h3 { margin: 0; font-family: var(--display); font-weight: 400; text-transform: uppercase;
+    line-height: .98; color: var(--bone); font-size: clamp(1.3rem, 2.4vw, 1.9rem); }
+  .box.lead-box h3 { font-size: clamp(2.2rem, 5.4vw, 4.2rem); }
+  /* the title carries the link and stretches over the whole card, so the tag
+     buttons below can be real buttons instead of nested interactives */
+  .box h3 a.stretch { color: inherit; text-decoration: none; }
+  .box h3 a.stretch::after { content: ''; position: absolute; inset: 0; z-index: 1; }
+  .box .desc { margin: 1.1em 0 0; font-size: .86rem; line-height: 1.78; color: var(--read);
+    max-width: 62ch; }
+  .box.lead-box .desc { font-size: .95rem; max-width: 58ch; }
+
+  /* the tag row sits above the link so its buttons stay clickable; without
+     pointer-events it also swallows every click in the gaps between them */
+  .tags { display: flex; gap: .5em; flex-wrap: wrap; margin-top: auto; padding-top: 2em;
+    position: relative; z-index: 2; pointer-events: none; }
+  .tags .tag { pointer-events: auto; font-family: var(--mono); font-size: .55rem;
+    letter-spacing: .16em; text-transform: uppercase; color: #3a3732; background: transparent;
+    border: 1px solid var(--line); padding: .45em .8em; cursor: pointer;
+    transition: color .22s, border-color .22s; }
+  .tags .tag:hover, .tags .tag[aria-pressed="true"] { color: var(--bone); border-color: var(--blood-lit); }
+  .box:hover .tags .tag { color: var(--dim); }
+  .tags .more { font-size: .55rem; letter-spacing: .16em; color: #2f2b38; padding: .45em .2em; }
+
+  .go { margin-top: 1.6em; font-size: .6rem; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--dim); }
+  .box:hover .go { color: var(--blood-lit); }
+
+  /* Withholding an active box is a stronger signal than publishing it, so it is
+     shown and labelled rather than hidden. */
+  .box.locked h3, .box.locked .desc { color: #5a5751; }
+  .box.locked .embargo { margin: 1.4em 0 0; padding: 14px 16px; border: 1px solid #2a262f;
+    font-size: .72rem; line-height: 1.7; color: var(--dim); }
+  .box.locked .embargo b { color: var(--bone); font-weight: 400; }
+
+  .empty { padding: 8vh 0; text-align: center; font-size: .8rem; color: var(--dimmer); display: none; }
+  .count { padding: 0 4vw 14vh; font-size: .6rem; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--dimmer); }
+
+  @media (max-width: 860px) {
+    .box.lead-box { grid-column: auto; }
+    .controls { position: static; }
+    .open { padding-top: 18vh; }
   }
-  .wu-empty button {
-    background: none; border: 0; padding: 0;
-    color: var(--accent); cursor: pointer;
-    font: inherit; text-decoration: underline;
+  @media (prefers-reduced-motion: reduce) {
+    .lead .ln .i { transform: none; }
+    .open .eyebrow, .lede { opacity: 1; transform: none; }
   }
 </style>
 
 <script>
-  const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('.chip'));
-  const cards = Array.from(document.querySelectorAll<HTMLAnchorElement>('.wu-card'));
-  const search = document.getElementById('wuSearch') as HTMLInputElement | null;
-  const empty = document.getElementById('wuEmpty');
-  const reset = document.getElementById('wuReset');
-  const countEl = document.getElementById('listCount');
+  import gsap from 'gsap';
 
-  let activeFilter = 'all';
+  const boxes = [...document.querySelectorAll('.box')] as HTMLElement[];
+  const q = document.getElementById('q') as HTMLInputElement;
+  const count = document.getElementById('count')!;
+  const empty = document.getElementById('empty')!;
+  const buttons = [...document.querySelectorAll('.filters button')] as HTMLButtonElement[];
+  const activeTagBar = document.getElementById('activeTag')!;
+  const activeTagName = document.getElementById('activeTagName')!;
+  let difficulty = 'all';
+  let tag: string | null = null;
 
-  const apply = () => {
-    const q = (search?.value ?? '').trim().toLowerCase();
+  /* Difficulty, tag and search all narrow together. Search matches the full tag
+     list, not just the five shown on the card, so a technique that never appears
+     in the visible copy still finds its box. */
+  function apply() {
+    const term = q.value.trim().toLowerCase();
     let shown = 0;
 
-    cards.forEach((card) => {
-      const diff = card.dataset.difficulty;
-      const feat = card.dataset.featured === 'true';
-      const hay = card.dataset.search ?? '';
+    boxes.forEach((box) => {
+      const tags = (box.dataset.tags || '').split(' ');
+      const haystack = [
+        box.querySelector('h3')!.textContent,
+        box.querySelector('.desc')!.textContent,
+        box.dataset.tags,
+        box.dataset.os,
+      ].join(' ').toLowerCase();
 
-      const matchFilter =
-        activeFilter === 'all' ? true :
-        activeFilter === 'featured' ? feat :
-        diff === activeFilter;
-      const matchSearch = q === '' || hay.includes(q);
-      const show = matchFilter && matchSearch;
+      const visible =
+        (difficulty === 'all' || box.dataset.diff === difficulty) &&
+        (!tag || tags.includes(tag)) &&
+        (!term || haystack.includes(term));
 
-      // The cards carry Tailwind's `flex`, which beats the [hidden] attribute,
-      // so visibility is driven inline.
-      card.style.display = show ? '' : 'none';
-      if (show) shown++;
+      box.style.display = visible ? '' : 'none';
+      if (visible) shown += 1;
     });
 
-    if (empty) empty.hidden = shown !== 0;
-    if (countEl) countEl.innerHTML = `&mdash; ${shown} writeup${shown === 1 ? '' : 's'}`;
-  };
+    // Only the pressed tag reads as pressed, including duplicates on other cards.
+    document.querySelectorAll('.tags .tag').forEach((b) =>
+      b.setAttribute('aria-pressed', String((b as HTMLElement).dataset.tag === tag)));
+    activeTagBar.classList.toggle('on', Boolean(tag));
+    activeTagName.textContent = tag || '';
 
-  chips.forEach((c) => {
-    c.addEventListener('click', () => {
-      chips.forEach((x) => x.classList.remove('active'));
-      c.classList.add('active');
-      activeFilter = c.dataset.filter ?? 'all';
+    count.textContent = `${shown} of ${boxes.length} writeups`;
+    empty.style.display = shown ? 'none' : 'block';
+  }
+
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      difficulty = button.dataset.filter!;
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b === button)));
       apply();
     });
   });
 
-  search?.addEventListener('input', apply);
-
-  reset?.addEventListener('click', () => {
-    if (search) search.value = '';
-    activeFilter = 'all';
-    chips.forEach((x) => x.classList.toggle('active', x.dataset.filter === 'all'));
+  // Delegated, because a tag appears on several cards.
+  document.getElementById('grid')!.addEventListener('click', (event) => {
+    const button = (event.target as HTMLElement).closest('.tag') as HTMLElement | null;
+    if (!button) return;
+    tag = button.dataset.tag === tag ? null : button.dataset.tag!;
     apply();
   });
+
+  document.getElementById('clearTag')!.addEventListener('click', () => { tag = null; apply(); });
+  q.addEventListener('input', apply);
+
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    gsap.timeline({ delay: 0.15 })
+      .to('.open .eyebrow', { opacity: 1, duration: 0.5, ease: 'power2.out' })
+      .to('.lead .ln .i', { y: '0%', duration: 0.82, ease: 'power4.out', stagger: 0.085 }, '-=.28')
+      .to('.lede', { opacity: 1, duration: 0.7, ease: 'power2.out' }, '-=.34');
+  }
 </script>

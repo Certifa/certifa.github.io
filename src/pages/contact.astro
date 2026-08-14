@@ -1,74 +1,275 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import ContactForm from '../components/ContactForm.astro';
-
-const channels = [
-  { label: 'mike@certifa.net', href: 'mailto:mike@certifa.net', primary: true, icon: 'mail' },
-  { label: 'github/Certifa', href: 'https://github.com/Certifa', icon: 'github' },
-  { label: 'hackthebox', href: 'https://app.hackthebox.com/users/Certifa', icon: 'htb' },
-  { label: 'linkedin', href: 'https://www.linkedin.com/in/certifa', icon: 'linkedin' },
-];
 ---
 
-<BaseLayout
-  title="Contact"
-  description="CTF teams, internship leads, lab trades, or feedback on a writeup. Pick a channel, they all reach me."
->
-  <div class="w-full max-w-6xl mx-auto px-6 py-16 md:py-24 flex items-center justify-center">
-    <div class="w-full bg-surface border border-border rounded-3xl p-8 md:p-14 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center shadow-2xl">
-      <!-- Left: copy and channels -->
-      <div class="max-w-md">
-        <h1 class="font-display text-4xl md:text-5xl font-bold text-white tracking-tight leading-[1.15] mb-6">
-          Working on something<br />interesting?
-        </h1>
-        <p class="text-zinc-400 text-[15px] leading-relaxed mb-10">
-          CTF teams, internship leads, lab trades, or feedback on a writeup.<br /><br />
-          Pick a channel, they all reach me.
-        </p>
+<BaseLayout title="Contact" description="CTF teams, internship leads, or feedback on a writeup. Mail reaches me fastest.">
+<header class="open">
+  <p class="eyebrow">/ Contact</p>
+  <h1 class="lead">
+    <span class="ln"><span class="i">Say something</span></span>
+    <span class="ln crimson"><span class="i">worth reading.</span></span>
+  </h1>
+</header>
 
-        <div class="flex flex-wrap gap-3">
-          {channels.map((c) => (
-            <a
-              href={c.href}
-              rel="me noopener"
-              class:list={[
-                'touch-pill inline-flex items-center gap-2 px-4 py-2 border rounded-full text-sm font-mono transition-colors',
-                c.primary
-                  ? 'bg-surfaceHover border-borderHover text-white hover:border-zinc-500'
-                  : 'bg-bg border-border text-zinc-400 hover:text-white hover:border-borderHover',
-              ]}
-            >
-              {c.icon === 'mail' && (
-                <svg class="w-4 h-4 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>
-              )}
-              {c.icon === 'github' && (
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.5 2 2 6.6 2 12.3c0 4.5 2.9 8.3 6.8 9.7.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.4-3.4-1.4-.4-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.6-1.4-2.2-.3-4.6-1.1-4.6-5.1 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1a9 9 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 4-2.4 4.8-4.6 5.1.4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5 3.9-1.4 6.8-5.2 6.8-9.7C22 6.6 17.5 2 12 2z"/></svg>
-              )}
-              {c.icon === 'htb' && (
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 3.5 7v10L12 22l8.5-5V7L12 2zm0 2.3 6.5 3.8-6.5 3.8-6.5-3.8L12 4.3zM5.5 9.6l5.5 3.2v6.5l-5.5-3.2V9.6zm7.5 9.7v-6.5l5.5-3.2v6.5l-5.5 3.2z"/></svg>
-              )}
-              {c.icon === 'linkedin' && (
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.75-1.95 4 0 4.4 2.5 4.4 5.8V21h-4v-5.6c0-1.35-.03-3.1-1.9-3.1-1.9 0-2.2 1.45-2.2 3v5.7H9z"/></svg>
-              )}
-              {c.label}
-            </a>
-          ))}
+<div class="wrap">
+  <!-- ================= THE FORM ================= -->
+  <section class="term">
+    <span class="wipe"></span>
+    <div class="tbar"><span><b>mail</b> &mdash;s certifa</span><span>mike@certifa.net</span></div>
 
-          <button
-            type="button"
-            data-copy="Quetro"
-            class="touch-pill inline-flex items-center gap-2 px-4 py-2 bg-bg border border-border rounded-full text-sm font-mono text-zinc-400 hover:text-white hover:border-borderHover transition-colors"
-          >
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.3 5.3A16 16 0 0 0 15.2 4l-.2.4a15 15 0 0 1 3.6 1.3 12 12 0 0 0-9.2 0A15 15 0 0 1 13 4.4L12.8 4a16 16 0 0 0-4.1 1.3C5.9 9.5 5.2 13.6 5.5 17.6A16 16 0 0 0 10.4 20l.6-1a11 11 0 0 1-1.8-.9l.4-.3a11.5 11.5 0 0 0 9.8 0l.4.3a11 11 0 0 1-1.8.9l.6 1a16 16 0 0 0 4.9-2.4c.4-4.6-.7-8.7-3-12.3zM9.7 15.2c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2zm4.6 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2z"/></svg>
-            discord · Quetro
-          </button>
+    <form class="tbody" id="form" novalidate>
+      <div class="row">
+        <label for="name"><span class="sig">$</span>whoami</label>
+        <div class="field">
+          <span class="caret" aria-hidden="true">&gt;</span>
+          <input id="name" name="name" type="text" autocomplete="name" required
+                 placeholder="your name" maxlength="120">
         </div>
       </div>
 
-      <!-- Right: form -->
-      <div class="w-full max-w-lg lg:ml-auto">
-        <ContactForm id="pageContact" variant="outlined" />
+      <div class="row">
+        <label for="email"><span class="sig">$</span>mail --reply-to</label>
+        <div class="field">
+          <span class="caret" aria-hidden="true">&gt;</span>
+          <input id="email" name="email" type="email" autocomplete="email" required
+                 placeholder="you@domain.com" maxlength="200">
+        </div>
       </div>
+
+      <div class="row">
+        <label for="message"><span class="sig">$</span>cat message.txt</label>
+        <div class="field">
+          <span class="caret" aria-hidden="true">&gt;</span>
+          <textarea id="message" name="message" required maxlength="4000"
+                    placeholder="what you're working on, what you need, or which writeup I got wrong"></textarea>
+        </div>
+      </div>
+
+      <div class="pot" aria-hidden="true">
+        <label for="botcheck">Leave this field empty</label>
+        <input id="botcheck" name="botcheck" type="text" tabindex="-1" autocomplete="off">
+      </div>
+    </form>
+
+    <div class="tfoot">
+      <p class="status" id="status" data-state="idle" role="status" aria-live="polite">
+        <span class="led" aria-hidden="true"></span><span id="statustext">ready to send</span>
+      </p>
+      <button class="send" type="submit" form="form" id="send">Send message</button>
     </div>
-  </div>
+  </section>
+
+  <!-- ================= SIDE ================= -->
+  <aside class="side">
+    <div class="card">
+      <p class="k">What happens next</p>
+      <p>It lands in my inbox and nowhere else. No mailing list, no analytics on this form,
+        no third party reading it.</p>
+      <p>I'm a student, so give me a couple of days. If it's about an internship or a CTF
+        team, it'll be faster than that.</p>
+    </div>
+    <div class="card">
+      <p class="k">If the form fails</p>
+      <p>Mail me directly at <a href="mailto:mike@certifa.net">mike@certifa.net</a>. It is the
+        same inbox, and it works with JavaScript switched off.</p>
+    </div>
+    <div class="card">
+      <p class="k">Worth knowing</p>
+      <p>I'd rather have a short message than a polished one. <b>Tell me what you actually
+        want</b> and I'll tell you honestly whether I can do it.</p>
+    </div>
+  </aside>
+</div>
 </BaseLayout>
+
+<style is:global>
+/* ================= OPENING ================= */
+  .open{position:relative;padding:22vh 4vw 7vh}
+  .open::before{content:'';position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse 52% 60% at 16% 46%, rgba(193,31,31,.09), transparent 70%)}
+  .open > *{position:relative}
+  .open .eyebrow{margin:0 0 4vh;opacity:0}
+  .lead{margin:0;font-family:var(--display);font-weight:400;text-transform:uppercase;
+    line-height:.86;color:var(--bone)}
+  .lead .ln{display:block;overflow:hidden}
+  .lead .ln .i{display:block;white-space:nowrap;
+    font-size:clamp(1.9rem,7.2vw,6.2rem);transform:translateY(104%)}
+  .lead .ln.crimson .i{color:var(--blood-lit)}
+
+  /* ================= THE TERMINAL ================= */
+  /* The hero is a terminal replay, so the form is a terminal too. Same voice,
+     not a second one. Every prompt is a real label, every line a real input. */
+  .wrap{padding:0 4vw 16vh;display:grid;grid-template-columns:1.35fr .65fr;gap:24px;
+    align-items:start}
+
+  .term{position:relative;background:var(--panel);border:1px solid var(--line);
+    overflow:hidden;opacity:0;transform:translateY(22px)}
+  .term .wipe{position:absolute;left:0;right:0;top:0;height:2px;background:var(--blood-lit);
+    transform:scaleX(0);transform-origin:left;z-index:2}
+  .tbar{display:flex;align-items:center;justify-content:space-between;
+    padding:13px 18px;border-bottom:1px solid var(--line);font-size:.62rem;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--dimmer)}
+  .tbar b{color:var(--bone);font-weight:400;letter-spacing:.08em}
+  .tbody{padding:30px 26px 26px}
+
+  .row{margin-bottom:2.4em}
+  .row:last-of-type{margin-bottom:1.6em}
+  /* the prompt is the label. clicking it focuses the field, like a label should */
+  .row label{display:block;font-size:.74rem;color:var(--dim);margin-bottom:.9em;cursor:pointer}
+  .row label .sig{color:var(--blood-lit);margin-right:.7em}
+  .row label .opt{color:#3a3732;margin-left:.7em;font-size:.62rem;letter-spacing:.14em;
+    text-transform:uppercase}
+
+  .field{display:flex;align-items:flex-start;gap:.7em;
+    border-bottom:1px solid var(--line);padding-bottom:.6em;
+    transition:border-color .28s}
+  .field:focus-within{border-bottom-color:var(--blood-lit)}
+  .field .caret{flex:0 0 auto;color:var(--dim);line-height:1.7;user-select:none}
+  .field:focus-within .caret{color:var(--blood-lit)}
+  .field input,.field textarea{flex:1;width:100%;background:transparent;border:0;padding:0;
+    font-family:var(--mono);font-size:.86rem;line-height:1.7;color:var(--bone);
+    outline:none;resize:none}
+  .field input::placeholder,.field textarea::placeholder{color:#3a3732}
+  .field textarea{min-height:7.5em}
+
+  /* honeypot: real for a bot, invisible and unreachable for a person */
+  .pot{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+  .tfoot{display:flex;align-items:center;justify-content:space-between;gap:1.4em;
+    flex-wrap:wrap;padding:16px 26px;border-top:1px solid var(--line)}
+  .status{display:flex;align-items:center;gap:.7em;font-size:.66rem;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--dimmer)}
+  .status .led{width:7px;height:7px;border-radius:50%;background:#2f2b38;flex:0 0 auto}
+  .status[data-state="sending"] .led{background:#8a6a2f}
+  .status[data-state="sent"] .led{background:#4a5f42}
+  .status[data-state="error"] .led{background:var(--blood-lit);
+    box-shadow:0 0 8px rgba(193,31,31,.7)}
+
+  .send{font-family:var(--mono);font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;
+    padding:1.1em 2em;background:transparent;color:var(--bone);
+    border:1px solid #4d1616;cursor:pointer;
+    transition:background .3s,border-color .3s,transform .3s,opacity .3s}
+  .send:hover:not(:disabled){background:rgba(193,31,31,.1);border-color:var(--blood-lit);
+    transform:translateY(-2px)}
+  .send:disabled{opacity:.45;cursor:default}
+
+  /* ================= SIDE ================= */
+  .side{display:flex;flex-direction:column;gap:1px;background:var(--line);
+    border:1px solid var(--line);opacity:0;transform:translateY(22px)}
+  .card{background:var(--panel);padding:26px 24px 28px}
+  .card .k{margin:0 0 1.4em;font-size:.56rem;letter-spacing:.24em;text-transform:uppercase;
+    color:var(--blood-lit)}
+  .card p{margin:0;font-size:.88rem;line-height:1.8;color:#a5a19a}
+  .card p + p{margin-top:1.2em}
+  .card b{color:var(--bone);font-weight:400}
+  .card a{color:var(--bone);text-decoration:none;border-bottom:1px solid #3a3440;
+    transition:color .28s,border-color .28s}
+  .card a:hover{color:var(--blood-lit);border-bottom-color:var(--blood-lit)}
+
+  @media(max-width:900px){
+    .wrap{grid-template-columns:1fr}
+    .open{padding-top:18vh}
+  }
+  @media(prefers-reduced-motion:reduce){
+    .lead .ln .i{transform:none}
+    .open .eyebrow,.term,.side{opacity:1;transform:none}
+  }
+</style>
+
+<script>
+import gsap from 'gsap';
+import ScrollTrigger from 'gsap/ScrollTrigger';
+gsap.registerPlugin(ScrollTrigger);
+
+/* ---------------------------------------------------------------
+   Posts to the Cloudflare Worker that already backs certifa.net:
+   forms.certifa.net/submit, which validates, drops honeypot hits and
+   relays through Resend. No new service, no key in the page, and the
+   allowlist in wrangler.toml decides who may post.
+
+   The Worker's schema is { email, message, botcheck } with no name
+   field, so the name is folded into the body rather than lost.
+   --------------------------------------------------------------- */
+const ENDPOINT = "https://forms.certifa.net/submit";
+
+/* The Worker answers with a code, not a sentence. Say it in this page's voice. */
+const REASON = {
+  invalid_email: "that email address is not valid",
+  invalid_message: "the message is too short to send",
+  payload_too_large: "that message is too long to send",
+  invalid_schema: "something in the form was malformed",
+  invalid_json: "something in the form was malformed",
+  forbidden: "this page is not allowed to post from here",
+  send_failed: "the mail relay failed. mail mike@certifa.net instead",
+};
+
+const form = document.getElementById("form");
+const send = document.getElementById("send");
+const status = document.getElementById("status");
+const statustext = document.getElementById("statustext");
+
+function setStatus(state, text) {
+  status.dataset.state = state;
+  statustext.textContent = text;
+}
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  // Validated here as well as in the Worker, so a mistake is caught before a
+  // round trip and reads in this page's type rather than a browser bubble.
+  const missing = ["name", "email", "message"].find((id) => !form[id].value.trim());
+  if (missing) {
+    setStatus("error", `${missing} is empty`);
+    form[missing].focus();
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.value.trim())) {
+    setStatus("error", "that email address is not valid");
+    form.email.focus();
+    return;
+  }
+
+  send.disabled = true;
+  setStatus("sending", "sending");
+
+  try {
+    const response = await fetch(ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: form.email.value.trim(),
+        message: `From: ${form.name.value.trim()}\n\n${form.message.value.trim()}`,
+        botcheck: form.botcheck.value,
+      }),
+    });
+    // The Worker reports refusal in the body as well as the status, so both are
+    // checked. A false "delivered" on a contact form loses real messages.
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || result.ok !== true) throw new Error(result.error || String(response.status));
+    setStatus("sent", "delivered. I'll reply to " + form.email.value.trim());
+    form.reset();
+  } catch (error) {
+    setStatus("error", REASON[error.message] || "failed to send. mail mike@certifa.net instead");
+    send.disabled = false;
+  }
+});
+
+if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  gsap.timeline({ delay: 0.15 })
+    .to(".open .eyebrow", { opacity: 1, duration: 0.5, ease: "power2.out" })
+    .to(".lead .ln .i", { y: "0%", duration: 0.82, ease: "power4.out", stagger: 0.085 }, "-=.28")
+    .to(".term", { opacity: 1, y: 0, duration: 0.6, ease: "power4.out" }, "-=.5")
+    .to(".term .wipe", { scaleX: 1, duration: 0.5, ease: "power3.inOut" }, "-=.34")
+    .to(".side", { opacity: 1, y: 0, duration: 0.6, ease: "power4.out" }, "-=.7");
+
+  gsap.timeline({ scrollTrigger: { trigger: ".foot", start: "top 85%" } })
+    .from(".foot-k", { opacity: 0, y: 12, duration: 0.3, ease: "power4.out" })
+    .from(".foot-mail", { opacity: 0, y: 20, duration: 0.36, ease: "power4.out" }, "-=.14")
+    .from(".foot-note", { opacity: 0, duration: 0.5 }, "-=.2")
+    .from(".foot-links a,.foot-flat", { opacity: 0, x: 16, duration: 0.28, ease: "power4.out", stagger: 0.06 }, "-=.34")
+    .from(".foot-base", { opacity: 0, duration: 0.4 }, "-=.1")
+    .from(".foot-mark", { opacity: 0, y: 34, duration: 0.8, ease: "power3.out" }, "-=.25")
+    .from(".totop", { opacity: 0, scale: 0.8, duration: 0.4, ease: "back.out(2)" }, "-=.8");
+}
+</script>

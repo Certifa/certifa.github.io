@@ -1,8 +1,8 @@
 ---
-// Shared site nav. Structure follows the export navs on Page_14 / Page_22 /
-// Page_27, which all use real routes; Page_1's anchor-only nav was the outlier.
-import BrandMark from './BrandMark.astro';
-
+// Transparent over the homepage hero, solid once you scroll past it. The
+// `stuck` class is applied by script rather than by scroll position in CSS,
+// because the homepage wants it to hold off for a whole viewport while every
+// other page wants it solid immediately.
 const links = [
   { href: '/', label: 'Home' },
   { href: '/about', label: 'About' },
@@ -14,84 +14,31 @@ const links = [
 const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
 const isActive = (href: string) =>
   href === '/' ? path === '/' : path === href || path.startsWith(`${href}/`);
+
+// Only the homepage has a full-bleed hero for the nav to float over.
+const overHero = path === '/';
 ---
 
-<nav class="fixed top-0 left-0 right-0 z-50 bg-bg/80 backdrop-blur-md border-b border-border">
-  <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-    <div class="flex items-center gap-8">
-      <a href="/" class="flex items-center gap-2 text-fg hover:text-accent transition-colors">
-        <BrandMark class="w-5 h-5" />
-        <span class="font-bold tracking-tight">Certifa</span>
-      </a>
+<nav class:list={['nav', { stuck: !overHero }]} id="nav" data-over-hero={overHero ? '' : null}>
+  <a class="nav-mark" href="/">Certifa</a>
 
-      <div class="hidden md:flex items-center gap-6 text-sm font-medium">
-        {links.map(({ href, label }) => (
-          <a
-            href={href}
-            aria-current={isActive(href) ? 'page' : undefined}
-            class:list={[
-              'transition-colors',
-              isActive(href) ? 'text-fg' : 'text-zinc-400 hover:text-fg',
-            ]}
-          >{label}</a>
-        ))}
-      </div>
-    </div>
-
-    <div class="flex items-center gap-3">
-      <div class="hidden md:flex items-center gap-2 text-xs font-mono text-zinc-400 bg-surface border border-border px-3 py-1.5 rounded-full">
-        <span class="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
-        Available
-      </div>
-
-      <a
-        href="https://github.com/Certifa"
-        rel="me noopener"
-        class="hidden sm:flex text-sm font-medium text-zinc-300 border border-border hover:border-borderHover px-4 py-1.5 rounded-md transition-colors items-center gap-2"
-      >
-        GitHub
-        <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </a>
-
-      <button
-        id="navToggle"
-        type="button"
-        class="md:hidden w-11 h-11 -mr-2 flex items-center justify-center text-zinc-400 hover:text-fg transition-colors"
-        aria-label="Open menu"
-        aria-expanded="false"
-        aria-controls="navDrawer"
-      >
-        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-          <path d="M4 7h16M4 12h16M4 17h16"/>
-        </svg>
-      </button>
-    </div>
+  <div class="nav-links">
+    {links.map(({ href, label }) => (
+      <a href={href} aria-current={isActive(href) ? 'page' : undefined}>{label}</a>
+    ))}
   </div>
 
-  <div id="navDrawer" class="md:hidden hidden border-t border-border bg-bg">
-    <div class="px-6 py-3 flex flex-col">
-      {links.map(({ href, label }) => (
-        <a
-          href={href}
-          aria-current={isActive(href) ? 'page' : undefined}
-          class:list={[
-            'py-3 text-sm font-medium transition-colors',
-            isActive(href) ? 'text-accent' : 'text-zinc-400 hover:text-fg',
-          ]}
-        >{label}</a>
-      ))}
-      <a href="https://github.com/Certifa" rel="me noopener" class="py-3 text-sm font-medium text-zinc-400 hover:text-fg transition-colors">GitHub</a>
-    </div>
-  </div>
+  <a class="nav-out" href="https://github.com/Certifa" target="_blank" rel="noopener">GitHub</a>
 </nav>
 
 <script>
-  const toggle = document.getElementById('navToggle');
-  const drawer = document.getElementById('navDrawer');
-
-  toggle?.addEventListener('click', () => {
-    const open = drawer?.classList.toggle('hidden') === false;
-    toggle.setAttribute('aria-expanded', String(open));
-    toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
-  });
+  const nav = document.getElementById('nav');
+  if (nav) {
+    // Over the hero it waits most of a viewport; elsewhere it is solid from the top.
+    const overHero = nav.hasAttribute('data-over-hero');
+    const trigger = overHero ? () => window.innerHeight * 0.72 : () => 40;
+    const onScroll = () => nav.classList.toggle('stuck', window.scrollY > trigger());
+    onScroll();
+    addEventListener('scroll', onScroll, { passive: true });
+  }
 </script>

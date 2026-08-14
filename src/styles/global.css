@@ -1,560 +1,262 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* =========================================================
-   THEME TOKENS
+   CERTIFA v2
+
+   The design system from the approved prototype. Everything below the
+   token block is hand-written rather than utility classes, because the
+   decisions embedded here (the 66ch reading measure, hairlines drawn by
+   the cards themselves, the crimson-means-compromise rule) do not
+   survive translation into utilities.
+
    ========================================================= */
-/* Mirrors tailwind.config.cjs. These custom properties exist so the markdown
-   prose system (which Tailwind never sees) stays on the same palette. */
+
 :root {
-  --bg:        #09090b;
-  --bg-2:      #0f0f12;   /* surface */
-  --bg-3:      #161619;   /* raised surface */
-  --line:      #1f1f23;
-  --line-2:    #3f3f46;
-  --fg:        #e4e4e7;
-  --fg-2:      #a1a1aa;   /* body copy */
-  --fg-3:      #83838c;   /* muted, WCAG AA on bg and surface. See tailwind.config.cjs */
-  --fg-4:      #52525b;   /* dim */
-  --accent:    #4ade80;
-  --accent-2:  #22c55e;   /* one step down */
-  --warn:      #f59e0b;   /* form errors only */
+  --void:      #050406;   /* page */
+  --panel:     #0b0a0d;   /* raised surface */
+  --line:      #1b1920;   /* hairline */
+  --bone:      #e8e6e2;   /* headings, emphasis */
+  --read:      #a5a19a;   /* long-form body copy. 7.95:1 on --void */
+  --dim:       #7d7a75;   /* labels */
+  --dimmer:    #4e4b47;   /* small print. NEVER use for a sentence */
+  --blood:     #c11f1f;
+  --blood-lit: #c11f1f;
 
-  /* Difficulty scale. Chosen at the 400 step so each stays legible on --bg. */
-  --diff-easy:   #4ade80;
-  --diff-medium: #fbbf24;
-  --diff-hard:   #f87171;
-  --diff-insane: #c084fc;
-
-  --font-display: 'Space Grotesk', Inter, sans-serif;
-  --font-body:    'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+  --display: 'Anton', Impact, sans-serif;
+  --mono:    'JetBrains Mono', 'Cascadia Code', ui-monospace, monospace;
 }
 
 /* =========================================================
    BASE
    ========================================================= */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+html, body { margin: 0; background: var(--void); }
 body {
-  background: var(--bg);
-  color: var(--fg);
-  font-family: var(--font-body);
-  font-size: 16px;
-  line-height: 1.55;
-  letter-spacing: -0.005em;
+  font-family: var(--mono);
+  color: var(--bone);
   overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
   min-height: 100vh;
 }
-::selection { background: rgba(74, 222, 128, 0.2); color: var(--accent); }
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--line-2); }
 
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+/* Pages own their own top spacing: the homepage hero runs full-bleed under a
+   transparent nav, so a blanket main padding would put a gap above it. */
+main { padding-top: 0; }
 
-/* Skip link. Every page puts the brand, five nav links, the GitHub button and
-   the menu toggle ahead of the content, so keyboard users get a way past them.
-   Off-screen until focused, and above the fixed nav's z-50 when it lands. */
+/* shared section label */
+.eyebrow {
+  font-size: .6rem; letter-spacing: .32em; text-transform: uppercase;
+  color: var(--dimmer); margin: 0 0 6vh;
+}
+
+/* =========================================================
+   ACCESSIBILITY AND FEEDBACK  (kept from the previous build)
+   ========================================================= */
 .skip-link {
-  position: fixed;
-  top: 0;
-  left: 1rem;
-  z-index: 100;
+  position: fixed; top: 0; left: 1rem; z-index: 100;
   transform: translateY(-150%);
-  padding: 0.75rem 1.25rem;
-  border: 1px solid var(--accent);
-  border-radius: 4px;
-  background: var(--bg-2);
-  color: var(--fg);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  transition: transform 0.2s ease;
+  padding: .75rem 1.25rem;
+  background: var(--bone); color: var(--void);
+  font-size: .7rem; letter-spacing: .12em; text-transform: uppercase;
+  text-decoration: none;
+  transition: transform .25s;
 }
 .skip-link:focus { transform: translateY(1rem); }
-@media (prefers-reduced-motion: reduce) {
-  .skip-link { transition: none; }
-}
 
-/* The nav is fixed in every export, so main clears its 4rem height. Pages that
-   want more breathing room (the homepage) add their own padding on top. */
-main { padding-top: 4rem; }
-/* Target of the skip link: focusable programmatically, without drawing a ring
-   around the whole page, and offset so the fixed nav does not cover the top. */
-main:focus { outline: none; }
-main { scroll-margin-top: 5rem; }
-
-/* The WebGL fields sit behind copy. On desktop the columns keep text clear of
-   the busiest area; on mobile everything stacks straight onto them, so they
-   drop back to a faint texture instead of competing with the words. */
-@media (max-width: 767px) {
-  [data-aifx] { opacity: 0.18; }
-}
-@media (prefers-reduced-motion: reduce) {
-  [data-aifx] { display: none; }
-}
-
-/* subtle noise overlay */
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  pointer-events: none; z-index: 9000;
-  opacity: 0.035;
-  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-}
-
-/* =========================================================
-   UTILITIES
-   ========================================================= */
-.mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
-.accent-text { color: var(--accent); }
-
-/* Syntax tokens for the code-motif card visuals (see CardMotif.astro).
-   Values are taken from the Page_8 export. */
-.card-visual-code span.kw      { color: #818cf8; }
-.card-visual-code span.str     { color: #34d399; }
-.card-visual-code span.num     { color: #f472b6; }
-.card-visual-code span.comment { color: #52525b; }
-.card-visual-code span.var     { color: #fbbf24; }
-
-.wrap {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 32px;
-}
-@media (max-width: 768px) {
-  .wrap { padding: 0 20px; }
-}
-
-/* =========================================================
-   SCROLL REVEAL
-   ========================================================= */
-[data-reveal] {
-  opacity: 0; transform: translateY(14px);
-  transition:
-    opacity 0.7s cubic-bezier(.16,1,.3,1),
-    transform 0.7s cubic-bezier(.16,1,.3,1);
-}
-[data-reveal].revealed { opacity: 1; transform: translateY(0); }
-[data-reveal-delay="1"] { transition-delay: 0.06s; }
-[data-reveal-delay="2"] { transition-delay: 0.12s; }
-[data-reveal-delay="3"] { transition-delay: 0.18s; }
-
-/* =========================================================
-   BUTTONS
-   ========================================================= */
-.btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 11px 18px;
-  border-radius: 8px;
-  font-family: inherit;
-  font-size: 14px; font-weight: 500;
-  letter-spacing: -0.01em;
-  text-decoration: none; cursor: pointer;
-  border: 1px solid transparent;
-  background: transparent; color: var(--fg);
-  transition: all .18s ease;
-}
-.btn.primary { background: var(--fg); color: var(--bg); }
-.btn.primary:hover { background: var(--fg-2); }
-.btn.ghost { border-color: var(--line-2); color: var(--fg); }
-.btn.ghost:hover { background: var(--bg-3); border-color: var(--fg-4); }
-.btn .arrow { transition: transform .18s ease; font-size: 15px; }
-.btn:hover .arrow { transform: translateX(3px); }
-.btn .arrow.up-right { transform: rotate(-45deg); }
-.btn:hover .arrow.up-right { transform: rotate(-45deg) translateX(3px); }
-
-/* =========================================================
-   PILLS / CHIPS / TAGS
-   ========================================================= */
-.pill {
-  display: inline-flex; align-items: center; gap: 8px;
-  font-size: 12px; color: var(--fg-2);
-  padding: 6px 12px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--bg-2);
-}
-.pill .dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
-}
-
-.chip {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px; color: var(--fg-2);
-  padding: 6px 12px; border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--bg-2);
-  cursor: pointer;
-  letter-spacing: 0.03em;
-  transition: all .15s ease;
-  font-weight: 400;
-}
-.chip:hover { color: var(--fg); border-color: var(--line-2); }
-.chip.active { color: var(--bg); background: var(--accent); border-color: var(--accent); }
-
-/* Touch targets. The chips and channel pills render around 28px, under the 44px
-   minimum for a thumb. Scoped to coarse pointers so mouse users keep the dense
-   sizing the exports specify, and applied as min-height on elements that are
-   already centred flex rows, so nothing else about them moves. */
-@media (pointer: coarse) {
-  .chip,
-  .touch-pill { min-height: 44px; }
-  .chip { display: inline-flex; align-items: center; }
-}
-
-.tag {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  color: var(--fg-3);
-  padding: 2px 8px; border-radius: 4px;
-  background: var(--bg-3);
-  border: 1px solid var(--line);
-  text-decoration: none;
-}
-
-.diff-pill {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px; letter-spacing: 0.08em;
-  padding: 3px 9px; border-radius: 999px;
-  border: 1px solid; text-transform: uppercase;
-  display: inline-flex; align-items: center; gap: 6px;
-}
-.diff-pill::before {
-  content: ''; width: 5px; height: 5px; border-radius: 50%;
-  background: currentColor;
-}
-/* Difficulty is the only badge that carries colour, because there the colour
-   encodes real data. Semantic ramp, matching the convention players already
-   read at a glance: green, amber, red, violet. Weight climbs with severity so
-   the ramp still reads if colour is lost. */
-.diff-easy {
-  color: var(--diff-easy);
-  border-color: color-mix(in srgb, var(--diff-easy) 30%, transparent);
-  background: color-mix(in srgb, var(--diff-easy) 10%, transparent);
-  font-weight: 400;
-}
-.diff-medium {
-  color: var(--diff-medium);
-  border-color: color-mix(in srgb, var(--diff-medium) 30%, transparent);
-  background: color-mix(in srgb, var(--diff-medium) 10%, transparent);
-  font-weight: 500;
-}
-.diff-hard {
-  color: var(--diff-hard);
-  border-color: color-mix(in srgb, var(--diff-hard) 35%, transparent);
-  background: color-mix(in srgb, var(--diff-hard) 12%, transparent);
-  font-weight: 500;
-}
-.diff-insane {
-  color: var(--diff-insane);
-  border-color: color-mix(in srgb, var(--diff-insane) 40%, transparent);
-  background: color-mix(in srgb, var(--diff-insane) 14%, transparent);
-  font-weight: 600;
-}
-
-/* Neutral badge — one treatment shared by "featured" and status labels.
-   Difficulty is the only badge that carries color, since there the color
-   encodes real information. */
-.feat-pill,
-.status-pill {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px; letter-spacing: 0.08em;
-  padding: 3px 9px; border-radius: 999px;
-  color: var(--fg-2);
-  border: 1px solid var(--line-2);
-  text-transform: uppercase;
-}
-.status-pill { text-transform: lowercase; letter-spacing: 0.05em; }
-.st-active, .st-completed, .st-ongoing { color: var(--fg-2); border-color: var(--line-2); }
-
-/* =========================================================
-   SECTION HEADERS / PAGE HEADS
-   ========================================================= */
-.sec-tag {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px; color: var(--fg-3);
-  letter-spacing: 0.12em; text-transform: uppercase;
-}
-.sec-meta {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px; color: var(--fg-3);
-  letter-spacing: 0.05em;
-}
-
-.page-head {
-  padding: 120px 0 72px;
-  border-bottom: 1px solid var(--line);
-}
-@media (max-width: 768px) {
-  .page-head { padding: 96px 0 48px; }
-}
-.page-kicker {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px; color: var(--fg-3);
-  letter-spacing: 0.14em; text-transform: uppercase;
-  margin-bottom: 24px;
-}
-.page-title {
-  font-family: var(--font-display);
-  font-size: clamp(48px, 8vw, 120px);
-  font-weight: 600;
-  letter-spacing: -0.04em;
-  line-height: 0.95;
-  margin-bottom: 24px;
-}
-.page-title .italic {
-  font-family: var(--font-display);
-  font-style: italic; font-weight: 400;
-  color: var(--accent);
-}
-@media (max-width: 768px) {
-  .page-title { font-size: clamp(38px, 11vw, 48px); }
-}
-.page-sub {
-  font-size: 18px; color: var(--fg-2);
-  max-width: 640px; line-height: 1.6;
-}
-
-/* =========================================================
-   COPY TOAST
-   ========================================================= */
 .copy-toast {
   position: fixed; bottom: 28px; left: 50%;
   transform: translateX(-50%) translateY(40px);
-  background: var(--fg); color: var(--bg);
-  font-size: 13px; font-weight: 500;
-  padding: 10px 18px; border-radius: 8px;
+  background: var(--bone); color: var(--void);
+  font-family: var(--mono); font-size: .72rem;
+  padding: 10px 18px;
   opacity: 0; pointer-events: none; z-index: 200;
-  transition: opacity .2s ease, transform .2s ease;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  transition: opacity .3s, transform .3s;
 }
 .copy-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-/* =========================================================
-   WRITEUP PROSE  (markdown-rendered pages)
-   ========================================================= */
-.prose-writeup {
-  color: var(--fg);
-  font-family: var(--font-body);
-  font-size: 17px; line-height: 1.8;
-  max-width: 760px;
-  min-width: 0; /* grid item: keep wide content from blowing out the viewport */
+[data-reveal] {
+  opacity: 0; transform: translateY(14px);
+  transition: opacity .7s cubic-bezier(.16,1,.3,1),
+              transform .7s cubic-bezier(.16,1,.3,1);
 }
-.prose-writeup > * + * { margin-top: 1.1rem; }
-.prose-writeup h1, .prose-writeup h2, .prose-writeup h3, .prose-writeup h4 {
-  color: var(--fg);
-  font-family: var(--font-display);
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  margin-top: 2.6rem;
-  margin-bottom: 0.6rem;
-  scroll-margin-top: 5.5rem;
-}
-.prose-writeup h2 {
-  font-size: 1.6rem;
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 0.5rem;
-}
-.prose-writeup h3 {
-  font-size: 1.2rem;
-  color: var(--accent);
-}
-.prose-writeup h4 {
-  font-size: 1rem;
-  font-family: 'JetBrains Mono', monospace;
-  color: var(--fg-2);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-.prose-writeup p { color: var(--fg-2); }
-.prose-writeup strong { color: var(--fg); font-weight: 500; }
-.prose-writeup em {
-  font-style: italic;
-  color: var(--fg);
-}
-.prose-writeup a {
-  color: var(--accent);
-  text-decoration: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
-  transition: border-color .18s ease;
-}
-.prose-writeup a:hover { border-color: var(--accent); }
-.prose-writeup code {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.86em;
-  background: var(--bg-3);
-  border: 1px solid var(--line);
-  padding: 2px 7px;
-  border-radius: 4px;
-  color: var(--fg);
-  overflow-wrap: anywhere; /* long hashes/paths wrap instead of overflowing */
-}
-.prose-writeup pre {
-  background: var(--bg-2);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  overflow-x: auto;
-  padding: 1.2rem 1.3rem;
-  position: relative;
-  margin: 1.6rem 0;
-  font-size: 13.5px;
-  line-height: 1.6;
-}
-.prose-writeup pre code {
-  background: none; border: none; padding: 0;
-  font-size: inherit; color: inherit;
-}
-.prose-writeup blockquote {
-  border-left: 2px solid var(--accent);
-  padding: 0.2rem 0 0.2rem 1.2rem;
-  color: var(--fg-2);
-  font-style: italic;
-}
-.prose-writeup ul, .prose-writeup ol { padding-left: 1.4rem; color: var(--fg-2); }
-.prose-writeup li { margin: 0.3rem 0; }
-.prose-writeup li::marker { color: var(--fg-3); }
-.prose-writeup .table-wrap {
-  overflow-x: auto;
-  margin: 1.6rem 0;
-}
-.prose-writeup .table-wrap table { margin: 0; }
-.prose-writeup table {
-  width: 100%; border-collapse: collapse;
-  margin: 1.6rem 0; font-size: 14px;
-}
-.prose-writeup th {
-  background: var(--bg-3);
-  color: var(--fg);
-  text-align: left;
-  padding: 0.65rem 1rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
-  border: 1px solid var(--line);
-}
-.prose-writeup td {
-  padding: 0.65rem 1rem;
-  border: 1px solid var(--line);
-  vertical-align: top;
-}
-.prose-writeup tr:nth-child(even) td { background: rgba(255,255,255,0.015); }
-.prose-writeup img {
-  max-width: 100%;
-  border-radius: 8px;
-  border: 1px solid var(--line);
-  margin: 1.4rem 0;
-  display: block;
-}
-.prose-writeup hr {
-  border: none;
-  height: 1px;
-  background: var(--line);
-  margin: 2.2rem 0;
-}
+[data-reveal].revealed { opacity: 1; transform: translateY(0); }
+[data-reveal-delay="1"] { transition-delay: .06s; }
+[data-reveal-delay="2"] { transition-delay: .12s; }
+[data-reveal-delay="3"] { transition-delay: .18s; }
 
-.copy-btn {
-  position: absolute; top: 0.6rem; right: 0.6rem;
-  background: var(--bg-3);
-  color: var(--fg-2);
-  border: 1px solid var(--line);
-  border-radius: 5px; padding: 4px 10px;
-  font-family: 'JetBrains Mono', monospace; font-size: 11px;
-  cursor: pointer; transition: all .15s ease;
-}
-.copy-btn:hover { color: var(--fg); border-color: var(--line-2); }
-@media (max-width: 768px) {
-  /* Reserve a strip above the code so the button never covers the first line,
-     and grow it to a 44px touch target */
-  .prose-writeup pre { padding: 3.3rem 1rem 1.1rem; }
-  .copy-btn {
-    top: 0.5rem; right: 0.5rem;
-    min-height: 44px; min-width: 64px;
-    display: inline-flex; align-items: center; justify-content: center;
-    font-size: 12px;
-  }
-}
-
-/* =========================================================
-   TABLE OF CONTENTS (writeup pages)
-   ========================================================= */
-.toc-link {
-  color: var(--fg-3);
-  text-decoration: none;
-  font-size: 13px;
-  display: block;
-  padding: 4px 0 4px 0.75rem;
-  border-left: 2px solid transparent;
-  transition: color .15s ease, border-color .15s ease;
-}
-.toc-link:hover { color: var(--fg); }
-.toc-link.active {
-  color: var(--accent);
-  border-left-color: var(--accent);
-}
-.toc-link.depth-3 { font-size: 12px; padding-left: 1.5rem; }
-@media (max-width: 1000px) {
-  /* Bigger tap targets inside the mobile TOC drawer */
-  .toc-link { padding: 10px 0 10px 0.75rem; font-size: 14px; }
-  .toc-link.depth-3 { font-size: 13px; }
-}
-
-/* =========================================================
-   LOCKED WRITEUP NOTICE  (active HTB boxes, sealed until retirement)
-   Uses theme tokens so it reads as part of the site, not a neon gate.
-   ========================================================= */
-.prose-writeup .wu-locked {
-  display: flex; flex-direction: column; align-items: center;
-  text-align: center;
-  background: var(--bg-2);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 56px 32px;
-  margin: 1rem 0;
-}
-.prose-writeup .wu-locked-icon {
-  width: 30px; height: 30px;
-  color: var(--fg-3);
-  margin-bottom: 20px;
-}
-.prose-writeup .wu-locked-kicker {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--fg-3);
-  margin: 0 0 14px;
-}
-.prose-writeup .wu-locked h2 {
-  font-family: var(--font-display);
-  font-size: 1.5rem; font-weight: 600; letter-spacing: -0.02em;
-  color: var(--fg);
-  margin: 0 0 14px; padding: 0; border: none;
-}
-.prose-writeup .wu-locked p {
-  color: var(--fg-2);
-  font-size: 15px; line-height: 1.7;
-  max-width: 440px;
-  margin: 0;
-}
-.prose-writeup .wu-locked-foot {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px; color: var(--fg-3);
-  margin-top: 18px !important;
-}
-
-/* =========================================================
-   REDUCED MOTION
-   ========================================================= */
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-  /* Scroll-reveal content must not stay hidden */
+  .skip-link, [data-reveal] { transition: none; }
   [data-reveal] { opacity: 1; transform: none; }
 }
+
+/* =========================================================
+   GRAIN
+   Deliberately not animated. Re-rendering noise over body copy 3.5 times a
+   second is a shimmer you end up reading through. The homepage hero has its
+   own animated grain over the 3D scene, where it is atmosphere doing its job.
+   ========================================================= */
+.pagegrain {
+  position: fixed; inset: -50%; z-index: 60;
+  pointer-events: none; opacity: .035; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+@keyframes grainshift {
+  0%   { transform: translate3d(0,0,0) }
+  25%  { transform: translate3d(-3%,2%,0) }
+  50%  { transform: translate3d(2%,-3%,0) }
+  75%  { transform: translate3d(-2%,-2%,0) }
+  100% { transform: translate3d(3%,1%,0) }
+}
+
+/* =========================================================
+   NAV
+   Transparent over the homepage hero, solid once you scroll.
+   It must never compete with the hero. No border until it earns one.
+   ========================================================= */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 2.4vh 4vw;
+  background: transparent; border-bottom: 1px solid transparent;
+  transition: background .4s ease, border-color .4s ease, padding .4s ease;
+}
+.nav.stuck {
+  background: rgba(5,4,6,.86); backdrop-filter: blur(14px);
+  border-bottom-color: var(--line); padding: 1.6vh 4vw;
+}
+.nav-mark {
+  font-family: var(--display); font-weight: 400; text-transform: uppercase;
+  font-size: 1.02rem; letter-spacing: .04em;
+  color: var(--bone); text-decoration: none; transition: color .28s;
+}
+.nav-mark:hover { color: var(--blood-lit); }
+
+.nav-links { display: flex; align-items: center; gap: 2.1vw; }
+.nav-links a {
+  position: relative;
+  font-size: .68rem; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--dim); text-decoration: none; padding: .4em 0;
+  transition: color .28s;
+}
+.nav-links a:hover { color: var(--bone); }
+/* the current page is stated, not decorated */
+.nav-links a[aria-current="page"] { color: var(--bone); }
+.nav-links a[aria-current="page"]::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -2px;
+  height: 1px; background: var(--blood-lit);
+}
+
+.nav-out {
+  font-size: .62rem; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--dimmer); text-decoration: none;
+  border: 1px solid var(--line); padding: .7em 1.1em;
+  transition: border-color .3s, color .3s;
+}
+.nav-out:hover { border-color: var(--blood-lit); color: var(--bone); }
+
+@media (max-width: 820px) {
+  .nav-links { gap: 4vw; }
+  .nav-links a { font-size: .6rem; letter-spacing: .12em; }
+  .nav-out { display: none; }
+}
+@media (max-width: 560px) {
+  .nav { padding: 1.8vh 4vw; }
+  .nav-mark { font-size: .86rem; }
+  .nav-links { gap: 3.4vw; }
+  .nav-links a { font-size: .55rem; }
+}
+
+/* =========================================================
+   FOOTER
+   The page settling, not a poster: the room going dark, embers at the floor.
+   ========================================================= */
+.foot {
+  position: relative; padding: 17vh 4vw 0;
+  background: var(--void); overflow: hidden;
+  border-top: 1px solid var(--line);
+}
+/* one crimson segment on the top rule, echoing the panel wipes above */
+.foot::after {
+  content: ''; position: absolute; top: -1px; left: 4vw;
+  width: min(22vw, 260px); height: 1px;
+  background: var(--blood-lit); box-shadow: 0 0 12px rgba(193,31,31,.5);
+}
+/* embers, low and dying, so the bottom of the page isn't dead flat */
+.foot::before {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 60%;
+  pointer-events: none;
+  background: radial-gradient(ellipse 60% 100% at 22% 116%, rgba(193,31,31,.11), transparent 68%);
+}
+.foot > * { position: relative; z-index: 1; }
+
+.foot-top { display: grid; grid-template-columns: 1.25fr .9fr; gap: 5vw; align-items: start; }
+.foot-k {
+  font-size: .58rem; letter-spacing: .28em; text-transform: uppercase;
+  color: var(--blood-lit); margin: 0 0 1.5em;
+}
+.foot-mail {
+  display: inline-block;
+  font-family: var(--display); font-weight: 400;
+  font-size: clamp(1.4rem, 3.6vw, 2.7rem); line-height: 1.04;
+  color: var(--bone); text-decoration: none;
+  border-bottom: 2px solid #2a2630; padding-bottom: .08em;
+  transition: color .32s, border-color .32s;
+}
+.foot-mail:hover { color: var(--blood-lit); border-bottom-color: var(--blood-lit); }
+.foot-note { margin: 1.9em 0 0; font-size: .82rem; line-height: 1.78; color: var(--read); max-width: 42ch; }
+
+.foot-links { display: flex; flex-direction: column; padding-top: .2em; }
+.foot-links a {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 1em;
+  padding: .95em 0; border-bottom: 1px solid var(--line);
+  font-size: .8rem; color: var(--dim); text-decoration: none;
+  transition: color .28s, padding-left .28s;
+}
+.foot-links a:first-child { border-top: 1px solid var(--line); }
+.foot-links a span {
+  font-size: .56rem; letter-spacing: .2em; text-transform: uppercase; color: #3a3732;
+}
+.foot-links a:hover { color: var(--bone); padding-left: .55em; }
+.foot-links a:hover span { color: var(--blood-lit); }
+
+/* no profile URL to point at, so it reads as a label, not a dead link */
+.foot-flat {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 1em;
+  padding: .95em 0; border-bottom: 1px solid var(--line);
+  font-size: .8rem; color: var(--dimmer);
+}
+.foot-flat span {
+  font-size: .56rem; letter-spacing: .2em; text-transform: uppercase; color: #3a3732;
+}
+
+.foot-base {
+  display: flex; justify-content: space-between; gap: 2em; flex-wrap: wrap;
+  margin-top: 9vh; padding: 1.6em 0; border-top: 1px solid var(--line);
+  font-size: .6rem; letter-spacing: .18em; text-transform: uppercase; color: var(--dimmer);
+}
+
+/* last thing on the page, cropped by the edge, a closing title card */
+.foot-mark {
+  margin: 0;
+  font-family: var(--display); font-weight: 400; text-transform: uppercase;
+  font-size: clamp(3.2rem, 20vw, 17rem); line-height: 1; letter-spacing: -.018em;
+  white-space: nowrap; user-select: none; color: #120d12;
+  margin-left: -.015em; margin-bottom: -.24em; pointer-events: none;
+}
+
+@media (max-width: 820px) {
+  .foot { padding-top: 10vh; }
+  .foot-top { grid-template-columns: 1fr; gap: 5vh; }
+  .foot-base { margin-top: 6vh; }
+}
+
+/* ---- back to top ---- */
+.totop {
+  position: absolute; right: 4.5vw; top: 5.5vh; z-index: 3;
+  width: 78px; height: 78px; border-radius: 50%;
+  border: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  font-size: .54rem; letter-spacing: .16em; text-transform: uppercase; line-height: 1.5;
+  color: var(--dim); text-decoration: none; background: transparent;
+  transition: border-color .32s, color .32s, transform .32s;
+}
+.totop:hover { border-color: var(--blood-lit); color: var(--bone); transform: translateY(-3px); }
+@media (max-width: 820px) { .totop { display: none; } }

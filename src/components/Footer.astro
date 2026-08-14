@@ -1,36 +1,53 @@
 ---
-// Follows the Page_22 footer, the most complete of the four in the exports.
-// The exports hardcode "© 2024" and "certifa.dev"; the year is derived at build
-// and the domain corrected to the one this site actually deploys to.
-import BrandMark from './BrandMark.astro';
-
+// The page settling rather than a poster. The large mailto is the close, which
+// is why there is no form here: a form is a chore, and the contact page owns it.
 const year = new Date().getFullYear();
 
 const links = [
-  { href: 'https://github.com/Certifa', label: 'github' },
-  { href: 'https://app.hackthebox.com/users/Certifa', label: 'hackthebox' },
-  { href: 'https://www.linkedin.com/in/certifa', label: 'linkedin' },
+  {
+    href: 'https://github.com/Certifa',
+    label: 'GitHub',
+    note: 'Certifa',
+  },
+  {
+    href: 'https://profile.hackthebox.com/profile/019c2f48-7b5d-73a8-b798-3ee811960672',
+    label: 'HackTheBox',
+    // Season placement, not global rank. Relabel only once it is genuinely global.
+    note: 'Master · #425',
+  },
+  {
+    href: 'https://www.linkedin.com/in/certifa',
+    label: 'LinkedIn',
+    note: 'Connect',
+  },
 ];
 ---
 
-<footer class="border-t border-border bg-bg py-8 mt-auto">
-  <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-mono text-muted">
-    <div class="flex items-center gap-4">
-      <span class="flex items-center gap-2">
-        <BrandMark class="w-4 h-4 text-zinc-400" />
-        Certifa
-      </span>
-      <span class="text-zinc-700" aria-hidden="true">|</span>
-      <span>offensive security</span>
-      <span class="text-zinc-700" aria-hidden="true">|</span>
-      <span>NL</span>
+<footer class="foot">
+  <div class="foot-top">
+    <div>
+      <p class="foot-k">Get in touch</p>
+      <a class="foot-mail" href="mailto:mike@certifa.net">mike@certifa.net</a>
+      <p class="foot-note">
+        CTF teams, internship leads, or feedback on a writeup.
+        Mail reaches me fastest. There's a form on the contact page if you'd rather.
+      </p>
     </div>
 
-    <div class="flex items-center gap-6">
-      <span>© {year}</span>
-      {links.map(({ href, label }) => (
-        <a href={href} rel="me noopener" class="hover:text-zinc-300 transition-colors">{label}</a>
+    <nav class="foot-links" aria-label="Elsewhere">
+      {links.map(({ href, label, note }) => (
+        <a href={href} target="_blank" rel="me noopener">{label} <span>{note}</span></a>
       ))}
-    </div>
+      {/* Discord has no public profile URL, so it reads as a label, not a dead link. */}
+      <span class="foot-flat">Discord <span>Quetro</span></span>
+    </nav>
   </div>
+
+  <div class="foot-base">
+    <span>&copy; {year} Certifa</span>
+    <span>Offensive security &middot; NL</span>
+  </div>
+
+  <a class="totop" href="#top">Back<br />to top</a>
+  <div class="foot-mark" aria-hidden="true">Certifa</div>
 </footer>

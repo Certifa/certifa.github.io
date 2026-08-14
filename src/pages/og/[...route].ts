@@ -68,12 +68,12 @@ const BAR = 12;
 const AVATAR = 150;
 const GAP = 40;
 
-const ACCENT: [number, number, number] = [74, 222, 128];  // --accent  #4ade80
-const FG: [number, number, number] = [228, 228, 231];    // --fg      #e4e4e7
-const FG_2: [number, number, number] = [161, 161, 170];  // --fg-2    #a1a1aa
-const FG_3: [number, number, number] = [113, 113, 122];  // --fg-3    #71717a
-const FG_4: [number, number, number] = [82, 82, 91];     // --fg-4    #52525b
-const LINE: [number, number, number] = [31, 31, 35];     // --line    #1f1f23
+const ACCENT: [number, number, number] = [193, 31, 31];  // --blood   #c11f1f
+const FG: [number, number, number] = [232, 230, 226];    // --bone    #e8e6e2
+const FG_2: [number, number, number] = [165, 161, 154];  // --read    #a5a19a
+const FG_3: [number, number, number] = [125, 122, 117];  // --dim     #7d7a75
+const FG_4: [number, number, number] = [78, 75, 71];     // --dimmer  #4e4b47
+const LINE: [number, number, number] = [27, 25, 32];     // --line    #1b1920
 
 // The box art, oversized and blurred into an ambient field in the upper right.
 // Per-box colour taken from the box's own identity: nothing invented, and the
@@ -83,9 +83,9 @@ const LINE: [number, number, number] = [31, 31, 35];     // --line    #1f1f23
 // seam down the card.
 const ART = 1150;
 const ART_BLUR = 44;
-const ART_SAT = 0.72;
-const ART_GAIN = 0.78;
-const ART_ALPHA = 0.5;
+const ART_SAT = 0.16;
+const ART_GAIN = 0.55;
+const ART_ALPHA = 0.44;
 const ART_FADE_IN = 470;
 
 // Difficulty as an ordinal meter: "hard" on its own never says 3rd of 4.
@@ -128,7 +128,7 @@ async function getCanvas() {
   const ckDir = path.dirname(require.resolve('canvaskit-wasm/bin/canvaskit.js'));
   _ck = await CanvasKitInit({ locateFile: (f: string) => path.join(ckDir, f) });
   const [display, jetbrains] = await Promise.all([
-    readFile(path.resolve('src/assets/og-fonts/space-grotesk-700.ttf')),
+    readFile(path.resolve('src/assets/og-fonts/anton.ttf')),
     readFile(path.resolve('src/assets/og-fonts/jetbrains-400.ttf')),
   ]);
   _fontMgr = _ck.FontMgr.FromData(display, jetbrains);
@@ -146,7 +146,7 @@ export const GET: APIRoute = async ({ props }) => {
   bg.setShader(
     CanvasKit.Shader.MakeLinearGradient(
       [0, 0], [0, H],
-      [CanvasKit.Color(15, 15, 18), CanvasKit.Color(9, 9, 11)],  // --bg-2 → --bg
+      [CanvasKit.Color(11, 10, 13), CanvasKit.Color(5, 4, 6)],  // --panel → --void
       null, CanvasKit.TileMode.Clamp,
     ),
   );
@@ -158,14 +158,15 @@ export const GET: APIRoute = async ({ props }) => {
     ? CanvasKit.MakeImageFromEncoded(await readFile(avatarPath))
     : null;
 
-  // Shell pages have no box art, so the accent supplies the same upper-right
-  // weight: one soft azure bloom, well under the level that would fight text.
-  if (shell) {
+  // Crimson bloom in the upper right. On shell pages it is the only thing
+  // carrying that weight; on writeup cards it tints the desaturated box art
+  // beneath it, so both kinds of card sit in the same room.
+  {
     const glow = new CanvasKit.Paint();
     glow.setShader(
       CanvasKit.Shader.MakeRadialGradient(
         [W - 170, 120], 640,
-        [CanvasKit.Color(...ACCENT, 0.16), CanvasKit.Color(...ACCENT, 0)],
+        [CanvasKit.Color(...ACCENT, shell ? 0.16 : 0.30), CanvasKit.Color(...ACCENT, 0)],
         [0, 1], CanvasKit.TileMode.Clamp,
       ),
     );
@@ -286,7 +287,7 @@ export const GET: APIRoute = async ({ props }) => {
 
   // Shell cards stop here: headline set to wrap, no meter, no OS line.
   if (shell) {
-    const headline = para(shell.headline, FG, 62, 'Space Grotesk', 'Bold', { width: 880 });
+    const headline = para(shell.headline.toUpperCase(), FG, 62, 'Anton', 'Normal', { width: 880 });
     canvas.drawParagraph(headline, PAD, mid - headline.getHeight() / 2);
     headline.delete();
 
@@ -307,7 +308,7 @@ export const GET: APIRoute = async ({ props }) => {
   const tags: string[] = (data.tags ?? []).map((t: string) => t.toLowerCase());
   const os = tags.includes('windows') ? 'Windows' : tags.includes('linux') ? 'Linux' : data.platform;
   const label = data.difficulty[0].toUpperCase() + data.difficulty.slice(1);
-  const title = para(data.title, FG, 88, 'Space Grotesk', 'Bold', { width: W - textX - PAD });
+  const title = para(data.title.toUpperCase(), FG, 88, 'Anton', 'Normal', { width: W - textX - PAD });
   const meta = para(`${os}  ·  ${label}`, FG_2, 26, 'JetBrains Mono', 'Normal', {
     width: W - textX - PAD,
   });

