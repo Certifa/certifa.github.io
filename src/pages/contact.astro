@@ -107,7 +107,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .term .wipe{position:absolute;left:0;right:0;top:0;height:2px;background:var(--blood-lit);
     transform:scaleX(0);transform-origin:left;z-index:2}
   .tbar{display:flex;align-items:center;justify-content:space-between;
-    padding:13px 18px;border-bottom:1px solid var(--line);font-size:.62rem;
+    padding:13px 18px;border-bottom:1px solid var(--line);font-size:.78rem;
     letter-spacing:.16em;text-transform:uppercase;color:var(--dimmer)}
   .tbar b{color:var(--bone);font-weight:400;letter-spacing:.08em}
   .tbody{padding:30px 26px 26px}
@@ -115,9 +115,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .row{margin-bottom:2.4em}
   .row:last-of-type{margin-bottom:1.6em}
   /* the prompt is the label. clicking it focuses the field, like a label should */
-  .row label{display:block;font-size:.74rem;color:var(--dim);margin-bottom:.9em;cursor:pointer}
+  .row label{display:block;font-size:.95rem;color:var(--dim);margin-bottom:.9em;cursor:pointer}
   .row label .sig{color:var(--blood-lit);margin-right:.7em}
-  .row label .opt{color:#3a3732;margin-left:.7em;font-size:.62rem;letter-spacing:.14em;
+  .row label .opt{color:#3a3732;margin-left:.7em;font-size:.72rem;letter-spacing:.14em;
     text-transform:uppercase}
 
   .field{display:flex;align-items:flex-start;gap:.7em;
@@ -137,7 +137,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   .tfoot{display:flex;align-items:center;justify-content:space-between;gap:1.4em;
     flex-wrap:wrap;padding:16px 26px;border-top:1px solid var(--line)}
-  .status{display:flex;align-items:center;gap:.7em;font-size:.66rem;letter-spacing:.16em;
+  .status{display:flex;align-items:center;gap:.7em;font-size:.78rem;letter-spacing:.16em;
     text-transform:uppercase;color:var(--dimmer)}
   .status .led{width:7px;height:7px;border-radius:50%;background:#2f2b38;flex:0 0 auto}
   .status[data-state="sending"] .led{background:#8a6a2f}
@@ -145,7 +145,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .status[data-state="error"] .led{background:var(--blood-lit);
     box-shadow:0 0 8px rgba(193,31,31,.7)}
 
-  .send{font-family:var(--mono);font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;
+  .send{font-family:var(--mono);font-size:.82rem;letter-spacing:.2em;text-transform:uppercase;
     padding:1.1em 2em;background:transparent;color:var(--bone);
     border:1px solid #4d1616;cursor:pointer;
     transition:background .3s,border-color .3s,transform .3s,opacity .3s}
