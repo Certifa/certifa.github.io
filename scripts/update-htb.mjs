@@ -1,21 +1,29 @@
 /**
- * Refresh src/data/htb.ts from the HackTheBox API.
+ * Refresh the syncable HackTheBox figures in src/data/htb.ts.
  *
- * Run modes:
- *   node scripts/update-htb.mjs --inspect   print the raw API payloads
- *   node scripts/update-htb.mjs --dry-run   show what would change, write nothing
- *   node scripts/update-htb.mjs             rewrite the file
+ *   node scripts/update-htb.mjs --inspect   print the payload, redacted
+ *   node scripts/update-htb.mjs --dry-run   report changes, write nothing
+ *   node scripts/update-htb.mjs             apply them
  *
- * The token comes from HTB_TOKEN in the environment and is never written to
- * disk or logged. v4 is not a documented public contract, so field names are
- * resolved from a list of candidates and any figure that cannot be found keeps
- * its committed value: a shifted API should leave the site stale, never blank.
+ * Only two fields are synced. The v4 /user/profile/basic endpoint returns a
+ * ladder badge under `rank` ("Pro Hacker") and a `points` of its own, while
+ * the profile page shows an HTB Rank ("Master"), a level and level XP. Same
+ * names, different concepts. An earlier version of this script mapped by
+ * plausible-looking names and wrote a rank progress percentage into `level`
+ * and into both halves of the XP pair, which passed every check because the
+ * fields existed and held numbers. Matching on presence is not verification,
+ * so the safe set is only what has been confirmed against the profile page:
+ *
+ *   globalRank <- ranking
+ *   machines   <- system_owns
+ *
+ * Everything else stays hand-maintained. Edits here are surgical for the same
+ * reason: regenerating the file would drop the comments explaining all this.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const FILE = 'src/data/htb.ts';
 const API = 'https://labs.hackthebox.com/api/v4';
-// Either name works, so a local shell and the CI secret need not agree.
 const token = process.env.HTB_TOKEN || process.env.HTB_API;
 const argv = new Set(process.argv.slice(2));
 
@@ -32,40 +40,20 @@ const get = async (path) => {
   return res.json();
 };
 
-/** First candidate key that holds a usable value; undefined if none do. */
-const pick = (obj, ...keys) => {
-  for (const k of keys) {
-    const v = k.split('.').reduce((o, part) => (o == null ? o : o[part]), obj);
-    if (v !== undefined && v !== null && v !== '') return v;
-  }
-};
-
-const current = readFileSync(FILE, 'utf8');
-/** Committed value, used as the fallback whenever the API does not supply one. */
-const committed = (key) => {
-  const m = current.match(new RegExp(`${key}:\s*'?([^,'\n]+)'?`));
-  return m ? (isNaN(+m[1]) ? m[1].trim() : +m[1]) : undefined;
-};
-
 const info = await get('/user/info');
-const id = pick(info, 'info.id', 'id');
+const id = info?.info?.id;
 if (!id) throw new Error('could not resolve the user id from /user/info');
-
-const profile = (await get(`/user/profile/basic/${id}`)).profile ?? {};
+const profile = (await get(`/user/profile/basic/${id}`))?.profile ?? {};
 
 if (argv.has('--inspect')) {
-  /* This output is read from a public Actions log, and /user/info carries
-     contact details that have no business being there. Drop anything that
-     looks personal or credential-shaped, and mask stray email addresses in
-     values, before printing. */
-  const SENSITIVE = /email|mail|token|secret|password|phone|address|ip$|ssn|dob|birth/i;
+  /* Read from a public Actions log, and /user/info carries contact details
+     and an account identifier that have no business being in one. */
+  const SENSITIVE = /email|mail|token|secret|password|phone|address|identifier|account_id|sso|cv$|full_name/i;
   const clean = (v) => {
     if (Array.isArray(v)) return v.map(clean);
     if (v && typeof v === 'object') {
       return Object.fromEntries(
-        Object.entries(v)
-          .filter(([k]) => !SENSITIVE.test(k))
-          .map(([k, val]) => [k, clean(val)]),
+        Object.entries(v).filter(([k]) => !SENSITIVE.test(k)).map(([k, val]) => [k, clean(val)]),
       );
     }
     if (typeof v === 'string') return v.replace(/[^\s@]+@[^\s@]+\.[^\s@]+/g, '[redacted]');
@@ -75,57 +63,33 @@ if (argv.has('--inspect')) {
   process.exit(0);
 }
 
-const next = {
-  rank:        pick(profile, 'rank') ?? committed('rank'),
-  level:       pick(profile, 'level', 'current_rank_progress') ?? committed('level'),
-  points:      pick(profile, 'points') ?? committed('points'),
-  machines:    pick(profile, 'user_owns', 'machine_owns', 'user_bloods') ?? committed('machines'),
-  challenges:  pick(profile, 'challenge_owns.solved', 'challenge_owns') ?? committed('challenges'),
-  globalRank:  pick(profile, 'ranking', 'rank_id', 'global_ranking') ?? committed('globalRank'),
-  xpCurrent:   pick(profile, 'current_rank_progress', 'xp.current') ?? committed('current'),
-  xpNext:      pick(profile, 'next_rank_points', 'xp.next') ?? committed('next'),
-};
+/** A count HTB shows: a non-negative integer, and not absurd. */
+const sane = (v, max) => Number.isInteger(v) && v >= 0 && v <= max;
 
-for (const [k, v] of Object.entries(next)) {
-  if (v === undefined) throw new Error(`no value and no fallback for ${k}; refusing to write a blank stat`);
+const incoming = { globalRank: profile.ranking, machines: profile.system_owns };
+if (!sane(incoming.globalRank, 5_000_000) || !sane(incoming.machines, 2000)) {
+  throw new Error(`refusing implausible values: ${JSON.stringify(incoming)}`);
 }
 
-const out = `/**
- * HackTheBox profile figures.
- *
- * Generated by scripts/update-htb.mjs, which a scheduled workflow runs. Edit
- * that script rather than this file: a sync will overwrite anything by hand.
- * Every page reads from here, including the client-side module.
- *
- * Last synced: ${new Date().toISOString().slice(0, 10)}.
- */
-export const htb = {
-  rank: '${next.rank}',
-  level: ${next.level},
-  points: ${next.points},
-  machines: ${next.machines},
-  challenges: ${next.challenges},
-  globalRank: ${next.globalRank},
-  /** Progress through the current level, not a lifetime total. */
-  xp: { current: ${next.xpCurrent}, next: ${next.xpNext} },
-} as const;
+let src = readFileSync(FILE, 'utf8');
+const changes = [];
+for (const [key, value] of Object.entries(incoming)) {
+  const re = new RegExp(`(\b${key}:\s*)(\d+)`);
+  const m = src.match(re);
+  if (!m) throw new Error(`${key} not found in ${FILE}; refusing to guess where it goes`);
+  if (+m[2] !== value) {
+    changes.push(`${key} ${m[2]} -> ${value}`);
+    src = src.replace(re, `$1${value}`);
+  }
+}
 
-/**
- * The XP bar's fill. Derived, so it cannot drift from the XP line beside it.
- */
-export const xpFraction = htb.xp.current / htb.xp.next;
-
-/** Long form, for the about vitals row. */
-export const htbLine = \`\${htb.rank} · lvl \${htb.level} · global #\${htb.globalRank}\`;
-
-/** Short form, for the footer and other tight spots. */
-export const htbShort = \`\${htb.rank} · global #\${htb.globalRank}\`;
-`;
-
-if (argv.has('--dry-run')) {
-  console.log(out);
+if (!changes.length) {
+  console.log('no change');
   process.exit(0);
 }
-
-writeFileSync(FILE, out);
-console.log(`updated ${FILE}: ${next.rank} lvl ${next.level}, ${next.machines} machines, global #${next.globalRank}`);
+if (argv.has('--dry-run')) {
+  console.log(`would apply: ${changes.join(', ')}`);
+  process.exit(0);
+}
+writeFileSync(FILE, src);
+console.log(`updated ${FILE}: ${changes.join(', ')}`);

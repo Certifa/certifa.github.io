@@ -7,12 +7,10 @@
 name: Sync HackTheBox stats
 
 on:
-  # Schedule is off until the field mapping is confirmed against a real
-  # payload. The first run wrote level 58.52 and an XP pair of 58.52/41.741,
-  # which are percentages, not the figures those fields hold. Manual only for
-  # now so it cannot put nonsense back on the site overnight.
-  # schedule:
-  #   - cron: '15 4 * * *'
+  schedule:
+    # 04:15 UTC daily. Only two fields sync now, and the commit step means an
+    # unchanged day costs nothing.
+    - cron: '15 4 * * *'
   workflow_dispatch:
     inputs:
       mode:

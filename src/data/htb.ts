@@ -1,13 +1,21 @@
 /**
  * HackTheBox profile figures.
  *
- * These lived hand-copied across the homepage panel, the about vitals line and
- * the footer note, which is how one of them ends up quietly disagreeing with
- * the others after a rank change. Edit here and every page follows.
+ * Kept by hand, deliberately. The v4 /user/profile/basic endpoint does not
+ * carry most of what this panel shows: it returns the ladder badge
+ * ("Pro Hacker") and a points figure of its own, while the profile page shows
+ * an HTB Rank ("Master"), a level, and level XP. Those are different concepts
+ * with the same names, so syncing from that endpoint would quietly overwrite
+ * correct values with unrelated ones. It did exactly that once.
  *
- * Last checked against the profile: 2026-08-23.
+ * Only two fields are safe to sync from it, and scripts/update-htb.mjs now
+ * touches only those: globalRank from `ranking`, and machines from
+ * `system_owns`, both of which match the profile page.
+ *
+ * Last checked against the profile page: 2026-08-23.
  */
 export const htb = {
+  /** HTB Rank as shown on the profile, not the Pro Hacker ladder badge. */
   rank: 'Master',
   level: 75,
   points: 720,
@@ -15,14 +23,10 @@ export const htb = {
   challenges: 34,
   globalRank: 468,
   /** Progress through the current level, not a lifetime total. */
-  xp: { current: 1002, next: 2826 },
+  xp: { current: 1902, next: 2826 },
 } as const;
 
-/**
- * The XP bar's fill. Derived, because it was previously written as a separate
- * hardcoded 0.355 in the animation, a number that silently stops matching the
- * XP line beside it the moment either figure moves.
- */
+/** The XP bar's fill, derived so it cannot drift from the line beside it. */
 export const xpFraction = htb.xp.current / htb.xp.next;
 
 /** Long form, for the about vitals row. */
