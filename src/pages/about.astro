@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { htb, htbLine } from '../data/htb';
 ---
 
 <BaseLayout title="About" description="A student who breaks things for a grade. Offensive security, Active Directory, and the writeups that come after.">
@@ -12,7 +13,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <span class="ln crimson"><span class="i">for a grade.</span></span>
   </h1>
   <span class="slash"></span>
-  <p class="lede">My main platform is HackTheBox: <b>72 machines</b> across Easy → Insane.
+  <p class="lede">My main platform is HackTheBox: <b>{htb.machines} machines</b> across Easy → Insane.
     I write a machine up <b>after it retires</b>, because explaining the chain is where
     the learning actually sticks.</p>
 </header>
@@ -22,7 +23,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <div class="vital"><p class="k">Identity</p><p class="v">Certifa</p><p class="d">Mike · 24 y/o</p></div>
   <div class="vital"><p class="k">Location</p><p class="v">Utrecht</p><p class="d">Netherlands</p></div>
   <div class="vital"><p class="k">Studying at</p><p class="v">Hogeschool Utrecht</p><p class="d">Cybersecurity &amp; Cloud BSc</p></div>
-  <div class="vital"><p class="k">Primary platform</p><p class="v">HackTheBox</p><p class="d">Master · lvl 75 · global #468</p></div>
+  <div class="vital"><p class="k">Primary platform</p><p class="v">HackTheBox</p><p class="d">{htbLine}</p></div>
   <div class="vital"><p class="k">Attack OS</p><p class="v">Kali Linux</p><p class="d">tmux, vim, burp</p></div>
 </section>
 

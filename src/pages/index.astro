@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { htb } from '../data/htb';
 ---
 
 <BaseLayout
@@ -69,20 +70,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     </div>
 
     <div class="htb">
-      <div class="htb-bar"><span><b>HackTheBox</b></span><span>Master &middot; lvl 75</span></div>
+      <div class="htb-bar"><span><b>HackTheBox</b></span><span>{htb.rank} &middot; lvl {htb.level}</span></div>
       <div class="htb-body">
         <div>
           <div class="rankrow">
-            <p class="rankname">Master</p>
-            <p class="rankpts"><b data-count="720">0</b>points</p>
+            <p class="rankname">{htb.rank}</p>
+            <p class="rankpts"><b data-count={htb.points}>0</b>points</p>
           </div>
           <div class="progress"><i id="progfill"></i></div>
-          <p class="ptext">1002 / 2826 XP to level 76</p>
+          <p class="ptext">{htb.xp.current} / {htb.xp.next} XP to level {htb.level + 1}</p>
         </div>
         <div class="htb-grid">
-          <div class="hcell"><p class="num" data-count="72">0</p><p class="cap">Machines</p></div>
-          <div class="hcell"><p class="num" data-count="34">0</p><p class="cap">Challenges</p></div>
-          <div class="hcell"><p class="num" data-count="468">0</p><p class="cap">Global rank</p></div>
+          <div class="hcell"><p class="num" data-count={htb.machines}>0</p><p class="cap">Machines</p></div>
+          <div class="hcell"><p class="num" data-count={htb.challenges}>0</p><p class="cap">Challenges</p></div>
+          <div class="hcell"><p class="num" data-count={htb.globalRank}>0</p><p class="cap">Global rank</p></div>
         </div>
       </div>
     </div>
@@ -310,6 +311,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 </style>
 
 <script>
+import { xpFraction } from '../data/htb';
 import * as THREE from 'three';
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -854,7 +856,7 @@ gsap.timeline({scrollTrigger:{trigger:'#chapter',start:'top 74%'}})
 
 gsap.timeline({scrollTrigger:{trigger:'.twoup',start:'top 76%'}})
   .to('.code .cl',{opacity:1,duration:.06,ease:'none',stagger:.085})
-  .to('#progfill',{scaleX:.355,duration:.9,ease:'power3.inOut'},'-=.5');
+  .to('#progfill',{scaleX:xpFraction,duration:.9,ease:'power3.inOut'},'-=.5');
 
 gsap.utils.toArray('[data-count]').forEach(el=>{
   const end = +el.getAttribute('data-count'), o = {v:0};

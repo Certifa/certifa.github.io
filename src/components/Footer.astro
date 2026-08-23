@@ -1,4 +1,6 @@
 ---
+import { htbShort } from '../data/htb';
+
 // The page settling rather than a poster. The large mailto is the close, which
 // is why there is no form here: a form is a chore, and the contact page owns it.
 const year = new Date().getFullYear();
@@ -12,9 +14,7 @@ const links = [
   {
     href: 'https://profile.hackthebox.com/profile/019c2f48-7b5d-73a8-b798-3ee811960672',
     label: 'HackTheBox',
-    // Global rank, held since passing the top 500. A season placement was
-    // here before and went stale the moment the season closed.
-    note: 'Master · global #468',
+    note: htbShort,
   },
   {
     href: 'https://www.linkedin.com/in/certifa',
