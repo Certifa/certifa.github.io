@@ -1,6 +1,11 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
 import { htb } from '../data/htb';
+
+// Derived, not stated. The copy below claimed four while the section heading
+// beside it claimed nine, which is what happens when a count is written twice.
+const writeups = (await getCollection('writeups')).length;
 ---
 
 <BaseLayout
@@ -49,7 +54,7 @@ import { htb } from '../data/htb';
     <div class="fact">
       <p class="k">The Targets</p>
       <p class="v">Active Directory, Linux, web</p>
-      <p class="d">HackTheBox machines, taken apart and written up in full. Four on the record so far.</p>
+      <p class="d">HackTheBox machines, taken apart and written up in full. {writeups} on the record so far.</p>
     </div>
     <div class="fact">
       <p class="k">The Study</p>
@@ -104,7 +109,7 @@ import { htb } from '../data/htb';
 
 <!-- ================= ACT III ================= -->
 <section class="record">
-  <p class="eyebrow">The Record · 9 machines</p>
+  <p class="eyebrow">The Record · {writeups} machines</p>
   <div class="case-grid">
     <article class="case lead">
       <span class="wipe"></span><span class="idx">01</span><span class="tier">Hard</span>
