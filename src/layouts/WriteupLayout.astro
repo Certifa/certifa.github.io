@@ -25,7 +25,13 @@ const os = tags.includes('windows') ? 'Windows' : tags.includes('linux') ? 'Linu
 const card = ogCard(entry.slug);
 ---
 
-<BaseLayout title={title} description={description} image={card}>
+<BaseLayout
+  title={title}
+  seoTitle={`${title} · HackTheBox Writeup`}
+  description={description}
+  image={card}
+  article={{ published: date, tags }}
+>
   <div class="prog" aria-hidden="true"><i id="prog"></i></div>
 
   <header class="whead">
