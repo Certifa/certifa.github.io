@@ -1,0 +1,49 @@
+---
+import { getCollection } from 'astro:content';
+
+/**
+ * /tags/<tag>/ was live from 2026-07-10 to 2026-08-09 and no longer exists.
+ * Each old tag URL is still built, purely to forward, so a link posted while
+ * those pages were up lands on the writeups index instead of a 404.
+ *
+ * GitHub Pages serves static files and cannot issue a 301, so this is a meta
+ * refresh with a canonical naming the real destination: crawlers follow the
+ * canonical and drop the old URL, a visitor is moved immediately, and the
+ * visible link still works if the refresh is blocked.
+ *
+ * The slug rule is copied from the tag helper that used to live in
+ * src/utils/tags.ts, so the paths generated here match the ones that existed.
+ */
+export async function getStaticPaths() {
+  const slugify = (t: string) =>
+    t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+  const tags = new Set<string>();
+  for (const writeup of await getCollection('writeups')) {
+    for (const tag of writeup.data.tags) {
+      const slug = slugify(tag);
+      if (slug) tags.add(slug);
+    }
+  }
+  return [...tags].map((tag) => ({ params: { tag } }));
+}
+
+const target = '/writeups/';
+const canonical = new URL(target, Astro.site).href;
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Moved to the writeups index</title>
+    <meta http-equiv="refresh" content={`0; url=${target}`} />
+    <link rel="canonical" href={canonical} />
+    <meta name="robots" content="noindex, follow" />
+  </head>
+  <body style="margin:0;background:#050406;color:#a5a19a;font-family:'JetBrains Mono',ui-monospace,monospace;padding:4rem 6vw;line-height:1.8">
+    <p>
+      Tag pages have moved. Continue to the
+      <a href={target} style="color:#e8e6e2">writeups index</a>, which has search and filters.
+    </p>
+  </body>
+</html>
