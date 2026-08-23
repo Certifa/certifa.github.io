@@ -7,10 +7,12 @@
 name: Sync HackTheBox stats
 
 on:
-  schedule:
-    # 04:15 UTC daily. Rank moves most days; everything else rarely does, and
-    # the commit step means an unchanged day costs nothing.
-    - cron: '15 4 * * *'
+  # Schedule is off until the field mapping is confirmed against a real
+  # payload. The first run wrote level 58.52 and an XP pair of 58.52/41.741,
+  # which are percentages, not the figures those fields hold. Manual only for
+  # now so it cannot put nonsense back on the site overnight.
+  # schedule:
+  #   - cron: '15 4 * * *'
   workflow_dispatch:
 
 permissions:
@@ -28,7 +30,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Fetch profile and rewrite src/data/htb.ts
         env:
