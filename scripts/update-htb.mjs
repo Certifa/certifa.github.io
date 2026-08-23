@@ -15,11 +15,12 @@ import { readFileSync, writeFileSync } from 'node:fs';
 
 const FILE = 'src/data/htb.ts';
 const API = 'https://labs.hackthebox.com/api/v4';
-const token = process.env.HTB_TOKEN;
+// Either name works, so a local shell and the CI secret need not agree.
+const token = process.env.HTB_TOKEN || process.env.HTB_API;
 const argv = new Set(process.argv.slice(2));
 
 if (!token) {
-  console.error('HTB_TOKEN is not set. Export it locally, or add it as a repo secret in CI.');
+  console.error('No token. Set HTB_TOKEN or HTB_API in the environment.');
   process.exit(1);
 }
 

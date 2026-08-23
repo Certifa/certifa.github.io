@@ -32,7 +32,8 @@ jobs:
 
       - name: Fetch profile and rewrite src/data/htb.ts
         env:
-          HTB_TOKEN: ${{ secrets.HTB_TOKEN }}
+          # The repo secret is named HTB_API; the script reads HTB_TOKEN.
+          HTB_TOKEN: ${{ secrets.HTB_API }}
         run: node scripts/update-htb.mjs
 
       - name: Commit only if a figure actually changed
