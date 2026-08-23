@@ -74,7 +74,10 @@ if (!sane(incoming.globalRank, 5_000_000) || !sane(incoming.machines, 2000)) {
 let src = readFileSync(FILE, 'utf8');
 const changes = [];
 for (const [key, value] of Object.entries(incoming)) {
-  const re = new RegExp(`(\b${key}:\s*)(\d+)`);
+  // String.raw, because inside a plain template literal \b is a backspace
+  // character and \s and \d collapse to bare letters, producing a pattern
+  // that compiles fine and then silently never matches.
+  const re = new RegExp(String.raw`(\b${key}:\s*)(\d+)`);
   const m = src.match(re);
   if (!m) throw new Error(`${key} not found in ${FILE}; refusing to guess where it goes`);
   if (+m[2] !== value) {
