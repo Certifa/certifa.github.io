@@ -68,6 +68,10 @@ const siteTitle = title === 'Certifa' ? title : `${title} · Certifa`;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Feed readers look for this; without it /rss.xml is only findable
+         by guessing the URL. -->
+    <link rel="alternate" type="application/rss+xml" title="Certifa · Writeups" href="/rss.xml" />
     <meta name="theme-color" content="#050406" />
   </head>
   <body>
