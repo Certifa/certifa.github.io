@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { OG_VERSION } from '../../utils/og';
+import { getCanvas } from '../../utils/canvaskit';
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
@@ -121,22 +122,8 @@ function reference(tags: string[]): string {
     .join('  ·  ');
 }
 
-// Lazily initialise CanvasKit + fonts once, reused across every image.
-let _ck: any;
-let _fontMgr: any;
-async function getCanvas() {
-  if (_ck) return { CanvasKit: _ck, fontMgr: _fontMgr };
-  const require = createRequire(import.meta.url);
-  const CanvasKitInit = require('canvaskit-wasm/bin/canvaskit.js');
-  const ckDir = path.dirname(require.resolve('canvaskit-wasm/bin/canvaskit.js'));
-  _ck = await CanvasKitInit({ locateFile: (f: string) => path.join(ckDir, f) });
-  const [display, jetbrains] = await Promise.all([
-    readFile(path.resolve('src/assets/og-fonts/anton.ttf')),
-    readFile(path.resolve('src/assets/og-fonts/jetbrains-400.ttf')),
-  ]);
-  _fontMgr = _ck.FontMgr.FromData(display, jetbrains);
-  return { CanvasKit: _ck, fontMgr: _fontMgr };
-}
+// CanvasKit and the fonts now live in src/utils/canvaskit.ts, shared with the
+// profile banner route so the wasm and faces load once for the whole build.
 
 export const GET: APIRoute = async ({ props }) => {
   const { slug, data, shell } = props as { slug: string; data: any; shell: any };
