@@ -1,0 +1,58 @@
+# Refreshes the HackTheBox figures on a schedule.
+#
+# Deliberately separate from the deploy. The site build never talks to HTB, so
+# an outage there or an expired token can only mean the stats go stale; it can
+# never block a deploy or take the site down. When this job does find a change
+# it commits, and that commit triggers the normal Pages deploy.
+name: Sync HackTheBox stats
+
+on:
+  schedule:
+    # 04:15 UTC daily. Rank moves most days; everything else rarely does, and
+    # the commit step means an unchanged day costs nothing.
+    - cron: '15 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: htb-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Fetch profile and rewrite src/data/htb.ts
+        env:
+          HTB_TOKEN: ${{ secrets.HTB_TOKEN }}
+        run: node scripts/update-htb.mjs
+
+      - name: Commit only if a figure actually changed
+        run: |
+          if git diff --quiet -- src/data/htb.ts; then
+            echo "no change"
+            exit 0
+          fi
+          # The sync stamps a date on every run, so a date-only diff is not a
+          # real change and must not trigger a deploy of identical content.
+          if [ "$(git diff -U0 -- src/data/htb.ts | grep -c '^[+-][^+-]')" -le 2 ] \
+             && [ -z "$(git diff -U0 -- src/data/htb.ts | grep '^[+-][^+-]' | grep -v 'Last synced')" ]; then
+            echo "only the sync date moved, leaving it"
+            git checkout -- src/data/htb.ts
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/htb.ts
+          git commit -m "chore(htb): sync profile figures
+
+          Automated by .github/workflows/htb-sync.yml."
+          git push
