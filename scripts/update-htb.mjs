@@ -54,7 +54,24 @@ if (!id) throw new Error('could not resolve the user id from /user/info');
 const profile = (await get(`/user/profile/basic/${id}`)).profile ?? {};
 
 if (argv.has('--inspect')) {
-  console.log(JSON.stringify({ info, profile }, null, 2));
+  /* This output is read from a public Actions log, and /user/info carries
+     contact details that have no business being there. Drop anything that
+     looks personal or credential-shaped, and mask stray email addresses in
+     values, before printing. */
+  const SENSITIVE = /email|mail|token|secret|password|phone|address|ip$|ssn|dob|birth/i;
+  const clean = (v) => {
+    if (Array.isArray(v)) return v.map(clean);
+    if (v && typeof v === 'object') {
+      return Object.fromEntries(
+        Object.entries(v)
+          .filter(([k]) => !SENSITIVE.test(k))
+          .map(([k, val]) => [k, clean(val)]),
+      );
+    }
+    if (typeof v === 'string') return v.replace(/[^\s@]+@[^\s@]+\.[^\s@]+/g, '[redacted]');
+    return v;
+  };
+  console.log(JSON.stringify({ info: clean(info), profile: clean(profile) }, null, 2));
   process.exit(0);
 }
 

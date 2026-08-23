@@ -14,6 +14,12 @@ on:
   # schedule:
   #   - cron: '15 4 * * *'
   workflow_dispatch:
+    inputs:
+      mode:
+        description: 'inspect = print the payload only, dry-run = show the file, write = update and commit'
+        default: inspect
+        type: choice
+        options: [inspect, dry-run, write]
 
 permissions:
   contents: write
@@ -32,13 +38,19 @@ jobs:
         with:
           node-version: 24
 
-      - name: Fetch profile and rewrite src/data/htb.ts
+      - name: Fetch profile
         env:
           # The repo secret is named HTB_API; the script reads HTB_TOKEN.
           HTB_TOKEN: ${{ secrets.HTB_API }}
-        run: node scripts/update-htb.mjs
+        run: |
+          case "${{ inputs.mode || 'write' }}" in
+            inspect) node scripts/update-htb.mjs --inspect ;;
+            dry-run) node scripts/update-htb.mjs --dry-run ;;
+            *)       node scripts/update-htb.mjs ;;
+          esac
 
       - name: Commit only if a figure actually changed
+        if: ${{ (inputs.mode || 'write') == 'write' }}
         run: |
           if git diff --quiet -- src/data/htb.ts; then
             echo "no change"
