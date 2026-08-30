@@ -19,9 +19,9 @@ export const htb = {
   rank: 'Master',
   level: 75,
   points: 720,
-  machines: 76,
+  machines: 77,
   challenges: 34,
-  globalRank: 437,
+  globalRank: 402,
   /** Progress through the current level, not a lifetime total. */
   xp: { current: 1902, next: 2826 },
 } as const;
