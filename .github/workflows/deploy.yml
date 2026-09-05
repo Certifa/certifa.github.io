@@ -3,6 +3,17 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  # The HTB sync commits with the default GITHUB_TOKEN, and GitHub deliberately
+  # does not start workflows from those commits so a workflow cannot loop on
+  # itself. That meant the sync updated the repo every night for two weeks and
+  # never shipped any of it: the figures were correct in git and stale on the
+  # site until an unrelated push happened to deploy them.
+  #
+  # A dispatch from the sync job would be more precise, but this runs half an
+  # hour after it and cannot fail quietly, which matters more here than saving
+  # one no-op build a day.
+  schedule:
+    - cron: '45 4 * * *'
   workflow_dispatch:
 
 permissions:
