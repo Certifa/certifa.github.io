@@ -195,12 +195,16 @@ INFO: Done in 00M 13S
 
 Four computers, but two of them enumerate with no name. Those are the ones we cannot reach yet.
 
+![Domain Computers holds five principals. The two gMSAs render as Users rather than Computers, which is why they are easy to miss when scanning for computer objects.](/images/writeups/pirate/1.png)
+
 Path surfaced:
 
 - `pentest` → **Pre-Windows 2000 Compatible Access** (via Authenticated Users)
 - `MS01$` → **ReadGMSAPassword** on `gMSA_ADFS_prod$`
 - `a.white_adm` → constrained delegation to `HTTP/WEB01.pirate.htb`
 - `a.white_adm` → **WriteSPN** on both DC01 and WEB01
+
+![MS01$ is a member of Pre-Windows 2000 Compatible Access and of Domain Secure Servers. The first is how its password is guessable, the second is what makes it useful.](/images/writeups/pirate/2.png)
 
 ### Pre-Windows 2000 computer accounts
 
@@ -268,6 +272,8 @@ WEB01 sits at `192.168.100.2`, reachable only from DC01. Pivot required.
 ### Why it's vulnerable
 
 `MS01$`'s default password gets us a valid Kerberos identity for that computer account. That identity is a member of a group with **ReadGMSAPassword** on `gMSA_ADFS_prod$`. gMSA passwords are readable to any principal explicitly authorized in the `msDS-GroupMSAMembership` attribute, and that authorization here was scoped too broadly. NTLM over LDAP fails because channel binding is enforced; Kerberos auth sidesteps it since the check is NTLM-specific.
+
+![Domain Secure Servers holds ReadGMSAPassword over both gMSAs. This is the edge the entire foothold rests on: MS01$ is in that group, so MS01$ can read the password.](/images/writeups/pirate/3.png)
 
 ### Steps
 
