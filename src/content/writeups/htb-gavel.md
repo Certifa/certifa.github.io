@@ -15,7 +15,7 @@ featured: false
 | **Machine** | Gavel |
 | **OS** | Linux |
 | **Difficulty** | Medium |
-| **Status** | Active |
+| **Status** | Retired |
 
 ## TL;DR
 

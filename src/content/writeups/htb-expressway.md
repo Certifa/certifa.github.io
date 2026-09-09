@@ -15,7 +15,7 @@ featured: false
 | **Machine** | Expressway |
 | **OS** | Linux |
 | **Difficulty** | Easy |
-| **Status** | Active |
+| **Status** | Retired |
 
 > Walkthrough is sanitized, no flags or live secrets included.
 
