@@ -83,8 +83,8 @@ import { htb, htbLine } from '../data/htb';
         And I'm impatient: there are people younger than me with certs and seats, and
         <b>I don't have the seat yet</b>. That keeps me up more than any box does.</p>
 
-      <p>No certifications yet. <b>CJCA</b> is booked, <b>CPTS</b> is next, CCNA after that.
-        I'd rather show the work than the paper, but I'm going to have both. What I'm after
+      <p><b>CJCA</b> landed in September 2026, the first one on the board. <b>CPTS</b> is next,
+        CCNA after that. I'd rather show the work than the paper, but I'm going to have both. What I'm after
         is a <b>first red-team seat</b>: an internship or a junior role, against something
         real, with people better than me in the room. Not famous. Just genuinely good at
         this, and still enjoying it in five years.</p>
@@ -125,17 +125,17 @@ import { htb, htbLine } from '../data/htb';
 
 <!-- ================= THE PAPER ================= -->
 <section class="paper">
-  <p class="eyebrow">The paper · none held yet</p>
+  <p class="eyebrow">The paper · CJCA earned</p>
   <div class="steps">
     <div class="track"></div><div class="track-fill" id="paperfill"></div>
+    <div class="step done"><span class="dot"></span>
+      <p class="sname">CJCA</p><p class="smeta">Earned 10 Sep 2026</p></div>
     <div class="step now"><span class="dot"></span>
-      <p class="sname">CJCA</p><p class="smeta">Exam booked</p></div>
-    <div class="step later"><span class="dot"></span>
-      <p class="sname">CPTS</p><p class="smeta">Next</p></div>
+      <p class="sname">CPTS</p><p class="smeta">In progress</p></div>
     <div class="step later"><span class="dot"></span>
       <p class="sname">CCNA</p><p class="smeta">Planned</p></div>
   </div>
-  <p class="none-held">This is the order they land in. Until then the writeups are the evidence.</p>
+  <p class="none-held">One down, two to go. Until the rest land, the writeups are the evidence.</p>
 </section>
 
 <!-- ================= OFF THE CLOCK ================= -->
@@ -237,12 +237,14 @@ import { htb, htbLine } from '../data/htb';
   .paper .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;position:relative}
   .paper .track{position:absolute;left:0;right:0;top:9px;height:1px;background:var(--line)}
   .paper .track-fill{position:absolute;left:0;top:9px;height:1px;background:var(--blood-lit);
-    width:33.33%;transform:scaleX(0);transform-origin:left}
+    width:66.66%;transform:scaleX(0);transform-origin:left}
   .paper .step{position:relative;padding-right:24px;opacity:0}
   .paper .dot{width:19px;height:19px;border-radius:50%;border:1px solid #2a2733;
     background:var(--void);position:relative;z-index:2}
-  .paper .step.now .dot{border-color:var(--blood-lit);background:var(--blood-lit);
+  .paper .step.done .dot{border-color:var(--blood-lit);background:var(--blood-lit);
     box-shadow:0 0 14px rgba(193,31,31,.6)}
+  .paper .step.now .dot{border-color:var(--blood-lit);background:var(--void)}
+  .paper .step.done .smeta{color:var(--bone)}
   .paper .sname{margin:2.2em 0 .5em;font-family:var(--display);font-weight:400;text-transform:uppercase;
     font-size:clamp(1.05rem,2vw,1.6rem);color:var(--bone)}
   .paper .step.later .sname{color:#63605b}

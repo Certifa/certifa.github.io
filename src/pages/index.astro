@@ -96,15 +96,15 @@ const writeups = (await getCollection('writeups')).length;
   </div>
 
   <div class="roadmap" id="roadmap">
-    <p class="rlabel">The Paper · none held yet</p>
+    <p class="rlabel">The Paper · CJCA earned</p>
     <div class="steps">
       <div class="track"></div>
       <div class="track-fill" id="trackfill"></div>
-      <div class="step now"><div class="dot"></div><p class="sname">CJCA</p><p class="smeta">Exam booked · HackTheBox</p></div>
-      <div class="step later"><div class="dot"></div><p class="sname">CPTS</p><p class="smeta">Next · HackTheBox</p></div>
+      <div class="step done"><div class="dot"></div><p class="sname">CJCA</p><p class="smeta">Earned 10 Sep 2026 · HackTheBox</p></div>
+      <div class="step now"><div class="dot"></div><p class="sname">CPTS</p><p class="smeta">In progress · HackTheBox</p></div>
       <div class="step later"><div class="dot"></div><p class="sname">CCNA</p><p class="smeta">Planned · Cisco</p></div>
     </div>
-    <p class="none-held">This is the order they land in.</p>
+    <p class="none-held">One down, two to go. This is the order they land in.</p>
   </div>
 </section>
 
@@ -256,10 +256,12 @@ const writeups = (await getCollection('writeups')).length;
   .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;position:relative}
   .track{position:absolute;left:0;right:0;top:9px;height:1px;background:var(--line)}
   .track-fill{position:absolute;left:0;top:9px;height:1px;background:var(--blood-lit);
-    width:33.33%;transform:scaleX(0);transform-origin:left}
+    width:66.66%;transform:scaleX(0);transform-origin:left}
   .step{position:relative;padding-right:24px;opacity:0}
   .dot{width:19px;height:19px;border-radius:50%;border:1px solid #2a2733;background:var(--void);position:relative;z-index:2}
-  .step.now .dot{border-color:var(--blood-lit);background:var(--blood-lit);box-shadow:0 0 14px rgba(193,31,31,.6)}
+  .step.done .dot{border-color:var(--blood-lit);background:var(--blood-lit);box-shadow:0 0 14px rgba(193,31,31,.6)}
+    .step.now .dot{border-color:var(--blood-lit);background:var(--void)}
+    .step.done .smeta{color:var(--bone)}
   .step .sname{margin:2.2em 0 .5em;font-family:var(--display);font-weight:400;text-transform:uppercase;
     font-size:clamp(1.05rem,2vw,1.6rem);color:var(--bone)}
   .step.later .sname{color:#63605b}
