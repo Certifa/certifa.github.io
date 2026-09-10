@@ -135,6 +135,13 @@ import { htb, htbLine } from '../data/htb';
     <div class="step later"><span class="dot"></span>
       <p class="sname">CCNA</p><p class="smeta">Planned</p></div>
   </div>
+  <figure class="cert">
+    <img src="/images/about/cjca.png"
+         alt="HTB Certified Junior Cybersecurity Associate certificate awarded to Mike Alvaro Bliek on 10 September 2026"
+         width="1400" height="990" loading="lazy" decoding="async" />
+    <figcaption>HTB Certified Junior Cybersecurity Associate &middot; 10 Sep 2026</figcaption>
+  </figure>
+
   <p class="none-held">One down, two to go. Until the rest land, the writeups are the evidence.</p>
 </section>
 
@@ -251,6 +258,13 @@ import { htb, htbLine } from '../data/htb';
   .paper .smeta{margin:0;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dimmer)}
   .paper .step.now .smeta{color:var(--blood-lit)}
   .paper .none-held{margin:5.4vh 0 0;font-size:.78rem;color:var(--dimmer)}
+  /* Capped rather than full bleed: the steps grid spans the section, and a
+     certificate at that width would outweigh everything around it. */
+  .paper .cert{margin:7vh 0 0;max-width:720px;border:1px solid var(--line);
+    background:var(--panel);opacity:0;transform:translateY(14px)}
+  .paper .cert img{display:block;width:100%;height:auto}
+  .paper .cert figcaption{padding:13px 18px;border-top:1px solid var(--line);
+    font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dimmer)}
 
   /* ================= OFF THE CLOCK ================= */
   /* The one section that isn't about security. Deliberately quieter: no display
@@ -288,7 +302,7 @@ import { htb, htbLine } from '../data/htb';
   }
   @media(prefers-reduced-motion:reduce){
     .lead .ln .i{transform:none}
-    .open .eyebrow,.lede,.vital,.disc,.off-item,.paper .step{opacity:1;transform:none}
+    .open .eyebrow,.lede,.vital,.disc,.off-item,.paper .step,.paper .cert{opacity:1;transform:none}
   }
 </style>
 
@@ -323,7 +337,8 @@ if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
 
   gsap.timeline({scrollTrigger:{trigger:'.paper',start:'top 80%'}})
     .to('.paper .step',{opacity:1,duration:.45,ease:'power4.out',stagger:.11})
-    .to('#paperfill',{scaleX:1,duration:.8,ease:'power3.inOut'},'-=.45');
+    .to('#paperfill',{scaleX:1,duration:.8,ease:'power3.inOut'},'-=.45')
+      .to('.paper .cert',{opacity:1,y:0,duration:.5,ease:'power4.out'},'-=.35');
 
   gsap.to('.off-item',{opacity:1,y:0,duration:.5,ease:'power4.out',stagger:.07,
     scrollTrigger:{trigger:'.off',start:'top 84%'}});
