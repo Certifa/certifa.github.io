@@ -6,6 +6,8 @@ difficulty: easy
 platform: HTB
 description: "Linux box with IKE/ISAKMP on UDP/500: crack the PSK with psk-crack, SSH in, then exploit a vulnerable sudo version (CVE-2025-32463) to root."
 featured: false
+scene: road
+chain: ["IKE on UDP/500", "PSK crack", "SSH", "sudo CVE-2025-32463", "root"]
 ---
 
 ## Overview

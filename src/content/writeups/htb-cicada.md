@@ -6,6 +6,8 @@ difficulty: easy
 platform: HTB
 description: "Beginner-friendly Windows AD box: anonymous SMB enumeration leads to default credentials, password spraying finds a foothold, and SeBackupPrivilege escalates to Administrator via SAM dump."
 featured: false
+scene: cicada
+chain: ["Anonymous SMB", "Default creds", "Password spray", "SeBackupPrivilege", "Administrator"]
 ---
 
 ## Overview

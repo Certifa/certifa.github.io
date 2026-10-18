@@ -7,17 +7,14 @@ import '../styles/global.css';
 interface Props {
   title?: string;
   description?: string;
-  /**
-   * Overrides the <title> only, leaving `title` for the share card alt and the
-   * JSON-LD headline. A page is titled for the reader on the page and for a
-   * search result separately: "Shocker" is right in one place and useless in
-   * the other, where the query is "htb shocker writeup".
-   */
+  /** Overrides <title> only, leaving `title` for the share card alt and JSON-LD. */
   seoTitle?: string;
   /** Share card, site-root-relative. Writeups pass their generated /og/<box>.png. */
   image?: string;
   /** Present on a writeup. Switches og:type and emits TechArticle JSON-LD. */
   article?: { published: Date; tags?: string[] };
+  /** Writeup pages opt out of smooth scroll: long reading pages read better native. */
+  writeup?: boolean;
 }
 
 const {
@@ -26,13 +23,9 @@ const {
   seoTitle,
   image,
   article,
+  writeup = false,
 } = Astro.props;
 
-/**
- * Google truncates a description around 155 characters. A longer one is not
- * penalised, it is simply cut mid-sentence in the result, so the last thing a
- * searcher reads is an ellipsis instead of the reason to click.
- */
 const clamp = (text: string, max = 155) => {
   if (text.length <= max) return text;
   const cut = text.slice(0, max);
@@ -41,7 +34,6 @@ const clamp = (text: string, max = 155) => {
 };
 const metaDescription = clamp(description);
 
-// Shell pages have their own generated card; writeups pass theirs in.
 const SHELL_CARDS: Record<string, string> = {
   '/': ogCard('home'),
   '/writeups': ogCard('writeups'),
@@ -50,9 +42,6 @@ const SHELL_CARDS: Record<string, string> = {
   '/contact': ogCard('contact'),
 };
 const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
-// A page that is not mapped above still shares with the site card rather than
-// with nothing. No og:image at all is the one outcome that looks broken, and
-// it would happen silently the next time a page is added.
 const resolved = image ?? SHELL_CARDS[currentPath] ?? ogCard('home');
 const ogImage = resolved ? new URL(resolved, Astro.site).href : null;
 
@@ -60,11 +49,6 @@ const displayTitle = seoTitle ?? title;
 const siteTitle = displayTitle === 'Certifa' ? displayTitle : `${displayTitle} · Certifa`;
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
 
-/**
- * Structured data. A writeup is a TechArticle so the date, author and subject
- * are machine-readable rather than inferred from prose; everything else
- * describes the site itself.
- */
 const schema = article
   ? {
       '@context': 'https://schema.org',
@@ -95,7 +79,7 @@ const schema = article
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{siteTitle}</title>
     <meta name="description" content={metaDescription} />
-    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <link rel="canonical" href={canonicalUrl} />
     <meta property="og:title" content={siteTitle} />
     <meta property="og:description" content={metaDescription} />
     <meta property="og:type" content={article ? 'article' : 'website'} />
@@ -106,7 +90,7 @@ const schema = article
         {(article.tags ?? []).map((t) => <meta property="article:tag" content={t} />)}
       </>
     )}
-    <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
+    <meta property="og:url" content={canonicalUrl} />
     <meta property="og:site_name" content="Certifa" />
     {ogImage && (
       <>
@@ -124,54 +108,60 @@ const schema = article
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono&display=swap"
       rel="stylesheet"
     />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-
-    <!-- Feed readers look for this; without it /rss.xml is only findable
-         by guessing the URL. -->
     <link rel="alternate" type="application/rss+xml" title="Certifa · Writeups" href="/rss.xml" />
-    <meta name="theme-color" content="#050406" />
+    <meta name="theme-color" content="#0a0a0a" />
   </head>
-  <body>
-    <div class="pagegrain" aria-hidden="true"></div>
+  <body data-writeup={writeup ? '1' : undefined}>
+    <div class="progress" id="progress" aria-hidden="true"></div>
     <span id="top"></span>
     <a href="#main-content" class="skip-link">Skip to content</a>
     <Nav />
     <main id="main-content" tabindex="-1"><slot /></main>
     <Footer />
 
-    <div class="copy-toast" id="copyToast">Copied</div>
-
     <script>
-      // Scroll reveal
-      const io = new IntersectionObserver(
-        (entries) => entries.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.add('revealed');
-            io.unobserve(e.target);
-          }
-        }),
-        { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
-      );
-      document.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
+      import Lenis from 'lenis';
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const writeup = document.body.dataset.writeup === '1';
 
-      // Copy-to-clipboard via [data-copy="value"]
-      const toast = document.getElementById('copyToast');
-      let toastTimer: number | undefined;
-      document.body.addEventListener('click', (e) => {
+      if (!reduce && !writeup) {
+        const lenis = new Lenis({ lerp: 0.09 });
+        const raf = (t: number) => { lenis.raf(t); requestAnimationFrame(raf); };
+        requestAnimationFrame(raf);
+      }
+      setTimeout(() => document.body.classList.add('ready'), reduce ? 0 : 150);
+
+      const bar = document.getElementById('progress');
+      if (bar) {
+        const prog = () => {
+          const max = document.documentElement.scrollHeight - innerHeight;
+          bar.style.transform = `scaleX(${max > 0 ? scrollY / max : 0})`;
+        };
+        addEventListener('scroll', prog, { passive: true });
+        prog();
+      }
+
+      document.body.addEventListener('click', async (e) => {
         const el = (e.target as HTMLElement).closest('[data-copy]') as HTMLElement | null;
-        if (!el || !toast) return;
+        if (!el) return;
         const val = el.getAttribute('data-copy') || '';
-        if (navigator.clipboard) navigator.clipboard.writeText(val).catch(() => {});
-        toast.textContent = `Copied → ${val}`;
-        toast.classList.add('show');
-        if (toastTimer) clearTimeout(toastTimer);
-        toastTimer = window.setTimeout(() => toast.classList.remove('show'), 1600);
+        try { await navigator.clipboard.writeText(val); } catch {}
+        const small = el.querySelector('small');
+        if (small) {
+          const was = small.textContent;
+          small.textContent = 'Copied';
+          setTimeout(() => { small.textContent = was; }, 1600);
+        }
       });
+
+      // Each page draws its own footer wordmark (ported from the prototype),
+      // so nothing shared touches the #wordmark canvas here.
     </script>
   </body>
 </html>

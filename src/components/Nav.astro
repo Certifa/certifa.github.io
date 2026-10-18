@@ -1,44 +1,46 @@
 ---
-// Transparent over the homepage hero, solid once you scroll past it. The
-// `stuck` class is applied by script rather than by scroll position in CSS,
-// because the homepage wants it to hold off for a whole viewport while every
-// other page wants it solid immediately.
+// Top nav: brand, centre links, "Get in touch". On narrow screens the links
+// move into a dropdown opened by a menu button, so the site stays navigable.
 const links = [
-  { href: '/', label: 'Home' },
-  { href: '/about', label: 'About' },
-  { href: '/writeups', label: 'Writeups' },
-  { href: '/projects', label: 'Projects' },
-  { href: '/contact', label: 'Contact' },
+  { href: '/writeups/', label: 'Writeups' },
+  { href: '/projects/', label: 'Projects' },
+  { href: '/about/', label: 'About' },
+  { href: '/contact/', label: 'Contact' },
 ];
 
 const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
-const isActive = (href: string) =>
-  href === '/' ? path === '/' : path === href || path.startsWith(`${href}/`);
-
-// Only the homepage has a full-bleed hero for the nav to float over.
-const overHero = path === '/';
+const isActive = (href: string) => {
+  const h = href.replace(/\/+$/, '') || '/';
+  return h === '/' ? path === '/' : path === h || path.startsWith(`${h}/`);
+};
 ---
 
-<nav class:list={['nav', { stuck: !overHero }]} id="nav" data-over-hero={overHero ? '' : null}>
-  <a class="nav-mark" href="/">Certifa</a>
-
-  <div class="nav-links">
+<nav class="nav" id="siteNav" aria-label="Main">
+  <a class="brand" href="/">certifa</a>
+  <ul id="navLinks">
     {links.map(({ href, label }) => (
-      <a href={href} aria-current={isActive(href) ? 'page' : undefined}>{label}</a>
+      <li><a href={href} aria-current={isActive(href) ? 'page' : undefined}>{label}</a></li>
     ))}
-  </div>
-
-  <a class="nav-out" href="https://github.com/Certifa" target="_blank" rel="noopener">GitHub</a>
+    <li class="m-cta"><a href="mailto:mike@certifa.net">Get in touch</a></li>
+  </ul>
+  <a class="cta" href="mailto:mike@certifa.net">Get in touch</a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navLinks" aria-label="Menu">
+    <span></span><span></span>
+  </button>
 </nav>
 
 <script>
-  const nav = document.getElementById('nav');
-  if (nav) {
-    // Over the hero it waits most of a viewport; elsewhere it is solid from the top.
-    const overHero = nav.hasAttribute('data-over-hero');
-    const trigger = overHero ? () => window.innerHeight * 0.72 : () => 40;
-    const onScroll = () => nav.classList.toggle('stuck', window.scrollY > trigger());
-    onScroll();
-    addEventListener('scroll', onScroll, { passive: true });
+  const nav = document.getElementById('siteNav');
+  const btn = document.getElementById('menuBtn');
+  if (nav && btn) {
+    const set = (open: boolean) => {
+      nav.classList.toggle('open', open);
+      btn.setAttribute('aria-expanded', String(open));
+    };
+    btn.addEventListener('click', () => set(!nav.classList.contains('open')));
+    nav.querySelectorAll('#navLinks a').forEach((a) => a.addEventListener('click', () => set(false)));
+    addEventListener('keydown', (e) => { if (e.key === 'Escape') set(false); });
+    addEventListener('resize', () => { if (innerWidth > 900) set(false); });
+    document.addEventListener('click', (e) => { if (!nav.contains(e.target as Node)) set(false); });
   }
 </script>

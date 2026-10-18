@@ -6,6 +6,8 @@ difficulty: easy
 platform: HTB
 description: "Default credentials on an exposed ZoneMinder console lead to a blind SQL injection (CVE-2024-51482) that dumps a crackable hash for SSH. Root comes from a loopback-bound motionEye reached over an SSH tunnel, where a filename field is passed unsanitised to a Motion daemon running as root (CVE-2025-60787)."
 featured: true
+scene: camera
+chain: ["Default creds", "Blind SQLi", "SSH", "motionEye", "root"]
 ---
 
 ## Overview

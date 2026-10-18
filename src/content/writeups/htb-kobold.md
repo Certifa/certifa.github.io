@@ -6,6 +6,8 @@ difficulty: easy
 platform: HTB
 description: "A wildcard TLS certificate leaks a subdomain running MCPJam Inspector v1.4.2, whose /api/mcp/connect endpoint executes attacker-supplied commands with no authentication. Privesc via docker group membership: reactivated with newgrp, then a container mount of the host filesystem to root."
 featured: true
+scene: lantern
+chain: ["TLS cert", "Subdomain", "MCPJam RCE", "docker group", "root"]
 ---
 
 ## Overview

@@ -6,6 +6,8 @@ difficulty: medium
 platform: HTB
 description: "Linux web box: exposed .git repo leaks PHP source revealing a SQLi, admin panel RCE via PHP rule engine, then privesc by abusing a root-run auction daemon that executes YAML-defined PHP rules."
 featured: false
+scene: gavel
+chain: [".git leak", "SQLi", "Rule engine RCE", "Auction daemon", "root"]
 ---
 
 ## Overview

@@ -6,6 +6,8 @@ difficulty: hard
 platform: HTB
 description: "Active Directory box featuring MSSQL lateral movement across two domains, kernel exploitation (CVE-2024-30088) via Metasploit, and Golden Ticket via Rubeus + PetitPotam to compromise the forest."
 featured: true
+scene: void
+chain: ["MSSQL", "Cross-domain link", "CVE-2024-30088", "Golden Ticket", "Forest"]
 ---
 
 ## Overview

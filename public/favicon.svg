@@ -1,15 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Crimson ground rather than the site's void: a favicon sits in browser
-       chrome we do not control, and a near-black tile disappears into a dark
-       tab strip. The accent is the one colour that holds on both. -->
-  <rect width="32" height="32" rx="6" fill="#c11f1f"/>
-  <!-- C with flat terminals and an open right side, cut the way Anton cuts a
-       counter. Drawn as an arc rather than set as text, because a font-family
-       reference would not resolve on a stranger's machine.
-       Centre (16,16), r 8.6, sweeping 60deg to 300deg the long way round, so
-       the endpoints below sit exactly on that circle. Get them wrong and the
-       browser re-derives its own centre to fit them, which silently moves and
-       resizes the letter away from the PNGs beside it. -->
-  <path d="M20.3 23.45 A8.6 8.6 0 1 1 20.3 8.55"
-        fill="none" stroke="#e8e6e2" stroke-width="5.4" stroke-linecap="butt"/>
+  <!-- New design: a near-black tile with the blue accent "c", matching the
+       site mark. Drawn as an arc, not text, so it resolves on any machine. -->
+  <rect width="32" height="32" rx="7" fill="#0a0a0a"/>
+  <path d="M21.5 11.2 A7 7 0 1 0 21.5 20.8"
+        fill="none" stroke="#5b8cff" stroke-width="3.4" stroke-linecap="round"/>
 </svg>

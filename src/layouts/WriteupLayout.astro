@@ -14,7 +14,7 @@ interface Props {
 }
 
 const { entry, headings, readingTime, newer = null, older = null, related = [] } = Astro.props;
-const { title, date, tags, difficulty, platform, description } = entry.data;
+const { title, date, tags, difficulty, platform, description, scene, chain = [] } = entry.data;
 
 const fmt = new Intl.DateTimeFormat('en-GB', {
   day: 'numeric', month: 'long', year: 'numeric',
@@ -22,6 +22,7 @@ const fmt = new Intl.DateTimeFormat('en-GB', {
 
 const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 const os = tags.includes('windows') ? 'Windows' : tags.includes('linux') ? 'Linux' : null;
+const osIcon = os === 'Windows' ? 'monitor' : os === 'Linux' ? 'terminal' : null;
 const card = ogCard(entry.slug);
 ---
 
@@ -31,371 +32,266 @@ const card = ogCard(entry.slug);
   description={description}
   image={card}
   article={{ published: date, tags }}
+  writeup
 >
-  <div class="prog" aria-hidden="true"><i id="prog"></i></div>
-
-  <header class="whead">
-    <a class="back" href="/writeups/">&larr; Back to writeups</a>
-    <h1 class="wtitle">{title}</h1>
-    <p class="wsub">{description}</p>
-    <p class="meta">
-      <span class="diff">{difficulty}</span>
-      <span>{platform}</span>
-      {os && <span>{os}</span>}
-      <span>{fmt}</span>
-      <span>~{readingTime} min read</span>
-    </p>
-    <div class="wtags">{tags.map((t) => <i>{t}</i>)}</div>
+  <header class="sec whead">
+    {scene && <canvas id="scene" data-scene={scene} aria-hidden="true"></canvas>}
+    <p class="crumb"><a href="/">certifa</a><span class="sep">/</span><a href="/writeups/">writeups</a><span class="sep">/</span>{entry.slug}</p>
+    <h1>{title}</h1>
+    <p class="wsum">{description}</p>
+    <div class="wmeta">
+      <span class="item"><span class={`diff ${difficulty}`}>{difficulty}</span></span>
+      <span class="dot"></span>
+      {osIcon && <><span class="item"><i data-i={osIcon}></i>{os}</span><span class="dot"></span></>}
+      <span class="item"><i data-i="calendar"></i>{fmt}</span>
+      <span class="dot"></span>
+      <span class="item"><i data-i="clock"></i>~{readingTime} min read</span>
+    </div>
+    <div class="wtags">{tags.map((t) => <span>{t}</span>)}</div>
+    {chain.length > 0 && (
+      <div class="chainrail">
+        {chain.map((s, i) => (
+          <>
+            {i > 0 && <span class="arr">&rsaquo;</span>}
+            <span class:list={['step', { first: i === 0 }]}>{s}</span>
+          </>
+        ))}
+      </div>
+    )}
   </header>
 
-  <div class="shell">
-    <nav class="toc" id="toc" aria-label="On this page">
+  <div class="sec wbody">
+    <nav class="toc" aria-label="On this page">
       <p>On this page</p>
-      {toc.map((h) => (
-        <a class:list={[{ sub: h.depth === 3 }]} href={`#${h.slug}`}>{h.text}</a>
-      ))}
+      <ol>
+        {toc.map((h) => (
+          <li class:list={[{ sub: h.depth === 3 }]}><a href={`#${h.slug}`}>{h.text}</a></li>
+        ))}
+      </ol>
     </nav>
 
-    <article class="body" id="wuBody"><slot /></article>
+    <article class="article" id="wuBody"><slot /></article>
   </div>
 
   {related.length > 0 && (
-    <section class="related">
-      <p>Related writeups</p>
+    <section class="sec related">
+      <p class="rel-k">Related writeups</p>
       <div class="rel-grid">
         {related.map((w) => (
           <a class="rel" href={`/writeups/${w.slug}/`}>
-            <span class="wipe"></span>
-            <span class="d">{w.data.difficulty} &middot; {w.data.platform}</span>
+            <span class={`diff ${w.data.difficulty}`}>{w.data.difficulty}</span>
             <h4>{w.data.title}</h4>
-            <p class="t">{w.data.tags.slice(0, 3).join(' · ')}</p>
+            <p>{w.data.tags.slice(0, 3).join(' · ')}</p>
           </a>
         ))}
       </div>
     </section>
   )}
 
-  <div class="pager">
+  <div class="sec pager">
     {older
-      ? <a href={`/writeups/${older.slug}/`}>&larr; Older &middot; {older.data.title}</a>
+      ? <a href={`/writeups/${older.slug}/`}><i data-i="back"></i>{older.data.title}</a>
       : <span></span>}
-    <a href="/writeups/">All writeups</a>
+    <a class="all" href="/writeups/">All writeups</a>
     {newer
-      ? <a href={`/writeups/${newer.slug}/`}>Newer &middot; {newer.data.title} &rarr;</a>
+      ? <a href={`/writeups/${newer.slug}/`}>{newer.data.title}<i data-i="arrow"></i></a>
       : <span></span>}
   </div>
 </BaseLayout>
 
 <style is:global>
-  /* Long-form pages hold the grain still. A texture that re-renders every
-     0.28s under body copy is a shimmer you read through. */
-  .pagegrain { animation: none; opacity: .035; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
-  /* reading progress, the only chrome that tracks how far you are */
-  .prog { position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 60; background: transparent; }
-  .prog i { display: block; height: 100%; width: 0; background: var(--blood-lit);
-    box-shadow: 0 0 10px rgba(193,31,31,.6); }
+  .whead { position: relative; padding-top: 48px; padding-bottom: 40px; overflow: hidden; }
+  .whead canvas { position: absolute; right: -4%; top: -10%; width: 52%; height: 150%; opacity: .5; pointer-events: none;
+    -webkit-mask-image: radial-gradient(ellipse 60% 60% at 60% 45%, #000 30%, transparent 72%);
+    mask-image: radial-gradient(ellipse 60% 60% at 60% 45%, #000 30%, transparent 72%); }
+  .whead .crumb { position: relative; font: 400 12.5px var(--mono); color: var(--dim); margin-bottom: 24px; }
+  .whead .crumb a:hover { color: #fff; }
+  .whead .crumb .sep { margin: 0 8px; color: #3a3a3a; }
+  .whead h1 { position: relative; font-weight: 600; font-size: clamp(46px, 6vw, 86px); line-height: .95;
+    letter-spacing: -.045em; text-transform: capitalize;
+    filter: blur(18px); opacity: 0; transition: filter 1.1s cubic-bezier(.2,.7,.2,1), opacity 1.1s; }
+  .ready .whead h1 { filter: none; opacity: 1; }
+  .whead .wsum { position: relative; margin-top: 22px; max-width: 60ch; font-size: 17.5px; color: var(--muted); line-height: 1.5; }
+  .wmeta { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 26px;
+    font: 400 12.5px var(--mono); color: var(--dim); text-transform: capitalize; }
+  .wmeta i[data-i] { width: 14px; height: 14px; }
+  .wmeta .item { display: inline-flex; align-items: center; gap: 7px; }
+  .wmeta .dot { width: 3px; height: 3px; border-radius: 50%; background: #444; }
+  .wtags { position: relative; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 20px; }
+  .wtags span { font: 400 11.5px var(--mono); color: #a8a8a8; border: 1px solid #2a2a2a; border-radius: 6px; padding: 3px 8px; }
+  .chainrail { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 30px;
+    padding-top: 22px; border-top: 1px solid var(--line); }
+  .chainrail .step { font: 400 12px var(--mono); color: #b8b8b8; background: #131313; border: 1px solid #242424; border-radius: 7px; padding: 5px 10px; }
+  .chainrail .step.first { color: #c9d6ff; border-color: #3a4a7a; }
+  .chainrail .arr { color: #555; }
 
-  /* ================= HEAD ================= */
-  .whead { position: relative; padding: 20vh 4vw 5vh; border-bottom: 1px solid var(--line); }
-  .whead::before { content: ''; position: absolute; inset: 0; pointer-events: none;
-    background: radial-gradient(ellipse 50% 60% at 14% 50%, rgba(193,31,31,.09), transparent 70%); }
-  .whead > * { position: relative; }
-  .back { display: inline-block; font-size: .6rem; letter-spacing: .2em; text-transform: uppercase;
-    color: var(--dim); text-decoration: none; margin-bottom: 4vh; transition: color .28s; }
-  .back:hover { color: var(--blood-lit); }
-  .wtitle { margin: 0; font-family: var(--display); font-weight: 400; text-transform: uppercase;
-    font-size: clamp(2.6rem, 9vw, 7rem); line-height: .86; color: var(--bone); }
-  .wsub { margin: 1.6em 0 0; max-width: 64ch; font-size: 1rem; line-height: 1.8; color: var(--read); }
-  .meta { display: flex; gap: 1.7em; flex-wrap: wrap; margin-top: 3.4vh;
-    font-size: .68rem; letter-spacing: .18em; text-transform: uppercase; color: var(--dim); }
-  .meta .diff { color: var(--blood-lit); }
-  .wtags { display: flex; gap: .5em; flex-wrap: wrap; margin-top: 2.6vh; }
-  .wtags i { font-style: normal; font-size: .55rem; letter-spacing: .16em; text-transform: uppercase;
-    color: #3a3732; border: 1px solid var(--line); padding: .45em .8em; }
+  .wbody { display: grid; grid-template-columns: 200px 1fr; gap: 56px; align-items: start; padding-top: 50px; padding-bottom: 40px; }
+  .toc { position: sticky; top: 30px; font-size: 13.5px; }
+  .toc p { font: 400 11px var(--mono); color: var(--dim); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 14px; }
+  .toc ol { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; border-left: 1px solid var(--line); }
+  .toc li.sub a { padding-left: 28px; font-size: 13px; color: #777; }
+  .toc a { display: block; padding: 6px 0 6px 16px; margin-left: -1px; color: #8a8a8a; border-left: 1px solid transparent; transition: color .2s, border-color .2s; line-height: 1.3; }
+  .toc a:hover { color: #ddd; }
+  .toc a.on { color: #fff; border-left-color: var(--accent); }
 
-  /* ================= LAYOUT ================= */
-  .shell { display: grid; grid-template-columns: 290px 1fr; gap: 4vw;
-    padding: 8vh 4vw 12vh; align-items: start; }
+  .article { min-width: 0; max-width: 760px; counter-reset: h2; }
+  .article h2 { counter-increment: h2; font-weight: 600; font-size: 26px; letter-spacing: -.02em; margin: 46px 0 16px; scroll-margin-top: 24px; }
+  .article h2::before { content: counter(h2, decimal-leading-zero); font: 400 13px var(--mono); color: var(--accent); margin-right: 12px; }
+  .article h2:first-child { margin-top: 0; }
+  .article h3 { font-weight: 600; font-size: 18px; letter-spacing: -.01em; margin: 30px 0 12px; color: #e8e8e8; scroll-margin-top: 24px; }
+  .article p { color: #c9c9c9; font-size: 15.5px; line-height: 1.72; margin: 14px 0; }
+  .article a[href^="http"] { color: #9bb8ff; border-bottom: 1px solid #2a3a6a; word-break: break-word; }
+  .article a[href^="http"]:hover { border-color: var(--accent); }
+  .article :not(pre) > code { font: 400 .86em var(--mono); color: #ffcf9e; background: rgba(255,179,107,.1); padding: 1px 5px; border-radius: 4px; word-break: break-word; }
+  .article ul, .article ol { margin: 14px 0; padding-left: 0; list-style: none; display: grid; gap: 9px; }
+  .article li { position: relative; padding-left: 22px; color: #c9c9c9; font-size: 15px; line-height: 1.6; }
+  .article ul li::before { content: ""; position: absolute; left: 2px; top: 9px; width: 6px; height: 6px; border: 1px solid #555; }
+  .article ol { counter-reset: li; }
+  .article ol li::before { content: counter(li); counter-increment: li; position: absolute; left: 0; top: 0; font: 400 12px var(--mono); color: var(--accent); }
 
-  /* ---- contents ----
-     Long writeups run past the viewport, so the list scrolls, but the scrollbar
-     is hidden and the list moves itself to keep the current section in view. */
-  .toc { position: sticky; top: 12vh; max-height: 78vh; overflow-y: auto;
-    scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; }
-  .toc::-webkit-scrollbar { width: 0; height: 0; }
-  .toc p { margin: 0 0 1.8em; font-size: .64rem; letter-spacing: .24em;
-    text-transform: uppercase; color: var(--blood-lit); }
-  .toc a { display: block; font-size: .84rem; line-height: 1.5; color: #8a867f;
-    text-decoration: none; padding: .58em 0 .58em 1.1em; border-left: 1px solid var(--line);
-    transition: color .25s, border-color .25s; }
-  .toc a:hover { color: var(--bone); }
-  .toc a.sub { padding-left: 2.2em; font-size: .78rem; }
-  .toc a.on { color: var(--bone); border-left-color: var(--blood-lit); }
+  .article table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14.5px; }
+  .article thead { display: none; }
+  .article table td { border: 1px solid var(--line); padding: 11px 14px; background: #0f0f0f; }
+  .article table td:first-child { color: var(--dim); font: 400 12px var(--mono); text-transform: uppercase; letter-spacing: .04em; width: 1%; white-space: nowrap; }
+  .article table td:last-child { font-weight: 500; }
 
-  /* ---- prose ----
-     The container does not cap everything, or evidence could never be wider
-     than the prose. Reading elements carry the 66ch measure themselves. */
-  .body { max-width: 58rem; min-width: 0; counter-reset: sec; }
-  .body p, .body ul:not(.tldr):not(.lessons), .body ol, .body blockquote { max-width: 66ch; }
+  .article pre.astro-code { position: relative; margin: 18px 0; border: 1px solid #242424; border-radius: 11px;
+    padding: 16px; overflow-x: auto; font: 400 12.5px/1.65 var(--mono); background: #0d0d0d !important; }
+  .article pre.astro-code code { font: inherit; }
+  .copybtn { position: absolute; top: 9px; right: 9px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+    font: 400 11px var(--sans); color: #8a8a8a; background: #141414; padding: 4px 9px; border: 1px solid #2a2a2a; border-radius: 6px; transition: color .2s, border-color .2s; }
+  .copybtn:hover { color: #fff; border-color: #444; }
+  .copybtn.done { color: var(--easy); border-color: rgba(74,222,128,.4); }
 
-  .body h2 { margin: 3.6em 0 1.2em; padding-top: 1.8em; border-top: 1px solid var(--line);
-    font-family: var(--display); font-weight: 400; text-transform: uppercase;
-    font-size: clamp(1.35rem, 3vw, 2.2rem); line-height: 1; color: var(--bone);
-    scroll-margin-top: 12vh; max-width: none; }
-  .body h2::before { counter-increment: sec; content: counter(sec, decimal-leading-zero);
-    display: block; font-family: var(--mono); font-size: .6rem; letter-spacing: .22em;
-    color: var(--blood-lit); margin-bottom: 1.1em; }
-  .body > :first-child.h2, .body h2:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
-  .body h3 { margin: 2.6em 0 .9em; font-size: .92rem; letter-spacing: .1em; text-transform: uppercase;
-    color: var(--blood-lit); scroll-margin-top: 12vh; }
-  .body p { margin: 0 0 1.5em; font-size: 1.08rem; line-height: 1.8; color: var(--read); }
-  .body strong { color: var(--bone); font-weight: 400; }
-  .body a { color: var(--bone); text-decoration: none; border-bottom: 1px solid #3a3440;
-    transition: color .28s, border-color .28s; }
-  .body a:hover { color: var(--blood-lit); border-bottom-color: var(--blood-lit); }
-  .body ul, .body ol { margin: 0 0 1.6em; padding-left: 1.3em; }
-  .body li { font-size: 1.05rem; line-height: 1.8; color: var(--read); margin-bottom: .7em; }
-  .body li::marker { color: var(--blood-lit); }
-  .body :not(pre) > code { font-family: var(--mono); font-size: .86em; color: var(--bone);
-    background: #141219; border: 1px solid var(--line); padding: .12em .45em; }
+  .article img { display: block; width: 100%; border: 1px solid var(--line); border-radius: 10px; background: #0d0d0d; margin: 20px 0; }
 
-  /* ---- TL;DR: the section a skimmer reads, so it reads as a briefing ---- */
-  .body ul.tldr { list-style: none; margin: 0 0 2em; padding: 24px 26px 26px;
-    border: 1px solid var(--line); background: var(--panel); width: min(100%, 48rem); max-width: none; }
-  .body ul.tldr li { position: relative; margin: 0; padding: 1.05em 0 0 1.8em;
-    border-top: 1px solid var(--line); font-size: .98rem; line-height: 1.8; color: #b6b2aa; }
-  .body ul.tldr li:first-child { border-top: 0; padding-top: 0; }
-  .body ul.tldr li::marker { content: none; }
-  .body ul.tldr li::before { content: '→'; position: absolute; left: 0; top: 1em;
-    color: var(--blood-lit); font-size: .85em; }
-  .body ul.tldr li:first-child::before { top: 0; }
+  .article blockquote { margin: 18px 0; padding: 12px 18px; border-left: 2px solid var(--accent); background: #0f0f0f; border-radius: 0 8px 8px 0; }
+  .article blockquote p { margin: 0; color: var(--muted); font-size: 15px; }
 
-  /* ---- Lessons: his best writing, so it stops looking like a bullet list ---- */
-  .body ul.lessons { list-style: none; counter-reset: lesson; margin: 0 0 2em; padding: 0;
-    display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line);
-    width: min(100%, 48rem); max-width: none; }
-  .body ul.lessons li { background: var(--panel); margin: 0; padding: 26px 30px 28px;
-    font-size: 1rem; line-height: 1.82; color: var(--read); }
-  .body ul.lessons li::marker { content: none; }
-  .body ul.lessons li::before { counter-increment: lesson;
-    content: counter(lesson, decimal-leading-zero); display: block;
-    font-family: var(--mono); font-size: .56rem; letter-spacing: .22em;
-    color: var(--blood-lit); margin-bottom: 1.1em; }
-  .body ul.lessons li > strong:first-child { display: block; font-family: var(--display);
-    font-weight: 400; text-transform: uppercase; font-size: 1.02rem; line-height: 1.12;
-    letter-spacing: .01em; color: var(--bone); margin-bottom: .8em; }
-
-  /* ---- the overview table ---- */
-  .body table { width: 100%; border-collapse: collapse; margin: 0 0 2em;
-    border: 1px solid var(--line); max-width: none; }
-  .body th, .body td { text-align: left; padding: 1em 1.2em; border-bottom: 1px solid var(--line);
-    font-size: .88rem; font-weight: 400; }
-  .body tr:last-child th, .body tr:last-child td { border-bottom: 0; }
-  .body th { width: 12em; color: var(--dimmer); font-size: .58rem; letter-spacing: .2em;
-    text-transform: uppercase; background: #0a090c; }
-  .body td { color: var(--bone); }
-
-  /* ---- code ----
-     Evidence fills the column: half the code lines are 34 characters but the
-     longest reach 146, and a command you cannot read is useless. */
-  .cb { position: relative; margin: 0 0 .55em; background: var(--panel);
-    border: 1px solid var(--line); width: 100%; max-width: none; }
-  .cb + p, figure + p, .cb + h3, figure + h3 { margin-top: 2.6em; }
-  .body p + .cb, .body p + figure { margin-top: 1.4em; }
-  .cbar { display: flex; align-items: center; justify-content: space-between;
-    padding: 11px 16px; border-bottom: 1px solid var(--line);
-    font-size: .62rem; letter-spacing: .18em; text-transform: uppercase; color: var(--dimmer); }
-  /* a named fence is something he ran; an unlabelled one is what came back */
-  .cb.cmd { border-left: 2px solid #4d1616; }
-  .cb.cmd .cbar span:first-child { color: var(--blood-lit); }
-  .cb.out { background: #08070a; }
-  .body pre { margin: 0 !important; padding: 22px 20px !important; font-size: .85rem;
-    line-height: 1.8; overflow-x: auto; background: transparent !important; }
-  .cb.out pre { font-size: .8rem; }
-  .body pre code { font-family: var(--mono); background: none; border: 0; padding: 0; }
-  .copy { font-family: var(--mono); font-size: .56rem; letter-spacing: .18em;
-    text-transform: uppercase; background: transparent; border: 1px solid var(--line);
-    color: var(--dimmer); padding: .5em .9em; cursor: pointer;
-    transition: color .25s, border-color .25s; }
-  .copy:hover { color: var(--bone); border-color: var(--blood-lit); }
-  .copy.done { color: var(--blood-lit); border-color: var(--blood-lit); }
-
-  /* a line that matters more than the rest of the block */
-  .body blockquote { margin: 0 0 2em; padding: 18px 20px; border-left: 2px solid var(--blood-lit);
-    background: #0a090c; font-size: 1rem; line-height: 1.85; color: var(--read); }
-  .body blockquote p:last-child { margin-bottom: 0; }
-
-  /* ---- screenshots ---- */
-  .body figure { margin: 0 0 .55em; border: 1px solid var(--line); padding: 0;
-    width: 100%; max-width: none; }
-  .body figure img { display: block; width: 100%; height: auto; }
-  .body figcaption { margin: .95em .2em .1em; font-size: .66rem; letter-spacing: .1em;
-    color: var(--dimmer); display: flex; gap: .7em; align-items: baseline; }
-  .body figcaption::before { content: ''; width: 14px; height: 1px; background: var(--blood-lit);
-    flex: 0 0 auto; transform: translateY(-.35em); }
-  .body > p > img { display: block; width: 100%; height: auto; border: 1px solid var(--line); }
-
-  /* ---- the embargo panel, styled from the markdown's own classes ---- */
-  .wu-locked { border: 1px solid var(--line); background: #0a090c; padding: 44px 34px;
-    text-align: center; max-width: none; }
-  .wu-locked-icon { width: 34px; height: 34px; color: var(--blood-lit); margin-bottom: 1.4em; }
-  .wu-locked-kicker { margin: 0 0 1em !important; font-size: .56rem; letter-spacing: .28em;
-    text-transform: uppercase; color: var(--blood-lit); }
-  .wu-locked h2 { margin: 0 0 1em !important; padding: 0 !important; border: 0 !important;
-    font-size: clamp(1.3rem, 3vw, 2rem); }
-  .wu-locked h2::before { content: none !important; }
-  .wu-locked p { margin: 0 auto !important; max-width: 52ch; font-size: .9rem; }
-  .wu-locked-foot { margin-top: 1.6em !important; font-size: .62rem; letter-spacing: .18em;
-    text-transform: uppercase; color: var(--dimmer); }
-
-  /* ================= RELATED / NAV ================= */
-  .related { padding: 0 4vw 6vh; }
-  .related > p { margin: 0 0 4vh; font-size: .6rem; letter-spacing: .32em;
-    text-transform: uppercase; color: var(--dimmer); }
-  .rel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
-    gap: 1px; }
-  .rel { position: relative; background: var(--panel); padding: 26px 24px 28px; overflow: hidden;
-    text-decoration: none; display: block; box-shadow: 0 0 0 1px var(--line);
-    transition: background .3s; }
-  .rel:hover { background: #100e14; }
-  .rel .wipe { position: absolute; left: 0; right: 0; top: 0; height: 2px;
-    background: var(--blood-lit); transform: scaleX(0); transform-origin: left;
-    pointer-events: none; transition: transform .45s cubic-bezier(.2,0,0,1); }
-  .rel:hover .wipe { transform: scaleX(1); }
-  .rel .d { font-size: .55rem; letter-spacing: .22em; text-transform: uppercase; color: var(--dimmer); }
-  .rel h4 { margin: 1.3em 0 0; font-family: var(--display); font-weight: 400;
-    text-transform: uppercase; font-size: 1.25rem; line-height: 1; color: var(--bone); }
-  .rel .t { margin: 1em 0 0; font-size: .66rem; letter-spacing: .12em; color: #3a3732; }
-
-  .pager { display: flex; justify-content: space-between; gap: 2em; flex-wrap: wrap;
-    padding: 0 4vw 14vh; }
-  .pager a { font-size: .62rem; letter-spacing: .2em; text-transform: uppercase; color: var(--dim);
-    text-decoration: none; border: 1px solid var(--line); padding: 1.1em 1.7em;
-    transition: border-color .3s, color .3s; }
-  .pager a:hover { border-color: var(--blood-lit); color: var(--bone); }
+  .related { padding-top: 10px; padding-bottom: 20px; }
+  .rel-k { font: 400 11px var(--mono); color: var(--dim); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 16px; }
+  .rel-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .rel { display: block; border: 1px solid var(--line); border-radius: 12px; padding: 18px; transition: border-color .2s, background .2s; }
+  .rel:hover { border-color: #333; background: #0f0f0f; }
+  .rel .diff { display: inline-block; margin-bottom: 10px; }
+  .rel h4 { font-weight: 600; font-size: 18px; letter-spacing: -.02em; text-transform: capitalize; }
+  .rel p { margin-top: 6px; font: 400 12px var(--mono); color: var(--dim); }
+  .pager { display: flex; justify-content: space-between; gap: 16px; align-items: center; border-top: 1px solid var(--line); padding-top: 26px; padding-bottom: 40px; font-size: 14px; }
+  .pager a { display: inline-flex; align-items: center; gap: 8px; color: #cfcfcf; }
+  .pager a:hover { color: #fff; }
+  .pager a.all { color: var(--accent); }
+  .pager i[data-i] { width: 14px; height: 14px; }
 
   @media (max-width: 980px) {
-    .shell { grid-template-columns: 1fr; gap: 0; }
-    .toc { position: static; max-height: none; margin-bottom: 6vh;
-      border: 1px solid var(--line); padding: 22px 20px; }
-    .whead { padding-top: 16vh; }
+    .wbody { grid-template-columns: 1fr; gap: 28px; }
+    .toc { position: static; border-bottom: 1px solid var(--line); padding-bottom: 20px; }
+    .whead canvas { width: 70%; opacity: .3; }
+    .article { max-width: none; }
+    .rel-grid { grid-template-columns: 1fr; }
   }
 </style>
 
-<script>
-  /* Astro renders the markdown; this adds the chrome the design needs on top of
-     it. Doing it here rather than in the markdown means the content files stay
-     plain and portable. */
-  const body = document.getElementById('wuBody');
+<script src="/writeups/scenes.js" is:inline></script>
+<script is:inline>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ICO = {
+    terminal: '<path d="m4 17 6-6-6-6"/><path d="M12 19h8"/>',
+    monitor: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    calendar: '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>',
+    arrow: '<path d="M7 17 17 7M8 7h9v9"/>',
+    back: '<path d="M11 6 5 12l6 6M5 12h14"/>',
+    copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
+    check: '<path d="M4 12.5 9 17.5 20 6.5"/>',
+  };
+  const svg = (p) => `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+  document.querySelectorAll('i[data-i]').forEach((el) => {
+    el.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${ICO[el.dataset.i] || ''}</svg>`;
+  });
 
-  if (body) {
-    // Code blocks become panels. A fence with a language is a command he ran;
-    // an unlabelled one is what came back, and they should not look the same.
-    body.querySelectorAll('pre').forEach((pre) => {
-      const lang = pre.getAttribute('data-language') || '';
-      const isCmd = lang && lang !== 'plaintext' && lang !== 'text';
-      const box = document.createElement('div');
-      box.className = `cb ${isCmd ? 'cmd' : 'out'}`;
-      const bar = document.createElement('div');
-      bar.className = 'cbar';
-      bar.innerHTML = `<span>${isCmd ? lang : 'output'}</span>`;
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'copy';
-      btn.textContent = 'Copy';
-      bar.appendChild(btn);
-      pre.replaceWith(box);
-      box.append(bar, pre);
-    });
-
-    // The summary and the takeaways stop being ordinary bullet lists.
-    const mark = (slug: string, cls: string) => {
-      const h = document.getElementById(slug);
-      let n = h?.nextElementSibling;
-      while (n && n.tagName !== 'UL' && n.tagName !== 'H2') n = n.nextElementSibling;
-      if (n && n.tagName === 'UL') n.classList.add(cls);
-    };
-    mark('tldr', 'tldr');
-    mark('tl-dr', 'tldr');
-    mark('lessons-learned', 'lessons');
-
-    // Images become figures so the alt text can caption them.
-    body.querySelectorAll('p > img').forEach((img) => {
-      const p = img.parentElement!;
-      if (p.childNodes.length !== 1) return;
-      const fig = document.createElement('figure');
-      const alt = img.getAttribute('alt') || '';
-      p.replaceWith(fig);
-      fig.appendChild(img);
-      if (alt.trim()) {
-        const cap = document.createElement('figcaption');
-        cap.textContent = alt;
-        fig.appendChild(cap);
-      }
-    });
-  }
-
-  // Copy, with a fallback: the async clipboard needs a secure context, and this
-  // button exists to hand over commands.
-  document.querySelectorAll('.copy').forEach((button) => {
-    button.addEventListener('click', async () => {
-      const code = (button.closest('.cb')?.querySelector('pre') as HTMLElement)?.innerText ?? '';
-      let copied = false;
-      try {
-        await navigator.clipboard.writeText(code);
-        copied = true;
-      } catch {
-        const scratch = document.createElement('textarea');
-        scratch.value = code;
-        scratch.setAttribute('readonly', '');
-        scratch.style.cssText = 'position:fixed;top:-9999px';
-        document.body.appendChild(scratch);
-        scratch.select();
-        try { copied = document.execCommand('copy'); } catch { copied = false; }
-        scratch.remove();
-      }
-      button.textContent = copied ? 'Copied' : 'Press Ctrl+C';
-      button.classList.toggle('done', copied);
-      setTimeout(() => { button.textContent = 'Copy'; button.classList.remove('done'); }, 1600);
+  document.querySelectorAll('article pre.astro-code').forEach((pre) => {
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'copybtn';
+    btn.innerHTML = svg(ICO.copy) + 'copy';
+    pre.appendChild(btn);
+    btn.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(pre.querySelector('code').innerText); } catch {}
+      btn.innerHTML = svg(ICO.check) + 'copied'; btn.classList.add('done');
+      setTimeout(() => { btn.innerHTML = svg(ICO.copy) + 'copy'; btn.classList.remove('done'); }, 1800);
     });
   });
 
-  // Reading progress
-  const prog = document.getElementById('prog');
-  const onScroll = () => {
-    if (!prog) return;
-    const max = document.documentElement.scrollHeight - innerHeight;
-    prog.style.width = (max > 0 ? (scrollY / max) * 100 : 0) + '%';
-  };
-  onScroll();
-  addEventListener('scroll', onScroll, { passive: true });
+  setTimeout(() => document.body.classList.add('ready'), reduce ? 0 : 150);
 
-  /* Scroll spy. Tracks the heading nearest the top rather than whichever one
-     intersects, so short sections still register as you pass them. */
-  const toc = document.getElementById('toc');
-  const links = [...document.querySelectorAll('.toc a')] as HTMLAnchorElement[];
-  const targets = links.map((a) => document.getElementById(a.getAttribute('href')!.slice(1)));
-  let lastActive: HTMLAnchorElement | null = null;
+  const links = [...document.querySelectorAll('.toc a')];
+  const heads = links.map((a) => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  if (heads.length) {
+    const spy = () => {
+      const y = scrollY + 120; let i = 0;
+      heads.forEach((h, k) => { if (h.offsetTop <= y) i = k; });
+      links.forEach((a, k) => a.classList.toggle('on', k === i));
+    };
+    addEventListener('scroll', spy, { passive: true }); spy();
+  }
 
-  function spy() {
-    const line = innerHeight * 0.22;
-    let current = 0;
-    targets.forEach((section, index) => {
-      if (section && section.getBoundingClientRect().top <= line) current = index;
-    });
-    links.forEach((a, index) => a.classList.toggle('on', index === current));
+  const B = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16), PX = 3;
+  function surface(cv) {
+    const dpr = devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+    if (cv.width !== w * dpr || cv.height !== h * dpr) { cv.width = w * dpr; cv.height = h * dpr; }
+    const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h); ctx.fillStyle = '#9a9a9a';
+    return [ctx, Math.ceil(w / PX), Math.ceil(h / PX)];
+  }
 
-    // Keep the current entry visible without the reader ever scrolling the list.
-    const active = links[current];
-    if (toc && active && active !== lastActive) {
-      lastActive = active;
-      const box = toc.getBoundingClientRect();
-      const row = active.getBoundingClientRect();
-      if (row.top < box.top + 8 || row.bottom > box.bottom - 8) {
-        toc.scrollTo({ top: active.offsetTop - toc.clientHeight / 2, behavior: 'smooth' });
-      }
+  const scv = document.getElementById('scene'), scene = scv && scv.dataset.scene;
+  function drawScene(t) {
+    if (!scv || !scv.clientWidth || !window.SCENES || !window.SCENES[scene]) return;
+    const SW = 640, SH = 400, hi = document.createElement('canvas'); hi.width = SW; hi.height = SH;
+    const g = hi.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, SW, SH); window.SCENES[scene](g, t);
+    const [ctx, cols, rows] = surface(scv);
+    const off = document.createElement('canvas'); off.width = cols; off.height = rows;
+    const o = off.getContext('2d'), r = Math.max(cols / SW, rows / SH);
+    o.drawImage(hi, (cols - SW * r) / 2, (rows - SH * r) / 2, SW * r, SH * r);
+    const d = o.getImageData(0, 0, cols, rows).data;
+    for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+      if (d[(y * cols + x) * 4] / 255 > B[(y % 4) * 4 + (x % 4)]) ctx.fillRect(x * PX, y * PX, PX - 0.6, PX - 0.6);
     }
   }
-  if (links.length) { spy(); addEventListener('scroll', spy, { passive: true }); }
+
+  const wm = document.getElementById('wordmark');
+  let mask = null, mw = 0;
+  function wordmark(t) {
+    if (!wm || !wm.clientWidth || !wm.clientHeight) return;
+    const [ctx, cols, rows] = surface(wm);
+    if (!mask || mw !== cols) {
+      mw = cols; const off = document.createElement('canvas'); off.width = cols; off.height = rows; const o = off.getContext('2d');
+      let size = rows; o.font = `600 ${size}px Geist, sans-serif`; size *= (cols * 0.96) / o.measureText('certifa').width;
+      o.font = `600 ${size}px Geist, sans-serif`; o.textAlign = 'center'; o.fillStyle = '#fff'; o.fillText('certifa', cols / 2, rows * 0.86);
+      mask = o.getImageData(0, 0, cols, rows).data;
+    }
+    const sweep = (t * 0.08) % 1.6 - 0.3;
+    for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+      const a = mask[(y * cols + x) * 4 + 3] / 255; if (!a) continue;
+      const val = a * (0.85 - (y / rows) * 0.6) + Math.max(0, 0.25 - Math.abs(x / cols - sweep) * 1.5);
+      if (val > B[(y % 4) * 4 + (x % 4)]) ctx.fillRect(x * PX, y * PX, PX - 0.6, PX - 0.6);
+    }
+  }
+
+  document.fonts.ready.then(() => {
+    drawScene(0); wordmark(0);
+    addEventListener('resize', () => { mask = null; drawScene(0); wordmark(0); });
+    if (reduce) return;
+    const seen = new Map(), io = new IntersectionObserver((es) => es.forEach((e) => seen.set(e.target, e.isIntersecting)));
+    if (scv) io.observe(scv); if (wm) io.observe(wm);
+    let last = 0;
+    const loop = (n) => {
+      if (!document.hidden && n - last > 90) { if (scv && seen.get(scv)) drawScene(n / 1000); if (wm && seen.get(wm)) wordmark(n / 1000); last = n; }
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  });
+})();
 </script>

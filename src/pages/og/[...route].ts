@@ -68,16 +68,17 @@ export function getStaticPaths() {
 const W = 1200;
 const H = 630;
 const PAD = 72;
-const BAR = 12;
 const AVATAR = 150;
 const GAP = 40;
 
-const ACCENT: [number, number, number] = [193, 31, 31];  // --blood   #c11f1f
-const FG: [number, number, number] = [232, 230, 226];    // --bone    #e8e6e2
-const FG_2: [number, number, number] = [165, 161, 154];  // --read    #a5a19a
-const FG_3: [number, number, number] = [125, 122, 117];  // --dim     #7d7a75
-const FG_4: [number, number, number] = [78, 75, 71];     // --dimmer  #4e4b47
-const LINE: [number, number, number] = [27, 25, 32];     // --line    #1b1920
+// The new design's tokens (see global.css).
+const ACCENT: [number, number, number] = [91, 140, 255];  // --accent  #5b8cff
+const FG: [number, number, number] = [245, 245, 245];     // --text    #f5f5f5
+const FG_2: [number, number, number] = [163, 163, 163];   // --muted   #a3a3a3
+const FG_3: [number, number, number] = [132, 132, 132];   // --dim     #848484
+const FG_4: [number, number, number] = [58, 58, 58];
+const LINE: [number, number, number] = [34, 34, 34];      // --line    #222
+const HEAD_DIM: [number, number, number] = [138, 138, 138]; // first headline line, as on the site
 
 // The box art, oversized and blurred into an ambient field in the upper right.
 // Per-box colour taken from the box's own identity: nothing invented, and the
@@ -136,7 +137,7 @@ export const GET: APIRoute = async ({ props }) => {
   bg.setShader(
     CanvasKit.Shader.MakeLinearGradient(
       [0, 0], [0, H],
-      [CanvasKit.Color(11, 10, 13), CanvasKit.Color(5, 4, 6)],  // --panel → --void
+      [CanvasKit.Color(14, 14, 14), CanvasKit.Color(10, 10, 10)],
       null, CanvasKit.TileMode.Clamp,
     ),
   );
@@ -148,7 +149,7 @@ export const GET: APIRoute = async ({ props }) => {
     ? CanvasKit.MakeImageFromEncoded(await readFile(avatarPath))
     : null;
 
-  // Crimson bloom in the upper right. On shell pages it is the only thing
+  // Soft blue bloom in the upper right. On shell pages it is the only thing
   // carrying that weight; on writeup cards it tints the desaturated box art
   // beneath it, so both kinds of card sit in the same room.
   {
@@ -156,7 +157,7 @@ export const GET: APIRoute = async ({ props }) => {
     glow.setShader(
       CanvasKit.Shader.MakeRadialGradient(
         [W - 170, 120], 640,
-        [CanvasKit.Color(...ACCENT, shell ? 0.16 : 0.30), CanvasKit.Color(...ACCENT, 0)],
+        [CanvasKit.Color(...ACCENT, shell ? 0.14 : 0.22), CanvasKit.Color(...ACCENT, 0)],
         [0, 1], CanvasKit.TileMode.Clamp,
       ),
     );
@@ -201,11 +202,6 @@ export const GET: APIRoute = async ({ props }) => {
     canvas.restore();
   }
 
-  const bar = new CanvasKit.Paint();
-  bar.setColor(CanvasKit.Color(...ACCENT));
-  canvas.drawRect(CanvasKit.XYWHRect(0, 0, BAR, H), bar);
-  bar.delete();
-
   const para = (
     text: string,
     color: [number, number, number],
@@ -239,7 +235,7 @@ export const GET: APIRoute = async ({ props }) => {
   // Eyebrow: orients the reader without repeating the link's own title.
   const eyebrow = para(
     shell ? shell.eyebrow : 'HACK THE BOX  ·  WRITEUP',
-    FG_3, 22, 'JetBrains Mono', 'Normal', { tracking: 4 },
+    FG_3, 22, 'Geist Mono', 'Normal', { tracking: 4 },
   );
   canvas.drawParagraph(eyebrow, PAD, PAD);
 
@@ -253,10 +249,10 @@ export const GET: APIRoute = async ({ props }) => {
 
   const refs = para(
     shell ? shell.refs : reference(data.tags ?? []),
-    FG_3, 24, 'JetBrains Mono', 'Normal',
+    FG_3, 24, 'Geist Mono', 'Normal',
   );
   canvas.drawParagraph(refs, PAD, footTop);
-  const site = para('certifa.net', FG_2, 24, 'JetBrains Mono', 'Normal', {
+  const site = para('certifa.net', FG_2, 24, 'Geist Mono', 'Normal', {
     align: CanvasKit.TextAlign.Right,
   });
   canvas.drawParagraph(site, PAD, footTop);
@@ -280,26 +276,26 @@ export const GET: APIRoute = async ({ props }) => {
 
   // Shell cards stop here: two-line headline, no meter, no OS line.
   if (shell) {
-    const lines = shell.headline.map((l) => l.toUpperCase());
-    const LEADING = 0.92;
-    const CAP = 132;
+    const lines = shell.headline as string[];
+    const LEADING = 1.0;
+    const CAP = 112;
     const maxW = W - PAD * 2;
 
-    // Anton is condensed, but "A STUDENT WHO BREAKS" still sets far wider than
-    // "NOTES," at the same size. Measure each line's real set width and scale
+    // The longest headline still sets far wider than
+    // the shortest at the same size. Measure each line's real set width and scale
     // the whole block down until the longest fits the column, so a headline
     // never wraps into a third line and the two cards never disagree on size
     // for the same reason.
     let size = CAP;
     for (const l of lines) {
-      const probe = para(l, FG, CAP, 'Anton', 'Normal', { width: 100000, leading: LEADING });
+      const probe = para(l, FG, CAP, 'Geist', 'SemiBold', { width: 100000, leading: LEADING, tracking: -3 });
       const w = probe.getMaxIntrinsicWidth?.() ?? probe.getLongestLine?.() ?? 0;
       probe.delete();
       if (w > maxW) size = Math.min(size, Math.floor(CAP * (maxW / w)));
     }
 
     const drawn = lines.map((l, i) =>
-      para(l, i === 0 ? FG : ACCENT, size, 'Anton', 'Normal', { width: maxW, leading: LEADING }));
+      para(l, i === 0 ? HEAD_DIM : FG, size, 'Geist', 'SemiBold', { width: maxW, leading: LEADING, tracking: -3 }));
 
     // Bottom-anchored against the footer rule. Centring the block in the band
     // left a hollow middle with the type floating in it; sitting it low echoes
@@ -331,8 +327,8 @@ export const GET: APIRoute = async ({ props }) => {
   const label = data.difficulty[0].toUpperCase() + data.difficulty.slice(1);
   // Matched to the weight the shell cards carry: the longest box name is ten
   // characters, which still sets well inside the column left of the avatar.
-  const title = para(data.title.toUpperCase(), FG, 116, 'Anton', 'Normal', { width: W - textX - PAD });
-  const meta = para(`${os}  ·  ${label}`, FG_2, 26, 'JetBrains Mono', 'Normal', {
+  const title = para(data.title, FG, 112, 'Geist', 'SemiBold', { width: W - textX - PAD, leading: 1.0, tracking: -3 });
+  const meta = para(`${os}  ·  ${label}`, FG_2, 26, 'Geist Mono', 'Normal', {
     width: W - textX - PAD,
   });
 

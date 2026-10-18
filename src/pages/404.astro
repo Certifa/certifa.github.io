@@ -2,35 +2,55 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<BaseLayout title="404" description="That page does not exist.">
-  <section class="nf">
-    <p class="eyebrow">/ 404</p>
-    <h1 class="nf-code">404</h1>
-    <p class="nf-sub">
-      No route here. The page either moved, or it never existed and something
-      linked to it anyway.
-    </p>
-    <div class="nf-links">
-      <a href="/">Home</a>
-      <a href="/writeups/">Writeups</a>
-      <a href="/projects/">Projects</a>
-      <a href="/contact/">Contact</a>
+<BaseLayout title="Not found" description="This page does not exist. Head back to the writeups, projects or the homepage.">
+  <section class="sec nf">
+    <canvas id="nf" role="img" aria-label="404"></canvas>
+    <p class="code">Error 404</p>
+    <h1>Nothing here.</h1>
+    <p class="lede">The page you are looking for does not exist, or it moved. The machines are still where I left them.</p>
+    <div class="links">
+      <a class="btn main" href="/writeups/">Read the writeups</a>
+      <a class="btn" href="/">Homepage</a>
+      <a class="btn" href="/projects/">Projects</a>
     </div>
   </section>
 </BaseLayout>
 
 <style is:global>
-  .nf { position: relative; min-height: 78vh; display: flex; flex-direction: column;
-    justify-content: center; padding: 22vh 4vw 12vh; }
-  .nf::before { content: ''; position: absolute; inset: 0; pointer-events: none;
-    background: radial-gradient(ellipse 52% 60% at 16% 46%, rgba(193,31,31,.09), transparent 70%); }
-  .nf > * { position: relative; }
-  .nf-code { margin: 0; font-family: var(--display); font-weight: 400;
-    font-size: clamp(4rem, 18vw, 13rem); line-height: .82; color: var(--bone); }
-  .nf-sub { margin: 3vh 0 0; max-width: 46ch; font-size: 1rem; line-height: 1.8; color: var(--read); }
-  .nf-links { display: flex; gap: 1em; flex-wrap: wrap; margin-top: 5vh; }
-  .nf-links a { font-size: .62rem; letter-spacing: .2em; text-transform: uppercase;
-    color: var(--dim); text-decoration: none; border: 1px solid var(--line);
-    padding: 1.1em 1.7em; transition: border-color .3s, color .3s; }
-  .nf-links a:hover { border-color: var(--blood-lit); color: var(--bone); }
+  .nf { min-height: 72vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 40px 24px 80px; }
+  .nf #nf { display: block; width: min(560px, 92vw); height: clamp(150px, 26vw, 250px); }
+  .nf .code { font: 400 12.5px var(--mono); color: var(--accent); letter-spacing: .06em; text-transform: uppercase; margin-top: 6px; }
+  .nf h1 { font-weight: 600; font-size: clamp(30px, 4vw, 46px); letter-spacing: -.035em; line-height: 1.05; margin-top: 14px; }
+  .nf .lede { color: var(--muted); max-width: 44ch; margin: 14px auto 0; font-size: 16px; }
+  .nf .links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 28px; }
+  .nf .btn { font-weight: 500; font-size: 14px; padding: 11px 18px; border-radius: 9px; background: #1a1a1a; border: 1px solid #2a2a2a; }
+  .nf .btn:hover { border-color: #444; }
+  .nf .btn.main { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .nf .btn.main:hover { background: #7aa2ff; }
 </style>
+
+<script is:inline>
+  (() => {
+    const B = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16), PX = 3;
+    const cv = document.getElementById('nf');
+    function draw() {
+      const dpr = devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+      if (!w || !h) return;
+      cv.width = w * dpr; cv.height = h * dpr;
+      const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.fillStyle = '#9a9a9a';
+      const cols = Math.ceil(w / PX), rows = Math.ceil(h / PX);
+      const off = document.createElement('canvas'); off.width = cols; off.height = rows;
+      const o = off.getContext('2d'); let size = rows * 1.1;
+      o.font = `600 ${size}px Geist, sans-serif`; size *= (cols * 0.96) / o.measureText('404').width;
+      o.font = `600 ${size}px Geist, sans-serif`; o.textAlign = 'center'; o.fillStyle = '#fff'; o.fillText('404', cols / 2, rows * 0.84);
+      const d = o.getImageData(0, 0, cols, rows).data;
+      for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+        const a = d[(y * cols + x) * 4 + 3] / 255; if (!a) continue;
+        if (a * (0.9 - (y / rows) * 0.5) > B[(y % 4) * 4 + (x % 4)]) ctx.fillRect(x * PX, y * PX, PX - 0.6, PX - 0.6);
+      }
+    }
+    document.fonts.ready.then(draw);
+    addEventListener('resize', draw);
+  })();
+</script>
