@@ -46,7 +46,7 @@ const resolved = image ?? SHELL_CARDS[currentPath] ?? ogCard('home');
 const ogImage = resolved ? new URL(resolved, Astro.site).href : null;
 
 const displayTitle = seoTitle ?? title;
-const siteTitle = displayTitle === 'Certifa' ? displayTitle : `${displayTitle} · Certifa`;
+const siteTitle = displayTitle.startsWith('Certifa') ? displayTitle : `${displayTitle} · Certifa`;
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
 
 const schema = article

@@ -123,6 +123,64 @@ function reference(tags: string[]): string {
     .join('  ·  ');
 }
 
+
+// ---- Dither, the way the site does it: a 4x4 Bayer threshold over a field of
+// brightness values, drawn as small squares. Content is rasterised onto a tiny
+// surface first (one pixel per dither cell), so type and art come out as the
+// same blocky grain as the footer wordmark and the machine scenes.
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
+const DPX = 4;
+
+function rasterize(CK: any, cols: number, rows: number, draw: (c: any) => void): Uint8Array {
+  const surf = CK.MakeSurface(cols, rows);
+  const c = surf.getCanvas();
+  c.clear(CK.BLACK);
+  draw(c);
+  const img = surf.makeImageSnapshot();
+  const px = img.readPixels(0, 0, {
+    width: cols, height: rows,
+    colorType: CK.ColorType.RGBA_8888, alphaType: CK.AlphaType.Unpremul, colorSpace: CK.ColorSpace.SRGB,
+  }) as Uint8Array;
+  img.delete();
+  surf.delete();
+  return px;
+}
+
+function ditherField(
+  CK: any, canvas: any, x: number, y: number, w: number, h: number,
+  color: [number, number, number], value: (cx: number, cy: number, cols: number, rows: number) => number,
+) {
+  const cols = Math.ceil(w / DPX), rows = Math.ceil(h / DPX);
+  const paint = new CK.Paint();
+  paint.setColor(CK.Color(...color));
+  for (let cy = 0; cy < rows; cy++) {
+    for (let cx = 0; cx < cols; cx++) {
+      const v = value(cx, cy, cols, rows);
+      if (v > BAYER[(cy % 4) * 4 + (cx % 4)]) {
+        canvas.drawRect(CK.XYWHRect(x + cx * DPX, y + cy * DPX, DPX - 1, DPX - 1), paint);
+      }
+    }
+  }
+  paint.delete();
+}
+
+/** The site's section frame: a hairline box with a plus mark on each corner. */
+function frame(CK: any, canvas: any) {
+  const M = 28, LINE_C = CK.Color(30, 30, 30), PLUS_C = CK.Color(90, 90, 90), P = 7;
+  const p = new CK.Paint();
+  p.setColor(LINE_C);
+  canvas.drawRect(CK.XYWHRect(M, M, W - M * 2, 1), p);
+  canvas.drawRect(CK.XYWHRect(M, H - M, W - M * 2, 1), p);
+  canvas.drawRect(CK.XYWHRect(M, M, 1, H - M * 2), p);
+  canvas.drawRect(CK.XYWHRect(W - M, M, 1, H - M * 2 + 1), p);
+  p.setColor(PLUS_C);
+  for (const [cx, cy] of [[M, M], [W - M, M], [M, H - M], [W - M, H - M]]) {
+    canvas.drawRect(CK.XYWHRect(cx - P, cy, P * 2 + 1, 1), p);
+    canvas.drawRect(CK.XYWHRect(cx, cy - P, 1, P * 2 + 1), p);
+  }
+  p.delete();
+}
+
 // CanvasKit and the fonts now live in src/utils/canvaskit.ts, shared with the
 // profile banner route so the wasm and faces load once for the whole build.
 
@@ -149,57 +207,48 @@ export const GET: APIRoute = async ({ props }) => {
     ? CanvasKit.MakeImageFromEncoded(await readFile(avatarPath))
     : null;
 
-  // Soft blue bloom in the upper right. On shell pages it is the only thing
-  // carrying that weight; on writeup cards it tints the desaturated box art
-  // beneath it, so both kinds of card sit in the same room.
-  {
-    const glow = new CanvasKit.Paint();
-    glow.setShader(
-      CanvasKit.Shader.MakeRadialGradient(
-        [W - 170, 120], 640,
-        [CanvasKit.Color(...ACCENT, shell ? 0.14 : 0.22), CanvasKit.Color(...ACCENT, 0)],
-        [0, 1], CanvasKit.TileMode.Clamp,
-      ),
-    );
-    canvas.drawRect(CanvasKit.XYWHRect(0, 0, W, H), glow);
-    glow.delete();
-  }
   const src = img && CanvasKit.XYWHRect(0, 0, img.width(), img.height());
 
-  // Ambient field, masked so it only exists to the right of the type.
-  if (img) {
-    canvas.saveLayer();
-    const art = new CanvasKit.Paint();
-    art.setAntiAlias(true);
-    art.setAlphaf(ART_ALPHA);
-    art.setImageFilter(
-      CanvasKit.ImageFilter.MakeColorFilter(
-        CanvasKit.ColorFilter.MakeMatrix(saturation(ART_SAT, ART_GAIN)),
-        CanvasKit.ImageFilter.MakeBlur(ART_BLUR, ART_BLUR, CanvasKit.TileMode.Decal, null),
-      ),
-    );
-    canvas.drawImageRectOptions(
-      img, src,
-      CanvasKit.XYWHRect(W - ART + 330, -ART * 0.40, ART, ART),
-      CanvasKit.FilterMode.Linear, CanvasKit.MipmapMode.None, art,
-    );
-    const mask = new CanvasKit.Paint();
-    mask.setBlendMode(CanvasKit.BlendMode.DstIn);
-    mask.setShader(
-      CanvasKit.Shader.MakeLinearGradient(
-        [ART_FADE_IN, 0], [W, 0],
-        [
-          CanvasKit.Color(255, 255, 255, 0),
-          CanvasKit.Color(255, 255, 255, 1),
-          CanvasKit.Color(255, 255, 255, 0.45),
-        ],
-        [0, 0.55, 1], CanvasKit.TileMode.Clamp,
-      ),
-    );
-    canvas.drawRect(CanvasKit.XYWHRect(0, 0, W, H), mask);
-    mask.delete();
-    art.delete();
-    canvas.restore();
+  frame(CanvasKit, canvas);
+
+  if (shell) {
+    // Rings going out from a point, in the accent: the same signal the contact
+    // page sends out behind its form.
+    const FX = 520, FY = 60, FW = W - FX - 40, FH = H - 120;
+    ditherField(CanvasKit, canvas, FX, FY, FW, FH, ACCENT, (cx, cy, cols, rows) => {
+      const ox = cols * 0.78, oy = rows * 0.42;
+      const d = Math.hypot(cx - ox, (cy - oy) * 1.1);
+      const fade = Math.max(0, 1 - d / (cols * 0.6));
+      const ring = (0.5 + 0.5 * Math.sin(d * 0.42)) ** 9;
+      // clear of the headline on the left and of the footer line below
+      const left = Math.max(0, Math.min(1, (cx / cols - 0.3) / 0.4));
+      const foot = Math.max(0, Math.min(1, (0.78 - cy / rows) / 0.1));
+      return ring * 0.85 * fade * left * foot;
+    });
+  } else if (img) {
+    // The box art, dithered grey and faded in from the left, the way each
+    // machine's scene sits behind its title on the writeup page.
+    const AW = 560, AX = W - AW - 36, AY = 56, AH = H - 112;
+    const cols = Math.ceil(AW / DPX), rows = Math.ceil(AH / DPX);
+    const px = rasterize(CanvasKit, cols, rows, (c) => {
+      const pa = new CanvasKit.Paint();
+      pa.setAntiAlias(true);
+      const side = Math.min(cols, rows) * 1.05;
+      c.drawImageRectOptions(
+        img, src,
+        CanvasKit.XYWHRect(cols - side - cols * 0.02, (rows - side) / 2, side, side),
+        CanvasKit.FilterMode.Linear, CanvasKit.MipmapMode.None, pa,
+      );
+      pa.delete();
+    });
+    ditherField(CanvasKit, canvas, AX, AY, AW, AH, [150, 150, 150], (cx, cy) => {
+      const i = (cy * cols + cx) * 4;
+      const lum = (0.2126 * px[i] + 0.7152 * px[i + 1] + 0.0722 * px[i + 2]) / 255;
+      const left = Math.max(0, Math.min(1, (cx / cols - 0.3) / 0.4));
+      const right = 1 - Math.max(0, cx / cols - 0.9) * 6;
+      const foot = Math.max(0, Math.min(1, (0.78 - cy / rows) / 0.1));
+      return lum * 0.9 * left * right * foot;
+    });
   }
 
   const para = (
