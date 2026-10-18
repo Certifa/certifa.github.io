@@ -1,7 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- New design: a near-black tile with the blue accent "c", matching the
-       site mark. Drawn as an arc, not text, so it resolves on any machine. -->
-  <rect width="32" height="32" rx="7" fill="#0a0a0a"/>
-  <path d="M21.5 11.2 A7 7 0 1 0 21.5 20.8"
-        fill="none" stroke="#5b8cff" stroke-width="3.4" stroke-linecap="round"/>
+  <!-- A blue tile with a heavy dark "c". The old mark was a thin blue c on a
+       near-black tile, which disappears into a dark tab strip; a solid accent
+       tile holds on both light and dark browser chrome. The c is an arc, not
+       text, so it resolves on any machine. -->
+  <rect width="32" height="32" rx="8" fill="#5b8cff"/>
+  <path d="M22 11.4 A7.6 7.6 0 1 0 22 20.6"
+        fill="none" stroke="#0a0a0a" stroke-width="5" stroke-linecap="round"/>
 </svg>
