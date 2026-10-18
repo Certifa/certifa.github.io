@@ -1,54 +1,13 @@
 ---
-import { htbShort } from '../data/htb';
-
-// The page settling rather than a poster. The large mailto is the close, which
-// is why there is no form here: a form is a chore, and the contact page owns it.
+// The dithered "certifa" wordmark closes every page. The canvas is drawn by
+// the shared script in BaseLayout; this just supplies the element and the row.
 const year = new Date().getFullYear();
-
-const links = [
-  {
-    href: 'https://github.com/Certifa',
-    label: 'GitHub',
-    note: 'Certifa',
-  },
-  {
-    href: 'https://profile.hackthebox.com/profile/019c2f48-7b5d-73a8-b798-3ee811960672',
-    label: 'HackTheBox',
-    note: htbShort,
-  },
-  {
-    href: 'https://www.linkedin.com/in/mike-bliek-3b319a161',
-    label: 'LinkedIn',
-    note: 'Connect',
-  },
-];
 ---
 
 <footer class="foot">
-  <div class="foot-top">
-    <div>
-      <p class="foot-k">Get in touch</p>
-      <a class="foot-mail" href="mailto:mike@certifa.net">mike@certifa.net</a>
-      <p class="foot-note">
-        CTF teams, internship leads, or feedback on a writeup.
-        Mail reaches me fastest. There's a form on the contact page if you'd rather.
-      </p>
-    </div>
-
-    <nav class="foot-links" aria-label="Elsewhere">
-      {links.map(({ href, label, note }) => (
-        <a href={href} target="_blank" rel="me noopener">{label} <span>{note}</span></a>
-      ))}
-      {/* Discord has no public profile URL, so it reads as a label, not a dead link. */}
-      <span class="foot-flat">Discord <span>Quetro</span></span>
-    </nav>
+  <canvas id="wordmark" aria-label="certifa" role="img"></canvas>
+  <div class="foot-row">
+    <span>Offensive security, Utrecht</span>
+    <span>{year} Certifa</span>
   </div>
-
-  <div class="foot-base">
-    <span>&copy; {year} Certifa</span>
-    <span>Offensive security &middot; NL</span>
-  </div>
-
-  <a class="totop" href="#top">Back<br />to top</a>
-  <div class="foot-mark" aria-hidden="true">Certifa</div>
 </footer>

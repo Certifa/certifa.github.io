@@ -6,6 +6,8 @@ difficulty: hard
 platform: HTB
 description: "Pre-Windows 2000 computer accounts leak a gMSA hash over Kerberos, landing WinRM on the DC. NTLM coercion relayed to unsigned LDAP configures RBCD for Administrator on WEB01, then an SPN moved onto the DC turns constrained delegation into Domain Admin."
 featured: true
+scene: ship
+chain: ["Pre2K accounts", "gMSA hash", "WinRM on DC", "RBCD", "Domain Admin"]
 ---
 
 ## Overview

@@ -17,11 +17,15 @@ export async function getCanvas() {
   const CanvasKitInit = require('canvaskit-wasm/bin/canvaskit.js');
   const ckDir = path.dirname(require.resolve('canvaskit-wasm/bin/canvaskit.js'));
   _ck = await CanvasKitInit({ locateFile: (f: string) => path.join(ckDir, f) });
-  const [display, jetbrains] = await Promise.all([
+  const [display, jetbrains, geist, geistMono] = await Promise.all([
     readFile(path.resolve('src/assets/og-fonts/anton.ttf')),
     readFile(path.resolve('src/assets/og-fonts/jetbrains-400.ttf')),
+    readFile(path.resolve('src/assets/og-fonts/geist-600.ttf')),
+    readFile(path.resolve('src/assets/og-fonts/geistmono-400.ttf')),
   ]);
-  _fontMgr = _ck.FontMgr.FromData(display, jetbrains);
+  // Anton and JetBrains are the old faces, kept only for the profile banner.
+  // The site and its share cards use Geist and Geist Mono (SIL OFL).
+  _fontMgr = _ck.FontMgr.FromData(display, jetbrains, geist, geistMono);
   return { CanvasKit: _ck, fontMgr: _fontMgr };
 }
 

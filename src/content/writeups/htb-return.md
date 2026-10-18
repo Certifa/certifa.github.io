@@ -6,6 +6,8 @@ difficulty: easy
 platform: HTB
 description: "LDAP credential capture from a printer web panel, followed by Server Operators privilege escalation via service binary path modification."
 featured: true
+scene: printer
+chain: ["Printer panel", "LDAP creds", "Server Operators", "Service path", "SYSTEM"]
 ---
 
 ## Overview

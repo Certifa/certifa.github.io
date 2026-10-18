@@ -1,350 +1,654 @@
 ---
-import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-
-const all = (await getCollection('writeups'))
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
-
-// A machine still under embargo ships a locked panel instead of a chain. That is
-// the honest source of truth for its status, rather than a second frontmatter
-// field that could drift away from the content.
-const isLocked = (e: (typeof all)[number]) => e.body.includes('wu-locked');
-
-const LEAD = 'htb-darkzero';
-const SHOWN_TAGS = 5;
-
-// Flagship first, then newest.
-const posts = [...all.filter((e) => e.slug === LEAD), ...all.filter((e) => e.slug !== LEAD)];
-
-const counts = {
-  easy: all.filter((e) => e.data.difficulty === 'easy').length,
-  medium: all.filter((e) => e.data.difficulty === 'medium').length,
-  hard: all.filter((e) => e.data.difficulty === 'hard').length,
-};
-
-// A grid can show nine machines. It cannot show breadth, which is the argument
-// this page is actually making, so the numbers say it directly. Computed, so
-// they cannot go stale when machine ten lands.
-const uniqueTags = new Set(all.flatMap((e) => e.data.tags.map((t) => t.toLowerCase())));
-const stats = {
-  machines: all.length,
-  techniques: uniqueTags.size,
-  // CVE ids are tagged inconsistently in case, so match on the prefix.
-  cves: [...uniqueTags].filter((t) => t.startsWith('cve-')).length,
-  ad: all.filter((e) => e.data.tags.includes('active-directory')).length,
-  web: all.filter((e) => e.data.tags.includes('web')).length,
-};
-
-const osOf = (tags: string[]) =>
-  tags.includes('windows') ? 'windows' : tags.includes('linux') ? 'linux' : '';
 ---
+<BaseLayout title="Writeups" description="Nine HackTheBox machines written up in full, from first port to domain admin, including what failed first.">
+<header class="sec head">
+  <p class="crumb"><a href="/">certifa</a> / writeups</p>
+  <canvas id="marquee" class="marquee" aria-hidden="true"></canvas>
+  <h1><span>Written up after it retires.</span> From first port to domain admin.</h1>
+  <p class="lede">Every machine, the whole chain, including what failed first. Active Directory, web, and the unglamorous middle where most of the work actually happens.</p>
+</header>
 
-<BaseLayout
-  title="Writeups"
-  seoTitle="HackTheBox Writeups"
-  description={`${all.length} HackTheBox machines written up after they retire, from first port to domain admin. Active Directory, web, and the unglamorous middle.`}
->
-  <header class="open">
-    <p class="eyebrow">/ Writeups</p>
-    <h1 class="lead">
-      <span class="ln"><span class="i">Break systems.</span></span>
-      <span class="ln crimson"><span class="i">Document truth.</span></span>
-    </h1>
-    <p class="lede">
-      Every machine written up <b>after it retires</b>, from first port to
-      domain admin. Active Directory, web, and the unglamorous middle where most
-      of the work actually happens.
-    </p>
-  </header>
-
-  <section class="cover" aria-label="Coverage at a glance">
-    <div><p class="n">{stats.machines}</p><p class="k">Machines</p></div>
-    <div><p class="n">{stats.techniques}</p><p class="k">Techniques</p></div>
-    <div><p class="n">{stats.cves}</p><p class="k">Named CVEs</p></div>
-    <div><p class="n">{stats.ad}</p><p class="k">Active Directory</p></div>
-    <div><p class="n">{stats.web}</p><p class="k">Web</p></div>
-  </section>
-
-  <div class="controls">
-    <div class="filters" role="group" aria-label="Filter by difficulty">
-      <button type="button" data-filter="all" aria-pressed="true">All <span class="n">{all.length}</span></button>
-      <button type="button" data-filter="easy" aria-pressed="false">Easy <span class="n">{counts.easy}</span></button>
-      <button type="button" data-filter="medium" aria-pressed="false">Medium <span class="n">{counts.medium}</span></button>
-      <button type="button" data-filter="hard" aria-pressed="false">Hard <span class="n">{counts.hard}</span></button>
+<section class="sec tools" aria-label="Search and filter">
+  <label class="search"><i data-i="search"></i><input id="q" type="text" placeholder="Search by machine, OS, topic or CVE" autocomplete="off" spellcheck="false" aria-label="Search writeups"><kbd>/</kbd></label>
+  <div class="filters">
+    <div class="group" id="fDiff" role="group" aria-label="Difficulty">
+      <button data-v="all" aria-pressed="true">All <small>9</small></button>
+      <button data-v="easy" aria-pressed="false">Easy <small>6</small></button>
+      <button data-v="medium" aria-pressed="false">Medium <small>1</small></button>
+      <button data-v="hard" aria-pressed="false">Hard <small>2</small></button>
     </div>
-    <p class="active-tag" id="activeTag" aria-live="polite">
-      Filtering by <b id="activeTagName"></b>
-      <button type="button" id="clearTag">Clear</button>
-    </p>
-    <label class="search">
-      <span aria-hidden="true">/</span>
-      <input id="q" type="search" placeholder="search name, tag or technique" aria-label="Search writeups" />
-    </label>
+    <div class="group" id="fOs" role="group" aria-label="Operating system">
+      <button data-v="all" aria-pressed="true">Any OS <small>9</small></button>
+      <button data-v="windows" aria-pressed="false"><i data-i="monitor"></i>Windows <small>4</small></button>
+      <button data-v="linux" aria-pressed="false"><i data-i="terminal"></i>Linux <small>5</small></button>
+    </div>
+    <span class="count" id="count"></span>
   </div>
+</section>
 
-  <section class="archive">
-    <div class="grid" id="grid">
-      {posts.map((e) => {
-        const locked = isLocked(e);
-        const os = osOf(e.data.tags);
-        const extra = e.data.tags.length - SHOWN_TAGS;
-        return (
-          <article
-            class:list={['box', { 'lead-box': e.slug === LEAD, locked }]}
-            data-diff={e.data.difficulty}
-            data-os={os}
-            data-tags={e.data.tags.join(' ')}
-          >
-            <span class="wipe"></span>
-            <div class="top">
-              <span class:list={['diff', { hard: e.data.difficulty === 'hard' }]}>{e.data.difficulty}</span>
-              <span class="os">{os} &middot; {locked ? 'active' : 'retired'}</span>
-            </div>
-            <h3><a class="stretch" href={`/writeups/${e.slug}/`}>{e.data.title}</a></h3>
-            <p class="desc">{e.data.description}</p>
-            {locked && (
-              <div class="embargo">
-                <b>Held back.</b> Pirate is still an active HackTheBox machine. Publishing a
-                solution for it would break HTB's rules, so the writeup stays unpublished
-                until the box retires.
-              </div>
-            )}
-            <div class="tags">
-              {e.data.tags.slice(0, SHOWN_TAGS).map((t) => (
-                <button type="button" class="tag" data-tag={t}>{t}</button>
-              ))}
-              {extra > 0 && <span class="more">+{extra}</span>}
-            </div>
-            {!locked && <p class="go">Read the walkthrough &rarr;</p>}
-          </article>
-        );
-      })}
-    </div>
-    <p class="empty" id="empty">Nothing matches that. Try a technique, an OS, or a machine name.</p>
-  </section>
+<section class="sec list" aria-label="All writeups">
+  <div class="grid" id="grid"></div>
+  <p class="empty" id="empty" hidden>No writeup matches that yet. <button type="button" id="reset">Clear the filters</button></p>
+</section>
 
-  <p class="count" id="count">{all.length} of {all.length} writeups</p>
+<section class="sec contact" aria-label="Contact">
+  <p class="label"><i data-i="mail"></i>Get in touch</p>
+  <h2><a href="mailto:mike@certifa.net">mike@certifa.net</a></h2>
+  <p>CTF teams, internship leads, or feedback on a writeup. Mail reaches me fastest.</p>
+  <nav aria-label="Profiles">
+    <a class="btn btn-alt" href="https://github.com/Certifa"><span class="logo" style="--logo:url(/icons/github.svg);--c:#f0f0f0"></span>GitHub</a>
+    <a class="btn btn-alt" href="https://www.linkedin.com/in/mike-bliek-3b319a161"><span class="logo li">in</span>LinkedIn</a>
+    <a class="btn btn-alt" href="https://profile.hackthebox.com/profile/019c2f48-7b5d-73a8-b798-3ee811960672"><span class="logo" style="--logo:url(/icons/hackthebox.svg);--c:#9fef00"></span>HackTheBox</a>
+  </nav>
+</section>
 </BaseLayout>
 
 <style is:global>
-  /* ================= OPENING ================= */
-  .open { position: relative; padding: 22vh 4vw 6vh; }
-  .open::before { content: ''; position: absolute; inset: 0; pointer-events: none;
-    background: radial-gradient(ellipse 52% 60% at 16% 46%, rgba(193,31,31,.09), transparent 70%); }
-  .open > * { position: relative; }
-  .open .eyebrow { margin: 0 0 4vh; opacity: 0; }
-  .lead { margin: 0; font-family: var(--display); font-weight: 400; text-transform: uppercase;
-    line-height: .86; color: var(--bone); }
-  .lead .ln { display: block; overflow: hidden; }
-  .lead .ln .i { display: block; white-space: nowrap;
-    font-size: clamp(1.9rem, 7.2vw, 6.2rem); transform: translateY(104%); }
-  .lead .ln.crimson .i { color: var(--blood-lit); }
-  .lede { margin: 5vh 0 0; max-width: 56ch; font-size: .95rem; line-height: 1.82;
-    color: var(--read); opacity: 0; }
-  .lede b { color: var(--bone); font-weight: 400; }
+:root{
+  --bg:#0a0a0a;
+  --text:#f5f5f5;
+  --muted:#a3a3a3;
+  --dim:#848484;
+  --line:#222;
+  --accent:#5b8cff;
+  --sans:Geist, system-ui, sans-serif;
+  --mono:"Geist Mono", ui-monospace, monospace;
+}
+*{box-sizing:border-box;margin:0}
+[hidden]{display:none!important}
+html,body{background:var(--bg)}
+body{color:var(--text);font:400 15px/1.5 var(--sans);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid #fff;outline-offset:3px;border-radius:6px}
 
-  /* ================= COVERAGE ================= */
-  .cover { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--line);
-    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-  .cover div { background: var(--panel); padding: 22px 20px 24px; text-align: center; }
-  .cover .n { margin: 0; font-family: var(--display); font-weight: 400;
-    font-size: clamp(1.5rem, 3vw, 2.1rem); line-height: 1; color: var(--bone); }
-  .cover .k { margin: .8em 0 0; font-size: .54rem; letter-spacing: .18em;
-    text-transform: uppercase; color: var(--dimmer); }
-  @media (max-width: 820px) {
-    .cover { grid-template-columns: repeat(2, 1fr); }
-    /* The hairlines here are the container's background showing through 1px
-       gaps, so a cell with no div in it is not empty space: it is a solid
-       block of --line. An odd number of stats always leaves one. Span the odd
-       one out across the row. The :nth-child(odd) guard means this rule stops
-       applying on its own if a sixth stat is ever added. */
-    .cover div:last-child:nth-child(odd) { grid-column: 1 / -1; }
-  }
+/* shared with home and about */
+.progress{position:fixed;left:0;top:0;height:2px;width:100%;z-index:50;background:var(--accent);transform:scaleX(0);transform-origin:left;pointer-events:none}
+.nav{position:relative;z-index:10;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;max-width:1200px;margin:0 auto;padding:20px 24px}
+.brand{font-weight:600;font-size:18px;letter-spacing:-.02em}
+.nav ul{display:flex;gap:32px;list-style:none;padding:0;font-size:14px;color:#cfcfcf}
+.nav ul a:hover,.nav ul a[aria-current]{color:#fff}
+.nav ul a[aria-current]{box-shadow:inset 0 -1px 0 var(--accent)}
+.nav .cta{justify-self:end;font-size:14px;font-weight:500;background:#e9e9e9;color:#0a0a0a;padding:8px 14px;border-radius:8px}
+.btn{font-weight:500;font-size:14px;padding:11px 18px;border-radius:9px;display:inline-flex;align-items:center;gap:8px}
+.btn-alt{background:#1a1a1a;border:1px solid #2a2a2a}
+.btn-alt:hover{border-color:#444}
+.sec{max-width:1200px;margin:0 auto;padding-left:48px;padding-right:48px;position:relative}
+.sec::before{content:"";position:absolute;inset:0;pointer-events:none;border:solid #1a1a1a;border-width:1px 1px 0}
+.sec::after{content:"";position:absolute;left:-6px;right:-6px;top:-6px;height:13px;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 13 13'%3E%3Cpath d='M6.5 0v13M0 6.5h13' stroke='%23555' stroke-width='1'/%3E%3C/svg%3E") left top/13px no-repeat,
+             url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 13 13'%3E%3Cpath d='M6.5 0v13M0 6.5h13' stroke='%23555' stroke-width='1'/%3E%3C/svg%3E") right top/13px no-repeat}
+.label{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dim);margin-bottom:22px}
+.label i[data-i]{width:22px;height:22px;padding:4px;border-radius:7px;background:rgba(91,140,255,.12);color:var(--accent)}
+h2{font-weight:600;font-size:clamp(34px,3.4vw,48px);line-height:1.05;letter-spacing:-.035em}
+i[data-i]{display:inline-flex;width:15px;height:15px;flex:none;color:currentColor}
+i[data-i] svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.diff{font-size:11px;font-weight:500;padding:2px 8px;border-radius:999px}
+.diff.easy{color:#4ade80;background:rgba(74,222,128,.12)}
+.diff.medium{color:#fbbf24;background:rgba(251,191,36,.12)}
+.diff.hard{color:#f87171;background:rgba(248,113,113,.12)}
+.typed .ghost{color:transparent}
+.typed .tcaret{display:inline-block;width:.08em;height:.9em;margin:0 .02em;vertical-align:-.08em;background:var(--accent)}
 
-  /* ================= CONTROLS ================= */
-  .controls { position: sticky; top: 0; z-index: 20; padding: 2.2vh 4vw;
-    background: rgba(5,4,6,.88); backdrop-filter: blur(14px);
-    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
-    display: flex; align-items: center; justify-content: space-between; gap: 2vw; flex-wrap: wrap; }
-  .filters { display: flex; gap: .6em; flex-wrap: wrap; }
-  .filters button { font-family: var(--mono); font-size: .6rem; letter-spacing: .18em;
-    text-transform: uppercase; padding: .85em 1.3em; background: transparent;
-    border: 1px solid var(--line); color: var(--dim); cursor: pointer;
-    transition: border-color .28s, color .28s; }
-  .filters button:hover { color: var(--bone); }
-  .filters button[aria-pressed="true"] { border-color: var(--blood-lit); color: var(--bone); }
-  .filters button .n { color: #3a3732; margin-left: .7em; }
-  .filters button[aria-pressed="true"] .n { color: var(--blood-lit); }
+/* header */
+.head{padding-top:70px;padding-bottom:56px}
+.crumb{font:400 12.5px var(--mono);color:var(--dim);margin-bottom:26px}
+.crumb a:hover{color:#fff}
+.head h1{font-weight:600;font-size:clamp(48px,5.4vw,82px);line-height:.98;letter-spacing:-.045em;max-width:15ch;
+  filter:blur(20px);opacity:0;transition:filter 1.3s cubic-bezier(.2,.7,.2,1),opacity 1.3s}
+.head h1 span{color:#8a8a8a}
+.ready .head h1{filter:none;opacity:1}
+.head .lede{margin-top:24px;max-width:56ch;font-size:18px;color:var(--muted)}
 
-  .search { display: flex; align-items: center; gap: .7em; border-bottom: 1px solid var(--line);
-    padding-bottom: .5em; min-width: min(34vw, 300px); transition: border-color .28s; }
-  .search:focus-within { border-bottom-color: var(--blood-lit); }
-  .search span { color: var(--dim); font-size: .8rem; }
-  .search:focus-within span { color: var(--blood-lit); }
-  .search input { flex: 1; background: transparent; border: 0; outline: none;
-    font-family: var(--mono); font-size: .8rem; color: var(--bone); }
-  .search input::placeholder { color: #3a3732; }
+/* search and filters (Aeye) */
+.tools{padding-top:34px;padding-bottom:34px}
+.search{display:flex;align-items:center;gap:12px;background:#121212;border:1px solid #262626;border-radius:12px;padding:13px 16px;color:var(--muted)}
+.search:focus-within{border-color:#3a4a7a}
+.search input{all:unset;flex:1;font:400 16px/1.4 var(--sans);color:#eee}
+.search input::placeholder{color:#828282}
+.search kbd{font:400 11px/1 var(--mono);color:#bdbdbd;border:1px solid #333;border-bottom-width:2px;border-radius:5px;padding:3px 6px}
+.filters{display:flex;flex-wrap:wrap;gap:24px;margin-top:16px}
+.group{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.group button{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:7px;padding:9px 14px;font-size:13.5px;color:#9a9a9a;border-right:1px solid var(--line);transition:background .2s,color .2s}
+.group button:last-child{border-right:0}
+.group button small{font:400 11.5px var(--mono);color:#666}
+.group button:hover{color:#fff}
+.group button[aria-pressed=true]{background:#171a24;color:#fff}
+.group button[aria-pressed=true] small{color:var(--accent)}
+.group button i[data-i]{width:13px;height:13px}
+.count{margin-left:auto;align-self:center;font-size:13px;color:var(--dim)}
 
-  .active-tag { display: none; align-items: center; gap: .7em; font-size: .6rem;
-    letter-spacing: .18em; text-transform: uppercase; color: var(--dim); }
-  .active-tag.on { display: flex; }
-  .active-tag b { color: var(--blood-lit); font-weight: 400; }
-  .active-tag button { font-family: var(--mono); font-size: .6rem; letter-spacing: .18em;
-    text-transform: uppercase; background: transparent; border: 1px solid var(--line);
-    color: var(--dim); padding: .5em .8em; cursor: pointer;
-    transition: color .22s, border-color .22s; }
-  .active-tag button:hover { color: var(--bone); border-color: var(--blood-lit); }
+/* grid (Aivigil): six columns, so hard pairs up in halves, easy runs in thirds, medium and any leftover go full width */
+.list{padding-top:40px;padding-bottom:100px}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:32px 22px}
+.card{display:flex;flex-direction:column;gap:14px}
+.info{display:flex;flex-direction:column;gap:9px}
+.thumbwrap{position:relative}
+.thumb{display:block;width:100%;aspect-ratio:16/10;border:1px solid var(--line);border-radius:12px;background:#0d0d0d;transition:filter .4s,border-color .3s}
+.card:hover .thumb{filter:brightness(1.4);border-color:#333}
+.thumbwrap .diff{position:absolute;left:12px;top:12px}
+.meta{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--dim)}
+.meta i[data-i]{width:13px;height:13px}
+.meta .sep{width:3px;height:3px;border-radius:50%;background:#444}
+h3{font-weight:600;font-size:22px;letter-spacing:-.025em;line-height:1.15}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tags span{font-size:11.5px;color:#a8a8a8;border:1px solid #2a2a2a;border-radius:6px;padding:2px 7px}
+.more{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--accent)}
+.more i[data-i]{width:13px;height:13px}
+.sum{font-size:13.5px;color:var(--muted);line-height:1.45}
+.card.third .sum{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+mark{background:rgba(91,140,255,.18);color:inherit;border-radius:2px;padding:0 1px}
+.pills{position:absolute;left:12px;top:12px;display:flex;gap:6px;align-items:center}
+.pill.new{font:500 10.5px/1 var(--sans);color:#fff;background:var(--accent);padding:3px 8px;border-radius:999px}
+.chain{position:absolute;left:0;right:0;bottom:0;padding:10px 14px;font:400 11.5px/1.3 var(--mono);color:#ccc;
+  background:linear-gradient(transparent,rgba(0,0,0,.85) 40%);display:flex;flex-wrap:wrap;align-items:center;gap:3px 5px;
+  opacity:0;transition:opacity .3s;border-radius:0 0 11px 11px;pointer-events:none}
+.card:hover .chain,.card:focus-visible .chain{opacity:1}
+.chain span{opacity:0;animation:fadeIn .25s ease forwards}
+.chain .first{color:var(--accent)}
+.chain .arr{color:#666;font-size:13px}
+.card.wide .chain{border-radius:0}
+@keyframes fadeIn{to{opacity:1}}
+.empty{padding:60px 0;text-align:center;color:var(--muted)}
+.empty button{all:unset;cursor:pointer;color:#fff;border-bottom:1px solid #444}
 
-  /* ================= THE LIST ================= */
-  .archive { padding: 8vh 4vw 4vh; }
-  /* auto-fit so filtering to one result collapses the empty track. The hairlines
-     are drawn by the cards themselves, not by the container's background showing
-     through the gaps: an unused cell would otherwise paint as a reserved slot
-     for a card that is not there. */
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 30rem), 1fr));
-    gap: 1px; background: transparent; border: 0; }
+/* contact and footer, same as the other pages */
+.contact{padding-top:90px;padding-bottom:120px;text-align:center}
+.contact .label{justify-content:center}
+.contact h2 a{border-bottom:1px solid #333}
+.contact h2 a:hover{border-color:#e9e9e9}
+.contact p{color:var(--muted);max-width:44ch;margin:18px auto 30px}
+.contact nav{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+.logo{width:16px;height:16px;background:var(--c);-webkit-mask:var(--logo) center/contain no-repeat;mask:var(--logo) center/contain no-repeat}
+.logo.li{background:#0a66c2;color:#fff;border-radius:3px;font:700 11px/16px Arial,sans-serif;text-align:center;-webkit-mask:none;mask:none}
+.foot{border-top:1px solid var(--line);padding-top:40px;overflow:hidden}
+#wordmark{display:block;width:100%;height:clamp(140px,22vw,320px)}
+.foot-row{display:flex;justify-content:space-between;max-width:1200px;margin:0 auto;padding:18px 24px 28px;font-size:13px;color:var(--dim)}
 
-  .box { position: relative; isolation: isolate; background: var(--panel);
-    padding: 30px 28px 32px; overflow: hidden; display: flex; flex-direction: column;
-    text-decoration: none; box-shadow: 0 0 0 1px var(--line); transition: background .3s; }
-  .box:hover { background: #100e14; }
-  .box .wipe { position: absolute; left: 0; right: 0; top: 0; height: 2px;
-    background: var(--blood-lit); transform: scaleX(0); transform-origin: left;
-    pointer-events: none; transition: transform .45s cubic-bezier(.2,0,0,1); }
-  .box:hover .wipe { transform: scaleX(1); }
+/* marquee */
+.marquee{display:block;width:100%;height:clamp(38px,5vw,64px);margin-bottom:18px}
 
-  .box.lead-box { grid-column: 1 / -1; padding: 44px 32px 40px; }
-  .box.lead-box::before { content: ''; position: absolute; inset: 0; pointer-events: none;
-    z-index: -1;
-    background: radial-gradient(ellipse 60% 70% at 14% 80%, rgba(193,31,31,.14), transparent 70%); }
+.card.third{grid-column:span 2}
+.card.half{grid-column:span 3}
+.card.half h3{font-size:28px}
+.card.wide{grid-column:span 6;display:grid;grid-template-columns:1.45fr 1fr;gap:0;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#0f0f0f;transition:border-color .3s}
+.card.wide:hover{border-color:#333}
+.card.wide .thumb{aspect-ratio:16/9;height:100%;border:0;border-right:1px solid var(--line);border-radius:0}
+.card.wide .info{padding:36px;gap:12px;justify-content:center}
+.card.wide h3{font-size:36px;letter-spacing:-.035em}
 
-  .top { display: flex; align-items: baseline; justify-content: space-between; gap: 1em;
-    margin-bottom: 1.6em; }
-  .diff { font-size: .56rem; letter-spacing: .22em; text-transform: uppercase;
-    padding: .5em .9em; border: 1px solid #2a262f; color: var(--dim); }
-  .diff.hard { color: var(--blood-lit); border-color: #4d1616; }
-  .os { font-size: .58rem; letter-spacing: .2em; text-transform: uppercase; color: #3a3732; }
-
-  .box h3 { margin: 0; font-family: var(--display); font-weight: 400; text-transform: uppercase;
-    line-height: .98; color: var(--bone); font-size: clamp(1.3rem, 2.4vw, 1.9rem); }
-  .box.lead-box h3 { font-size: clamp(2.2rem, 5.4vw, 4.2rem); }
-  /* the title carries the link and stretches over the whole card, so the tag
-     buttons below can be real buttons instead of nested interactives */
-  .box h3 a.stretch { color: inherit; text-decoration: none; }
-  .box h3 a.stretch::after { content: ''; position: absolute; inset: 0; z-index: 1; }
-  .box .desc { margin: 1.1em 0 0; font-size: .86rem; line-height: 1.78; color: var(--read);
-    max-width: 62ch; }
-  .box.lead-box .desc { font-size: .95rem; max-width: 58ch; }
-
-  /* the tag row sits above the link so its buttons stay clickable; without
-     pointer-events it also swallows every click in the gaps between them */
-  .tags { display: flex; gap: .5em; flex-wrap: wrap; margin-top: auto; padding-top: 2em;
-    position: relative; z-index: 2; pointer-events: none; }
-  .tags .tag { pointer-events: auto; font-family: var(--mono); font-size: .55rem;
-    letter-spacing: .16em; text-transform: uppercase; color: #3a3732; background: transparent;
-    border: 1px solid var(--line); padding: .45em .8em; cursor: pointer;
-    transition: color .22s, border-color .22s; }
-  .tags .tag:hover, .tags .tag[aria-pressed="true"] { color: var(--bone); border-color: var(--blood-lit); }
-  .box:hover .tags .tag { color: var(--dim); }
-  .tags .more { font-size: .55rem; letter-spacing: .16em; color: #2f2b38; padding: .45em .2em; }
-
-  .go { margin-top: 1.6em; font-size: .6rem; letter-spacing: .2em; text-transform: uppercase;
-    color: var(--dim); }
-  .box:hover .go { color: var(--blood-lit); }
-
-  /* Withholding an active box is a stronger signal than publishing it, so it is
-     shown and labelled rather than hidden. */
-  .box.locked h3, .box.locked .desc { color: #5a5751; }
-  .box.locked .embargo { margin: 1.4em 0 0; padding: 14px 16px; border: 1px solid #2a262f;
-    font-size: .72rem; line-height: 1.7; color: var(--dim); }
-  .box.locked .embargo b { color: var(--bone); font-weight: 400; }
-
-  .empty { padding: 8vh 0; text-align: center; font-size: .8rem; color: var(--dimmer); display: none; }
-  .count { padding: 0 4vw 14vh; font-size: .6rem; letter-spacing: .2em;
-    text-transform: uppercase; color: var(--dimmer); }
-
-  @media (max-width: 860px) {
-    .box.lead-box { grid-column: auto; }
-    .controls { position: static; }
-    .open { padding-top: 18vh; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .lead .ln .i { transform: none; }
-    .open .eyebrow, .lede { opacity: 1; transform: none; }
-  }
+@media (prefers-reduced-motion:reduce){ .head h1,.thumb{transition:none} }
+@media (max-width:900px){
+  .nav ul{display:none}
+  .sec{padding-left:24px;padding-right:24px}
+  .grid{grid-template-columns:1fr 1fr}
+  .card.third,.card.half{grid-column:span 1}
+  .card.wide{grid-column:span 2;grid-template-columns:1fr}
+  .card.wide .thumb{border-right:0;border-bottom:1px solid var(--line)}
+}
+/* two card columns are too tight on a phone (a card overflowed at 360px), so
+   one column below 640px */
+@media (max-width:640px){
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .card.third,.card.half,.card.wide{grid-column:span 1}
+}
 </style>
 
-<script>
-  import gsap from 'gsap';
+<script is:inline>
+// one grey scene per machine, themed on its name. drawn at 640x400, dithered by writeups.js.
+// t is seconds since hover started; t = 0 is the still shown on the card
+(() => {
+  const TAU = Math.PI * 2;
+  const h = (a, b) => { const n = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return n - Math.floor(n); };
+  const glow = (g, x, y, r, a) => { const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, `rgba(255,255,255,${a})`); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 640, 400); };
+  const lit = (g, x0, y0, x1, y1, a = 0.95, b = 0.2) => { const gr = g.createLinearGradient(x0, y0, x1, y1); gr.addColorStop(0, `rgba(255,255,255,${a})`); gr.addColorStop(1, `rgba(255,255,255,${b})`); return gr; };
+  const rr = (g, x, y, w, h, r) => { g.beginPath(); g.roundRect(x, y, w, h, r); };
+  const white = a => `rgba(255,255,255,${a})`, black = a => `rgba(0,0,0,${a})`;
 
-  const boxes = [...document.querySelectorAll('.box')] as HTMLElement[];
-  const q = document.getElementById('q') as HTMLInputElement;
-  const count = document.getElementById('count')!;
-  const empty = document.getElementById('empty')!;
-  const buttons = [...document.querySelectorAll('.filters button')] as HTMLButtonElement[];
-  const activeTagBar = document.getElementById('activeTag')!;
-  const activeTagName = document.getElementById('activeTagName')!;
-  let difficulty = 'all';
-  let tag: string | null = null;
+  window.SCENES = {
+    // Pirate: a ship under a moon, rocking on the waves
+    ship(g, t = 0) {
+      glow(g, 470, 90, 120, 0.5);
+      g.fillStyle = white(.9); g.beginPath(); g.arc(470, 90, 34, 0, TAU); g.fill();
+      g.save(); g.translate(310, 300 + Math.sin(t * 1.6) * 4); g.rotate(Math.sin(t * 1.3) * 0.03); g.translate(-310, -300);
+      g.fillStyle = lit(g, 0, 250, 0, 300, 0.85, 0.35);
+      g.beginPath(); g.moveTo(170, 255); g.lineTo(450, 255); g.lineTo(415, 300); g.lineTo(205, 300); g.closePath(); g.fill();
+      g.fillStyle = white(.75); g.fillRect(268, 90, 6, 168); g.fillRect(352, 120, 6, 138);
+      g.fillStyle = lit(g, 230, 100, 330, 240, 0.95, 0.45);
+      g.beginPath(); g.moveTo(276, 100); g.quadraticCurveTo(330, 160, 276, 240); g.closePath(); g.fill();
+      g.beginPath(); g.moveTo(266, 108); g.quadraticCurveTo(220, 170, 266, 232); g.closePath(); g.fill();
+      g.beginPath(); g.moveTo(360, 128); g.quadraticCurveTo(405, 180, 360, 238); g.closePath(); g.fill();
+      g.fillStyle = white(.8); g.beginPath(); g.moveTo(274, 90); g.lineTo(306, 98 + Math.sin(t * 6) * 3); g.lineTo(274, 106); g.fill();
+      g.restore();
+      for (let k = 0; k < 4; k++) {
+        g.strokeStyle = white(0.5 - k * 0.1); g.lineWidth = 5;
+        g.beginPath(); for (let x = 0; x <= 640; x += 8) g.lineTo(x, 300 + k * 24 + Math.sin(x / 38 + k + t * (1.2 + k * 0.3)) * 7); g.stroke();
+      }
+    },
 
-  /* Difficulty, tag and search all narrow together. Search matches the full tag
-     list, not just the five shown on the card, so a technique that never appears
-     in the visible copy still finds its box. */
-  function apply() {
-    const term = q.value.trim().toLowerCase();
-    let shown = 0;
+    // DarkZero: a pulsing ring around nothing, stars slowly circling it
+    void(g, t = 0) {
+      glow(g, 320, 200, 260, 0.25 + Math.sin(t * 2) * 0.05);
+      for (let i = 0; i < 6; i++) { g.strokeStyle = white(0.9 - i * 0.14); g.lineWidth = 10 - i; g.beginPath(); g.arc(320, 200, 110 + i * 16 + Math.sin(t * 2.2 - i * 0.7) * 3, 0, TAU); g.stroke(); }
+      const hole = g.createRadialGradient(320, 200, 0, 320, 200, 105); hole.addColorStop(0, '#000'); hole.addColorStop(0.92, '#000'); hole.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = hole; g.beginPath(); g.arc(320, 200, 105, 0, TAU); g.fill();
+      g.fillStyle = white(.8);
+      for (let i = 0; i < 70; i++) { const r = 150 + (i * 37 % 140), a = i * 2.39 + t * 0.25 * (300 / r - 0.6); g.fillRect(320 + Math.cos(a) * r, 200 + Math.sin(a) * r * 0.7, 2.5, 2.5); }
+    },
 
-    boxes.forEach((box) => {
-      const tags = (box.dataset.tags || '').split(' ');
-      const haystack = [
-        box.querySelector('h3')!.textContent,
-        box.querySelector('.desc')!.textContent,
-        box.dataset.tags,
-        box.dataset.os,
-      ].join(' ').toLowerCase();
+    // Gavel: a judge's gavel tapping its block
+    gavel(g, t = 0) {
+      glow(g, 360, 300, 300, 0.18);
+      const p = (t * 0.75 + 0.35) % 1;
+      const lift = p < 0.7 ? 0.45 * Math.sin(p / 0.7 * Math.PI / 2) : p < 0.8 ? 0.45 * (1 - ((p - 0.7) / 0.1) ** 2) : 0;
+      if (p >= 0.8 && p < 0.92) glow(g, 395, 305, 140, 0.45 * (1 - (p - 0.8) / 0.12));
+      g.fillStyle = white(.5); g.fillRect(290, 305, 220, 26); g.beginPath(); g.ellipse(400, 331, 110, 26, 0, 0, Math.PI); g.fill();
+      g.fillStyle = lit(g, 0, 280, 0, 330, 0.8, 0.35); g.beginPath(); g.ellipse(400, 305, 110, 26, 0, 0, TAU); g.fill();
+      g.save(); g.translate(150, 245); g.rotate(-lift);
+      g.fillStyle = lit(g, 0, 0, 215, 0, 0.55, 0.85); rr(g, 0, -9, 215, 18, 9); g.fill();
+      g.fillStyle = lit(g, 205, -60, 285, 60, 0.98, 0.45); rr(g, 205, -60, 80, 120, 16); g.fill();
+      g.fillStyle = black(.45); g.fillRect(205, -44, 80, 7); g.fillRect(205, 37, 80, 7);
+      g.restore();
+    },
 
-      const visible =
-        (difficulty === 'all' || box.dataset.diff === difficulty) &&
-        (!tag || tags.includes(tag)) &&
-        (!term || haystack.includes(term));
+    // Kobold: the mine spirit's lantern, flame flickering, pickaxe against the wall
+    lantern(g, t = 0) {
+      const f = 1 + Math.sin(t * 13) * 0.06 + Math.sin(t * 7.3 + 1) * 0.05;
+      glow(g, 300, 215, 230 * f, 0.5 * f);
+      g.save(); g.translate(470, 250); g.rotate(0.35);
+      g.fillStyle = white(.5); g.fillRect(-6, -110, 12, 220);
+      g.fillStyle = lit(g, -80, -130, 80, -100, 0.85, 0.5); g.beginPath(); g.moveTo(-80, -100); g.quadraticCurveTo(0, -150, 80, -100); g.lineTo(0, -120); g.closePath(); g.fill();
+      g.restore();
+      g.strokeStyle = white(.7); g.lineWidth = 6; g.beginPath(); g.arc(300, 128, 26, Math.PI, 0); g.stroke();
+      g.fillStyle = lit(g, 260, 140, 340, 290, 0.9, 0.5); rr(g, 262, 140, 76, 18, 6); g.fill(); rr(g, 262, 272, 76, 20, 6); g.fill();
+      g.fillStyle = white(.45); rr(g, 270, 158, 60, 114, 10); g.fill();
+      g.save(); g.translate(300, 236); g.scale(f, f * (1 + Math.sin(t * 9) * 0.06));
+      g.fillStyle = white(1); g.beginPath(); g.moveTo(0, -48); g.quadraticCurveTo(24, -6, 0, 20); g.quadraticCurveTo(-24, -6, 0, -48); g.fill();
+      g.restore();
+      g.fillStyle = white(.18); g.fillRect(0, 330, 640, 70);
+    },
 
-      box.style.display = visible ? '' : 'none';
-      if (visible) shown += 1;
-    });
+    // CCTV: a wall camera panning, its cone of view sweeping the floor
+    camera(g, t = 0) {
+      g.strokeStyle = white(.12); g.lineWidth = 2;
+      for (let y = 300; y < 400; y += 22) { g.beginPath(); g.moveTo(0, y); g.lineTo(640, y); g.stroke(); }
+      g.fillStyle = white(.35); g.fillRect(520, 40, 16, 130); g.fillRect(470, 150, 60, 12);
+      g.save(); g.translate(470, 160); g.rotate(-0.55 + Math.sin(t * 0.9) * 0.22);
+      const cone = g.createLinearGradient(-160, 0, -620, 0); cone.addColorStop(0, white(.4)); cone.addColorStop(1, white(0));
+      g.fillStyle = cone; g.beginPath(); g.moveTo(-160, -10); g.lineTo(-640, -230); g.lineTo(-640, 230); g.lineTo(-160, 10); g.closePath(); g.fill();
+      g.fillStyle = white(.9); rr(g, -175, -38, 185, 14, 5); g.fill();
+      g.fillStyle = lit(g, 0, -24, 0, 26, 0.85, 0.45); rr(g, -160, -24, 160, 50, 10); g.fill();
+      g.fillStyle = white(1); g.beginPath(); g.arc(-160, 1, 20, 0, TAU); g.fill();
+      g.fillStyle = black(.8); g.beginPath(); g.arc(-160, 1, 10, 0, TAU); g.fill();
+      if ((t * 1.5) % 1 < 0.5) { g.fillStyle = white(1); g.beginPath(); g.arc(-30, -8, 5, 0, TAU); g.fill(); }
+      g.restore();
+    },
 
-    // Only the pressed tag reads as pressed, including duplicates on other cards.
-    document.querySelectorAll('.tags .tag').forEach((b) =>
-      b.setAttribute('aria-pressed', String((b as HTMLElement).dataset.tag === tag)));
-    activeTagBar.classList.toggle('on', Boolean(tag));
-    activeTagName.textContent = tag || '';
+    // Shocker: a lightning bolt in the rain, flashing
+    bolt(g, t = 0) {
+      const p = (t * 0.6) % 1, f = p < 0.06 ? 1 : p < 0.1 ? 0.15 : p < 0.14 ? 0.7 : 0;
+      glow(g, 330, 160, 300, 0.2 + f * 0.35);
+      g.fillStyle = white(.16 + f * 0.1);
+      for (let i = 0; i < 9; i++) { g.beginPath(); g.ellipse(i * 80 + h(i, 3) * 40, 25 + h(i, 4) * 30, 70, 30, 0, 0, TAU); g.fill(); }
+      g.strokeStyle = white(.22); g.lineWidth = 2;
+      for (let i = 0; i < 70; i++) { const y = (h(i, 2) * 460 + t * 520) % 460 - 40, x = h(i, 1) * 760 - 120 + y * 0.25; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 5, y + 20); g.stroke(); }
+      g.strokeStyle = white(.2 + f * 0.5); g.lineWidth = 2;
+      for (let i = 0; i < 6; i++) {
+        let x = 300 + h(i, 5) * 60, y = 60 + h(i, 6) * 200; g.beginPath(); g.moveTo(x, y);
+        for (let j = 0; j < 4; j++) { x += (h(i, j + 7) - 0.5) * 70; y += 15 + h(j, i + 9) * 20; g.lineTo(x, y); }
+        g.stroke();
+      }
+      g.fillStyle = white(.7 + f * 0.3);
+      g.beginPath(); g.moveTo(340, 20); g.lineTo(280, 180); g.lineTo(330, 180); g.lineTo(270, 380); g.lineTo(380, 160); g.lineTo(330, 160); g.lineTo(380, 20); g.closePath(); g.fill();
+    },
 
-    count.textContent = `${shown} of ${boxes.length} writeups`;
-    empty.style.display = shown ? 'none' : 'block';
+    // Return: an office printer feeding out a page
+    printer(g, t = 0) {
+      glow(g, 320, 220, 260, 0.2);
+      // input tray page (behind the top)
+      g.fillStyle = white(.65); g.fillRect(245, 80, 150, 50);
+      g.fillStyle = black(.3); for (let i = 0; i < 3; i++) g.fillRect(260, 90 + i * 10, i % 2 ? 80 : 110, 3);
+      // main body
+      g.fillStyle = white(.7); g.beginPath(); g.moveTo(180, 130); g.lineTo(460, 130); g.lineTo(480, 170); g.lineTo(160, 170); g.closePath(); g.fill();
+      g.fillStyle = lit(g, 0, 170, 0, 290, 0.5, 0.22); rr(g, 160, 170, 320, 120, 8); g.fill();
+      // output slot
+      g.fillStyle = '#000'; g.fillRect(200, 218, 240, 8);
+      // output page sliding out
+      const out = Math.min(90, t > 0 ? 20 + t * 28 : 20);
+      g.fillStyle = white(.85); g.fillRect(210, 226, 220, out);
+      g.fillStyle = black(.3); for (let i = 0; i < 5; i++) { const py = 232 + i * 12; if (py < 226 + out - 4) g.fillRect(225, py, i % 2 ? 100 : 170, 3); }
+      // base/feet
+      g.fillStyle = white(.35); g.beginPath(); g.moveTo(185, 290); g.lineTo(455, 290); g.lineTo(475, 310); g.lineTo(165, 310); g.closePath(); g.fill();
+      // status LED
+      g.fillStyle = white((t * 2) % 1 < 0.5 ? 1 : 0.3); g.beginPath(); g.arc(440, 185, 5, 0, TAU); g.fill();
+    },
+
+    // Cicada: a cicada seen from above
+    cicada(g, t = 0) {
+      glow(g, 320, 200, 200, 0.2);
+      const buzz = t > 0 ? Math.sin(t * 40) * 0.015 : 0;
+      g.save(); g.translate(320, 200);
+      // abdomen (oval, bottom)
+      g.fillStyle = white(.5); g.beginPath(); g.ellipse(0, 60, 38, 70, 0, 0, TAU); g.fill();
+      g.strokeStyle = white(.3); g.lineWidth = 2;
+      for (let i = 1; i <= 5; i++) { g.beginPath(); g.moveTo(-30 + i * 3, 20 + i * 18); g.lineTo(30 - i * 3, 20 + i * 18); g.stroke(); }
+      // thorax
+      g.fillStyle = white(.6); g.beginPath(); g.ellipse(0, -10, 32, 30, 0, 0, TAU); g.fill();
+      // head
+      g.fillStyle = white(.7); g.beginPath(); g.ellipse(0, -52, 28, 20, 0, 0, TAU); g.fill();
+      // eyes
+      g.fillStyle = white(1); g.beginPath(); g.arc(-24, -54, 10, 0, TAU); g.fill(); g.beginPath(); g.arc(24, -54, 10, 0, TAU); g.fill();
+      g.fillStyle = black(.6); g.beginPath(); g.arc(-24, -54, 5, 0, TAU); g.fill(); g.beginPath(); g.arc(24, -54, 5, 0, TAU); g.fill();
+      // antennae
+      g.strokeStyle = white(.6); g.lineWidth = 2;
+      g.beginPath(); g.moveTo(-14, -68); g.quadraticCurveTo(-40, -110, -55, -120); g.stroke();
+      g.beginPath(); g.moveTo(14, -68); g.quadraticCurveTo(40, -110, 55, -120); g.stroke();
+      // wings (left and right, with veins)
+      for (const s of [-1, 1]) {
+        g.save(); g.scale(s, 1); g.rotate(buzz * s);
+        g.fillStyle = white(.25); g.beginPath(); g.moveTo(20, -20); g.quadraticCurveTo(130, -50, 120, 30); g.quadraticCurveTo(100, 100, 30, 90); g.closePath(); g.fill();
+        g.strokeStyle = white(.2); g.lineWidth = 1.5;
+        g.beginPath(); g.moveTo(25, -10); g.lineTo(110, 0); g.stroke();
+        g.beginPath(); g.moveTo(28, 10); g.lineTo(105, 40); g.stroke();
+        g.beginPath(); g.moveTo(30, 30); g.lineTo(90, 70); g.stroke();
+        g.beginPath(); g.moveTo(60, -25); g.lineTo(65, 80); g.stroke();
+        g.restore();
+      }
+      // legs (3 pairs)
+      g.strokeStyle = white(.45); g.lineWidth = 2.5;
+      for (let i = 0; i < 3; i++) {
+        const y = -15 + i * 25;
+        g.beginPath(); g.moveTo(-28, y); g.lineTo(-60 - i * 8, y + 20 + i * 5); g.lineTo(-75 - i * 6, y + 40 + i * 4); g.stroke();
+        g.beginPath(); g.moveTo(28, y); g.lineTo(60 + i * 8, y + 20 + i * 5); g.lineTo(75 + i * 6, y + 40 + i * 4); g.stroke();
+      }
+      g.restore();
+    },
+
+    // Expressway: vanishing-point road rushing toward the viewer
+    road(g, t = 0) {
+      glow(g, 320, 120, 300, 0.15);
+      const vx = 320, vy = 100;
+      // sky gradient
+      g.fillStyle = lit(g, 0, 0, 0, vy + 20, 0.12, 0.02); g.fillRect(0, 0, 640, vy + 20);
+      // horizon line
+      g.strokeStyle = white(.3); g.lineWidth = 1; g.beginPath(); g.moveTo(0, vy + 20); g.lineTo(640, vy + 20); g.stroke();
+      // road surface
+      g.fillStyle = white(.12);
+      g.beginPath(); g.moveTo(vx - 6, vy); g.lineTo(0, 400); g.lineTo(640, 400); g.lineTo(vx + 6, vy); g.closePath(); g.fill();
+      // road edges
+      g.strokeStyle = white(.4); g.lineWidth = 3;
+      g.beginPath(); g.moveTo(vx - 6, vy); g.lineTo(40, 400); g.stroke();
+      g.beginPath(); g.moveTo(vx + 6, vy); g.lineTo(600, 400); g.stroke();
+      // center dashes rushing toward viewer
+      for (let i = 0; i < 14; i++) {
+        const p = ((i / 14 + t * 0.3) % 1); if (p < 0.02) continue;
+        const y0 = vy + p * p * (400 - vy), y1 = vy + Math.min(1, p + 0.04) ** 2 * (400 - vy);
+        const w = 1.5 + p * 5;
+        g.fillStyle = white(.5 + p * .3); g.fillRect(vx - w / 2, y0, w, y1 - y0);
+      }
+      // side posts
+      for (let i = 0; i < 8; i++) {
+        const p = ((i / 8 + t * 0.3) % 1); if (p < 0.04) continue;
+        const y = vy + p * p * (400 - vy), scale = 0.3 + p * 2.5;
+        const lx = vx - 6 - p * (vx - 40), rx = vx + 6 + p * (600 - vx);
+        g.fillStyle = white(.35 + p * .2);
+        g.fillRect(lx - scale / 2, y - scale * 6, scale, scale * 6);
+        g.fillRect(rx - scale / 2, y - scale * 6, scale, scale * 6);
+      }
+      // stars in the sky
+      for (let i = 0; i < 30; i++) { g.fillStyle = white(.3 + h(i, 0) * .4); g.fillRect(h(i, 1) * 640, h(i, 2) * (vy - 10), 2, 2); }
+    },
+  };
+})();
+
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const fmtDate = ym => { const [y, m] = ym.split('-'); return `${MONTHS[+m - 1]} ${y}`; };
+
+  const LOCAL = new Set(['DarkZero', 'Pirate', 'Gavel', 'Kobold', 'CCTV', 'Shocker', 'Return', 'Cicada', 'Expressway']); // writeups rebuilt in the new style
+  const W = [
+    { name: 'Pirate', diff: 'hard', os: 'Windows', min: 16, date: '2026-09', tags: ['Pre2K', 'gMSA', 'Kerberos', 'RBCD', 'Constrained delegation'], scene: 'ship',
+      sum: 'Pre-Windows 2000 computer accounts leak a gMSA hash over Kerberos, landing WinRM on the DC. NTLM coercion relayed to unsigned LDAP configures RBCD for Administrator on WEB01, then an SPN moved onto the DC turns constrained delegation into Domain Admin.',
+      chain: ['Pre2K accounts', 'gMSA hash', 'WinRM on DC', 'RBCD', 'Domain Admin'], cat: 'Active Directory' },
+    { name: 'DarkZero', diff: 'hard', os: 'Windows', min: 5, date: '2025-10', tags: ['MSSQL', 'Kerberos', 'CVE-2024-30088', 'Golden Ticket', 'PetitPotam'], scene: 'void',
+      sum: 'Active Directory box featuring MSSQL lateral movement across two domains, kernel exploitation (CVE-2024-30088) via Metasploit, and Golden Ticket via Rubeus + PetitPotam to compromise the forest.',
+      chain: ['MSSQL', 'Cross-domain link', 'CVE-2024-30088', 'Golden Ticket', 'Forest'], cat: 'Active Directory' },
+    { name: 'Gavel', diff: 'medium', os: 'Linux', min: 6, date: '2025-10', tags: ['git-dumper', 'SQLi', 'PHP', 'Rule engine RCE'], scene: 'gavel',
+      sum: 'Exposed .git repo leaks PHP source revealing a SQLi, admin panel RCE via PHP rule engine, then privesc by abusing a root-run auction daemon that executes YAML-defined PHP rules.',
+      chain: ['.git leak', 'SQLi', 'Rule engine RCE', 'Auction daemon', 'root'], cat: 'Web' },
+    { name: 'Kobold', diff: 'easy', os: 'Linux', min: 7, date: '2026-03', tags: ['Subdomain enumeration', 'MCP', 'CVE-2026-23744', 'Docker'], scene: 'lantern',
+      sum: 'A wildcard TLS certificate leaks a subdomain running MCPJam Inspector v1.4.2, whose /api/mcp/connect endpoint executes attacker-supplied commands with no authentication. Privesc via docker group membership.',
+      chain: ['TLS cert', 'Subdomain', 'MCPJam RCE', 'docker group', 'root'], cat: 'Web' },
+    { name: 'CCTV', diff: 'easy', os: 'Linux', min: 8, date: '2026-03', tags: ['ZoneMinder', 'SQLi', 'CVE-2024-51482', 'CVE-2025-60787'], scene: 'camera',
+      sum: 'Default credentials on an exposed ZoneMinder console lead to a blind SQL injection (CVE-2024-51482) that dumps a crackable hash for SSH. Root comes from a loopback-bound motionEye reached over an SSH tunnel.',
+      chain: ['Default creds', 'Blind SQLi', 'SSH', 'motionEye', 'root'], cat: 'Web' },
+    { name: 'Shocker', diff: 'easy', os: 'Linux', min: 6, date: '2026-07', tags: ['CGI', 'Shellshock', 'CVE-2014-6271', 'GTFOBins'], scene: 'bolt',
+      sum: 'A CGI shell script backed by a vulnerable Bash lets a crafted HTTP header trigger Shellshock (CVE-2014-6271) for RCE. Privesc via a passwordless sudo rule on perl.',
+      chain: ['CGI script', 'Shellshock', 'Shell', 'sudo perl', 'root'], cat: 'Web' },
+    { name: 'Return', diff: 'easy', os: 'Windows', min: 2, date: '2025-10', tags: ['LDAP', 'Printer', 'Server Operators'], scene: 'printer',
+      sum: 'LDAP credential capture from a printer web panel, followed by Server Operators privilege escalation via service binary path modification.',
+      chain: ['Printer panel', 'LDAP creds', 'Server Operators', 'Service path', 'SYSTEM'], cat: 'Active Directory' },
+    { name: 'Cicada', diff: 'easy', os: 'Windows', min: 5, date: '2025-10', tags: ['SMB', 'Password spray', 'SeBackupPrivilege'], scene: 'cicada',
+      sum: 'Beginner-friendly Windows AD box: anonymous SMB enumeration leads to default credentials, password spraying finds a foothold, and SeBackupPrivilege escalates to Administrator via SAM dump.',
+      chain: ['Anonymous SMB', 'Default creds', 'Password spray', 'SeBackupPrivilege', 'Administrator'], cat: 'Active Directory' },
+    { name: 'Expressway', diff: 'easy', os: 'Linux', min: 3, date: '2025-09', tags: ['IKE', 'PSK crack', 'CVE-2025-32463'], scene: 'road',
+      sum: 'Linux box with IKE/ISAKMP on UDP/500: crack the PSK with psk-crack, SSH in, then exploit a vulnerable sudo version (CVE-2025-32463) to root.',
+      chain: ['IKE on UDP/500', 'PSK crack', 'SSH', 'sudo CVE-2025-32463', 'root'], cat: 'Linux' },
+  ].map(w => ({ ...w, href: LOCAL.has(w.name) ? `/writeups/htb-${w.name.toLowerCase()}/` : `https://certifa.net/writeups/htb-${w.name.toLowerCase()}/`,
+    hay: [w.name, w.diff, w.os, w.cat, w.sum, ...w.tags, ...w.chain].join(' ').toLowerCase() }));
+
+  const newest = W.reduce((a, b) => a.date > b.date ? a : b);
+
+  const ICO = {
+    search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+    terminal: '<path d="m4 17 6-6-6-6"/><path d="M12 19h8"/>',
+    monitor: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',
+    mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+    arrow: '<path d="M7 17 17 7M8 7h9v9"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  };
+  const paint = root => root.querySelectorAll('i[data-i]').forEach(el => { el.innerHTML = `<svg viewBox="0 0 24 24">${ICO[el.dataset.i] || ''}</svg>`; });
+
+  const B = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(v => (v + 0.5) / 16), PX = 3;
+  const hash = (x, y) => { const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return n - Math.floor(n); };
+  const sm = t => t * t * (3 - 2 * t);
+  const noise = (x, y) => { const xi = Math.floor(x), yi = Math.floor(y), xf = sm(x - xi), yf = sm(y - yi); const a = hash(xi, yi), b = hash(xi + 1, yi), c = hash(xi, yi + 1), d = hash(xi + 1, yi + 1); return a + (b - a) * xf + (c - a) * yf + (a - b - c + d) * xf * yf; };
+  const fbm = (x, y) => noise(x, y) * .6 + noise(x * 2.1, y * 2.1) * .3 + noise(x * 4.3, y * 4.3) * .1;
+  function surface(cv) {
+    const dpr = devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+    if (cv.width !== w * dpr || cv.height !== h * dpr) { cv.width = w * dpr; cv.height = h * dpr; }
+    const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h); ctx.fillStyle = '#9a9a9a';
+    return [ctx, Math.ceil(w / PX), Math.ceil(h / PX)];
   }
 
-  buttons.forEach((button) => {
-    button.addEventListener('click', () => {
-      difficulty = button.dataset.filter!;
-      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b === button)));
-      apply();
-    });
-  });
-
-  // Delegated, because a tag appears on several cards.
-  document.getElementById('grid')!.addEventListener('click', (event) => {
-    const button = (event.target as HTMLElement).closest('.tag') as HTMLElement | null;
-    if (!button) return;
-    tag = button.dataset.tag === tag ? null : button.dataset.tag!;
-    apply();
-  });
-
-  document.getElementById('clearTag')!.addEventListener('click', () => { tag = null; apply(); });
-  q.addEventListener('input', apply);
-
-  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    gsap.timeline({ delay: 0.15 })
-      .to('.open .eyebrow', { opacity: 1, duration: 0.5, ease: 'power2.out' })
-      .to('.lead .ln .i', { y: '0%', duration: 0.82, ease: 'power4.out', stagger: 0.085 }, '-=.28')
-      .to('.lede', { opacity: 1, duration: 0.7, ease: 'power2.out' }, '-=.34');
+  function dither(cv, scene, t = 0) {
+    const SW = 640, SH = 400;
+    const hi = document.createElement('canvas'); hi.width = SW; hi.height = SH;
+    const g = hi.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, SW, SH);
+    window.SCENES[scene](g, t);
+    const [ctx, cols, rows] = surface(cv);
+    const off = document.createElement('canvas'); off.width = cols; off.height = rows;
+    const o = off.getContext('2d'); const r = Math.max(cols / SW, rows / SH);
+    o.drawImage(hi, (cols - SW * r) / 2, (rows - SH * r) / 2, SW * r, SH * r);
+    const d = o.getImageData(0, 0, cols, rows).data;
+    for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+      const v = d[(y * cols + x) * 4] / 255 + (fbm(x * 0.06, y * 0.06) - 0.5) * 0.08;
+      if (v > B[(y % 4) * 4 + (x % 4)]) ctx.fillRect(x * PX, y * PX, PX - 0.6, PX - 0.6);
+    }
   }
+
+  function sizes(hits) {
+    const out = new Map();
+    for (const d of ['hard', 'medium', 'easy']) {
+      const g = hits.filter(w => w.diff === d), per = { hard: 2, medium: 1, easy: 3 }[d], rest = g.length % per;
+      g.forEach((w, i) => {
+        const tail = i >= g.length - rest;
+        out.set(w, per === 1 || (tail && rest === 1) ? 'wide' : per === 2 || (tail && rest === 2) ? 'half' : 'third');
+      });
+    }
+    return out;
+  }
+
+  const grid = document.getElementById('grid'), empty = document.getElementById('empty'), count = document.getElementById('count');
+  const cap = s => s[0].toUpperCase() + s.slice(1);
+  const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const state = { q: '', diff: 'all', os: 'all' };
+
+  function mark(text, terms) {
+    if (!terms.length) return text;
+    const re = new RegExp(`(${terms.map(esc).join('|')})`, 'gi');
+    return text.replace(re, '<mark>$1</mark>');
+  }
+
+  function stopAllAnimations() {
+    grid.querySelectorAll('canvas.thumb').forEach(cv => { if (cv._raf) { cancelAnimationFrame(cv._raf); cv._raf = 0; } });
+  }
+
+  function render() {
+    stopAllAnimations();
+    const terms = state.q.toLowerCase().split(/\s+/).filter(Boolean);
+    const hits = W.filter(w => (state.diff === 'all' || w.diff === state.diff) && (state.os === 'all' || w.os.toLowerCase() === state.os) && terms.every(t => w.hay.includes(t)));
+    count.textContent = hits.length === W.length ? '9 writeups' : `${hits.length} of 9`;
+    empty.hidden = hits.length > 0;
+
+    // live filter counts
+    const diffG = document.getElementById('fDiff'), osG = document.getElementById('fOs');
+    diffG.querySelectorAll('button').forEach(b => {
+      const v = b.dataset.v, subset = W.filter(w => (v === 'all' || w.diff === v) && (state.os === 'all' || w.os.toLowerCase() === state.os) && terms.every(t => w.hay.includes(t)));
+      const sm = b.querySelector('small'); if (sm) sm.textContent = subset.length;
+      b.style.opacity = subset.length === 0 && v !== 'all' ? '.4' : '';
+    });
+    osG.querySelectorAll('button').forEach(b => {
+      const v = b.dataset.v, subset = W.filter(w => (state.diff === 'all' || w.diff === state.diff) && (v === 'all' || w.os.toLowerCase() === v) && terms.every(t => w.hay.includes(t)));
+      const sm = b.querySelector('small'); if (sm) sm.textContent = subset.length;
+      b.style.opacity = subset.length === 0 && v !== 'all' ? '.4' : '';
+    });
+
+    const size = sizes(hits);
+    grid.innerHTML = hits.map(w => {
+      const sz = size.get(w);
+      const isNew = w === newest;
+      const chainHtml = w.chain.map((s, i) => `<span${i === 0 ? ' class="first"' : ''} style="animation-delay:${i * 0.12}s">${s}</span>`).join('<span class="arr">›</span>');
+      return `<a class="card ${sz}" href="${w.href}">
+      <div class="thumbwrap"><canvas class="thumb" data-scene="${w.scene}" aria-hidden="true"></canvas>
+        <div class="pills">${isNew ? '<span class="pill new">New</span>' : ''}<span class="diff ${w.diff}">${cap(w.diff)}</span></div>
+        <div class="chain">${chainHtml}</div>
+      </div>
+      <div class="info">
+        <div class="meta"><i data-i="${w.os === 'Windows' ? 'monitor' : 'terminal'}"></i>${w.os}<span class="sep"></span>${fmtDate(w.date)}<span class="sep"></span><i data-i="clock"></i>${w.min} min read</div>
+        <h3>${mark(w.name, terms)}</h3>
+        <p class="sum">${mark(w.sum, terms)}</p>
+        <div class="tags">${w.tags.map(t => `<span>${mark(t, terms)}</span>`).join('')}</div>
+        <span class="more">Read the walkthrough <i data-i="arrow"></i></span>
+      </div></a>`;
+    }).join('');
+    paint(grid);
+    grid.querySelectorAll('canvas.thumb').forEach(cv => {
+      dither(cv, cv.dataset.scene, 0);
+      if (!reduce) setupHoverAnim(cv);
+    });
+  }
+
+  function setupHoverAnim(cv) {
+    const card = cv.closest('.card');
+    const scene = cv.dataset.scene;
+    let start = 0, last = 0;
+    const tick = now => {
+      if (!start) start = now;
+      if (now - last > 80) { dither(cv, scene, (now - start) / 1000); last = now; }
+      cv._raf = requestAnimationFrame(tick);
+    };
+    const enter = () => { if (cv._raf) return; start = last = 0; cv._raf = requestAnimationFrame(tick); };
+    const leave = () => { if (cv._raf) { cancelAnimationFrame(cv._raf); cv._raf = 0; } dither(cv, scene, 0); };
+    card.addEventListener('mouseenter', enter);
+    card.addEventListener('mouseleave', leave);
+    card.addEventListener('focusin', enter);
+    card.addEventListener('focusout', leave);
+  }
+
+  // search and filters
+  const input = document.getElementById('q');
+  const params = new URLSearchParams(location.search);
+  if (params.get('q')) { input.value = params.get('q'); state.q = input.value; }
+  input.addEventListener('input', () => { state.q = input.value; render(); });
+  addEventListener('keydown', e => {
+    if (e.key === '/' && document.activeElement !== input) { e.preventDefault(); input.focus(); }
+    if (e.key === 'Escape' && document.activeElement === input) input.blur();
+    if (e.key === 'Enter' && document.activeElement === input) { const first = grid.querySelector('.card'); if (first) { e.preventDefault(); first.click(); } }
+  });
+  for (const [id, key] of [['fDiff', 'diff'], ['fOs', 'os']]) {
+    const g = document.getElementById(id);
+    g.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      state[key] = b.dataset.v;
+      g.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+      render();
+    });
+  }
+  document.getElementById('reset').addEventListener('click', () => {
+    state.q = ''; state.diff = 'all'; state.os = 'all'; input.value = '';
+    document.querySelectorAll('.group button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === 'all'));
+    render();
+  });
+
+  paint(document);
+  render();
+  addEventListener('resize', () => grid.querySelectorAll('canvas.thumb').forEach(cv => dither(cv, cv.dataset.scene, 0)));
+
+  // reading progress
+  const bar = document.getElementById('progress');
+  const prog = () => { const max = document.documentElement.scrollHeight - innerHeight; bar.style.transform = `scaleX(${max > 0 ? scrollY / max : 0})`; };
+  addEventListener('scroll', prog, { passive: true }); prog();
+
+  // header marquee
+  const mq = document.getElementById('marquee'), wm = document.getElementById('wordmark');
+  const NAMES = W.map(w => w.name.toUpperCase()).join('   ') + '   ';
+  let mqMask = null, mqW = 0, wmMask = null, wmW = 0;
+  function textMask(cols, rows, text, fit) {
+    const off = document.createElement('canvas'); const o = off.getContext('2d');
+    let size = rows * 0.95; o.font = `600 ${size}px Geist, sans-serif`;
+    if (fit) size *= (cols * 0.96) / o.measureText(text).width;
+    o.font = `600 ${size}px Geist, sans-serif`;
+    const w = fit ? cols : Math.ceil(o.measureText(text).width);
+    off.width = w; off.height = rows; o.font = `600 ${size}px Geist, sans-serif`; o.fillStyle = '#fff'; o.textAlign = fit ? 'center' : 'left';
+    o.fillText(text, fit ? w / 2 : 0, rows * 0.86);
+    return { data: o.getImageData(0, 0, w, rows).data, w };
+  }
+  function marquee(t) {
+    if (!mq.clientWidth || !mq.clientHeight) return;
+    const [ctx, cols, rows] = surface(mq);
+    if (!mqMask || mqW !== cols) { mqW = cols; mqMask = textMask(cols, rows, NAMES, false); }
+    const shift = Math.floor(t * 6) % mqMask.w;
+    for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+      const sx = (x + shift) % mqMask.w, a = mqMask.data[(y * mqMask.w + sx) * 4 + 3] / 255; if (!a) continue;
+      const edge = Math.min(x, cols - x) / (cols * 0.18);
+      if (a * 0.55 * Math.min(1, edge) > B[(y % 4) * 4 + (x % 4)]) ctx.fillRect(x * PX, y * PX, PX - 0.6, PX - 0.6);
+    }
+  }
+  function wordmark(t) {
+    if (!wm.clientWidth || !wm.clientHeight) return;
+    const [ctx, cols, rows] = surface(wm);
+    if (!wmMask || wmW !== cols) { wmW = cols; wmMask = textMask(cols, rows, 'certifa', true); }
+    const sweep = (t * 0.08) % 1.6 - 0.3;
+    for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+      const a = wmMask.data[(y * cols + x) * 4 + 3] / 255; if (!a) continue;
+      const val = a * (0.85 - (y / rows) * 0.6) + Math.max(0, 0.25 - Math.abs(x / cols - sweep) * 1.5);
+      if (val > B[(y % 4) * 4 + (x % 4)]) ctx.fillRect(x * PX, y * PX, PX - 0.6, PX - 0.6);
+    }
+  }
+  const seen = new Map();
+  const vis = new IntersectionObserver(es => es.forEach(e => seen.set(e.target, e.isIntersecting)));
+  vis.observe(mq); vis.observe(wm);
+  document.fonts.ready.then(() => {
+    marquee(0); wordmark(0);
+    addEventListener('resize', () => { mqMask = wmMask = null; marquee(0); wordmark(0); });
+    if (reduce) return;
+    let last = 0;
+    const loop = n => { if (!document.hidden && n - last > 70) { if (seen.get(mq)) marquee(n / 1000); if (seen.get(wm)) wordmark(n / 1000); last = n; } requestAnimationFrame(loop); };
+    requestAnimationFrame(loop);
+  });
+})();
 </script>

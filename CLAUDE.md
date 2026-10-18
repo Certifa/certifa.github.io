@@ -1,5 +1,45 @@
 # CLAUDE.md — Certifa (certifa.net)
 
+## ⚠️ Design was replaced (2026-10-18)
+
+The site was rebuilt on a **completely new visual design** on the `new-design`
+branch. The old system described further down (green `#4ade80` accent, Anton +
+Inter, Tailwind, AIDesigner WebGL backgrounds, the six AIDesigner exports as
+"design source of truth") **no longer applies**. Treat everything below the
+line as historical unless it is about the Astro plumbing (SEO, share cards,
+content collection, the contact Worker, deployment), which was kept.
+
+**The new design, in short:**
+- Dark `#0a0a0a`, a single **blue** accent `#5b8cff`, **Geist** + **Geist Mono**.
+- A dithered (Bayer 4×4) treatment on canvas elements: the footer "certifa"
+  wordmark, the writeups marquee, each machine's header scene, the og image.
+- Plain CSS, **no Tailwind**. Tokens live in `src/styles/global.css` (`:root`),
+  which also holds the shell (nav, `.sec`, `.diff`, footer). Each shell page
+  carries its full page CSS in an `is:global` `<style>` block (ported 1:1 from
+  the approved prototype), so the shared `Nav`/`Footer` are styled by whichever
+  page renders them. Writeup pages get their shell from `WriteupLayout`.
+- **No WebGL / AIDesigner / Three.js.** Smooth scroll is **Lenis** (npm
+  dependency, imported in `BaseLayout`), off on writeup pages (long reads want
+  native scroll). Writeup header scenes come from `public/writeups/scenes.js`
+  (`window.SCENES`).
+- Logos are self-hosted SVGs in `public/icons/` (the live CSP blocks remote
+  images). `public/favicon.svg` is the blue "c".
+
+**The design authority is now the approved prototype** in
+`../../design-inspiratie/Certifa/` (relative to this repo, under
+`Desktop/IT/design-inspiratie/Certifa/`), with the reasoning in
+`design-inspiratie/refs/certifa/brief.md`. The `.astro` pages were ported from
+those static HTML/CSS/JS files. Unused old components (`BrandMark`,
+`ContactForm`, `CardMotif`, `WriteupFeature`) and `src/data/htb.ts` remain in
+the tree but are no longer imported; they can be deleted.
+
+Share cards use the new design too (Geist + Geist Mono TTFs in `src/assets/og-fonts/`, blue accent). `OG_VERSION` is `v6`. Anton/JetBrains TTFs stay only for the profile banner.
+
+Writeup frontmatter gained two optional fields for the new header: `scene` (a
+`scenes.js` key) and `chain` (the attack-chain steps shown as a rail).
+
+---
+
 ## Project
 
 Multi-page portfolio and writeup hub for Mike (**Certifa**), an offensive-security student and pentester. Dark, near-black, with a single green accent. Shell pages (home, about, projects, contact, 404) carry the visual flair; writeup pages stay clean for reading.

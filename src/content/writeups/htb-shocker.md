@@ -6,6 +6,8 @@ difficulty: easy
 platform: HTB
 description: "A CGI shell script backed by a vulnerable Bash lets a crafted HTTP header trigger Shellshock (CVE-2014-6271) for RCE. Privesc via a passwordless sudo rule on perl, one GTFOBins command to root."
 featured: true
+scene: bolt
+chain: ["CGI script", "Shellshock", "Shell", "sudo perl", "root"]
 ---
 
 ## Overview
